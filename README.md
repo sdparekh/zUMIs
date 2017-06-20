@@ -11,11 +11,9 @@ The input to this pipeline is paired-end fastq files, where one read contains th
 ## Usage example
 
 ```
-<<<<<<< HEAD
 bash zUMIs-master.sh -f barcoderead.fastq -r cdnaread.fastq -n test -g hg38_STAR5idx_noGTF/ -o ./ -a Homo_sapiens.GRCh38.84.gtf -p 8 -s 0 -d 100000 -c 1-6 -m 7-16 -l 50 -b 384 -x "--outFilterMismatchNoverLmax 0.2 --quantMode TranscriptomeSAM"
-=======
+
 bash zUMIs-master.sh -f R1.fastq -r R2.fastq -n test -g hg38_STAR5idx_noGTF/ -o ./ -a Homo_sapiens.GRCh38.84.gtf -p 8 -s 0 -d 100000 -c 1-6 -m 7-16 -l 50 -b 384 -x "--outFilterMismatchNoverLmax 0.2 --quantMode TranscriptomeSAM"
->>>>>>> e3af221a021e1519af9bf9a4e96cd8f32ed8e173
 ```
 
 
