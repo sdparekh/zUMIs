@@ -1,6 +1,5 @@
-# zUMIs
-## Overview
-Welcome to zUMIs :red_car::dash: !
+# Welcome to zUMIs :red_car::dash: !
+
 zUMIs is a fast and flexible pipeline to process RNA-seq data with UMIs.
 
 The input to this pipeline is paired-end fastq files, where one read contains the cDNA sequence and the other read contains UMI and Cell Barcode information. Furthermore, you will need a STAR index for your genome (see below).
