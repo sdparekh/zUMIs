@@ -1,3 +1,4 @@
+# zUMIs
 ## Overview
 Welcome to zUMIs :red_car::dash: !
 zUMIs is a fast and flexible pipeline to process RNA-seq data with UMIs.
@@ -137,4 +138,3 @@ zUMIs_output/stats
 ## Getting help
 
 Please report bugs :beetle::bug: to the [zUMIs Github issue page](https://github.com/sdparekh/zUMIs/issues)
-# zUMIs
