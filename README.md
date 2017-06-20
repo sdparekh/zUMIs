@@ -1,4 +1,4 @@
-# Welcome to zUMIs :red_car::dash: !
+# Welcome to zUMIs :red_car::dash:
 
 zUMIs is a fast and flexible pipeline to process RNA-seq data with UMIs.
 
