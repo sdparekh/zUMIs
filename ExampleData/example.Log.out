@@ -147,41 +147,41 @@ quantTranscriptomeBan             IndelSoftclipSingleend
 twopass1readsN                    18446744073709551615
 twopassMode                       None
 ##### Command Line:
-STAR --genomeDir /data/ngs/genomes/Human/hg38/STAR5idx_noGTF/ --runThreadN 1 --readFilesCommand zcat --sjdbGTFfile /data/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf --outFileNamePrefix /data/share/htp/zUMIs_paper/GitHub_exampledata/example. --outSAMtype BAM Unsorted --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --sjdbOverhang 49 --twopassMode Basic --readFilesIn /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz
+STAR --genomeDir /data/share/ngs/genomes/Human/hg38/STAR5idx_noGTF/ --runThreadN 15 --readFilesCommand zcat --sjdbGTFfile /data/share/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf --outFileNamePrefix /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example. --outSAMtype BAM Unsorted --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --sjdbOverhang 49 --twopassMode Basic --readFilesIn /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz
 ##### Initial USER parameters from Command Line:
-outFileNamePrefix                 /data/share/htp/zUMIs_paper/GitHub_exampledata/example.
+outFileNamePrefix                 /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.
 ###### All USER parameters from Command Line:
-genomeDir                     /data/ngs/genomes/Human/hg38/STAR5idx_noGTF/     ~RE-DEFINED
-runThreadN                    1     ~RE-DEFINED
+genomeDir                     /data/share/ngs/genomes/Human/hg38/STAR5idx_noGTF/     ~RE-DEFINED
+runThreadN                    15     ~RE-DEFINED
 readFilesCommand              zcat        ~RE-DEFINED
-sjdbGTFfile                   /data/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf     ~RE-DEFINED
-outFileNamePrefix             /data/share/htp/zUMIs_paper/GitHub_exampledata/example.     ~RE-DEFINED
+sjdbGTFfile                   /data/share/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf     ~RE-DEFINED
+outFileNamePrefix             /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.     ~RE-DEFINED
 outSAMtype                    BAM   Unsorted        ~RE-DEFINED
 outSAMmultNmax                1     ~RE-DEFINED
 outFilterMultimapNmax         50     ~RE-DEFINED
 outSAMunmapped                Within        ~RE-DEFINED
 sjdbOverhang                  49     ~RE-DEFINED
 twopassMode                   Basic     ~RE-DEFINED
-readFilesIn                   /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz        ~RE-DEFINED
+readFilesIn                   /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz        ~RE-DEFINED
 ##### Finished reading parameters from all sources
 
 ##### Final user re-defined parameters-----------------:
-runThreadN                        1
-genomeDir                         /data/ngs/genomes/Human/hg38/STAR5idx_noGTF/
-readFilesIn                       /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz   
+runThreadN                        15
+genomeDir                         /data/share/ngs/genomes/Human/hg38/STAR5idx_noGTF/
+readFilesIn                       /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz   
 readFilesCommand                  zcat   
-outFileNamePrefix                 /data/share/htp/zUMIs_paper/GitHub_exampledata/example.
+outFileNamePrefix                 /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.
 outSAMtype                        BAM   Unsorted   
 outSAMunmapped                    Within   
 outSAMmultNmax                    1
 outFilterMultimapNmax             50
-sjdbGTFfile                       /data/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf
+sjdbGTFfile                       /data/share/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf
 sjdbOverhang                      49
 twopassMode                       Basic
 
 -------------------------------
 ##### Final effective command line:
-STAR   --runThreadN 1   --genomeDir /data/ngs/genomes/Human/hg38/STAR5idx_noGTF/   --readFilesIn /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz      --readFilesCommand zcat      --outFileNamePrefix /data/share/htp/zUMIs_paper/GitHub_exampledata/example.   --outSAMtype BAM   Unsorted      --outSAMunmapped Within      --outSAMmultNmax 1   --outFilterMultimapNmax 50   --sjdbGTFfile /data/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf   --sjdbOverhang 49   --twopassMode Basic
+STAR   --runThreadN 15   --genomeDir /data/share/ngs/genomes/Human/hg38/STAR5idx_noGTF/   --readFilesIn /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz      --readFilesCommand zcat      --outFileNamePrefix /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.   --outSAMtype BAM   Unsorted      --outSAMunmapped Within      --outSAMmultNmax 1   --outFilterMultimapNmax 50   --sjdbGTFfile /data/share/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf   --sjdbOverhang 49   --twopassMode Basic
 
 ##### Final parameters after user input--------------------------------:
 versionSTAR                       20201
@@ -189,10 +189,10 @@ versionGenome                     20101   20200
 parametersFiles                   -   
 sysShell                          -
 runMode                           alignReads
-runThreadN                        1
+runThreadN                        15
 runDirPerm                        User_RWX
 runRNGseed                        777
-genomeDir                         /data/ngs/genomes/Human/hg38/STAR5idx_noGTF/
+genomeDir                         /data/share/ngs/genomes/Human/hg38/STAR5idx_noGTF/
 genomeLoad                        NoSharedMemory
 genomeFastaFiles                  -   
 genomeChainFiles                  -   
@@ -201,7 +201,7 @@ genomeChrBinNbits                 18
 genomeSAsparseD                   1
 genomeSuffixLengthMax             18446744073709551615
 genomeFileSizes                   0   
-readFilesIn                       /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz   
+readFilesIn                       /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz   
 readFilesCommand                  zcat   
 readMatesLengthsIn                NotEqual
 readMapNumber                     18446744073709551615
@@ -216,7 +216,7 @@ limitOutSJcollapsed               1000000
 limitOutSJoneRead                 1000
 limitBAMsortRAM                   0
 limitSjdbInsertNsj                1000000
-outFileNamePrefix                 /data/share/htp/zUMIs_paper/GitHub_exampledata/example.
+outFileNamePrefix                 /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.
 outTmpDir                         -
 outTmpKeep                        None
 outStd                            Log
@@ -317,7 +317,7 @@ chimOutType                       SeparateSAMold
 chimFilter                        banGenomicN   
 chimSegmentReadGapMax             0
 sjdbFileChrStartEnd               -   
-sjdbGTFfile                       /data/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf
+sjdbGTFfile                       /data/share/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf
 sjdbGTFchrPrefix                  -
 sjdbGTFfeatureExon                exon
 sjdbGTFtagExonParentTranscript    transcript_id
@@ -333,13 +333,13 @@ twopassMode                       Basic
 ----------------------------------------
 
 
-   Input read files for mate 1, from input string /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz
--rw-r--r-- 1 ziegenhain ngs 48683440 Jun 20 08:16 /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz
+   Input read files for mate 1, from input string /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz
+-rw-r--r-- 1 parekh common 40267824 Jun 22 19:13 /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz
 
    readsCommandsFile:
-exec > "/data/share/htp/zUMIs_paper/GitHub_exampledata/example._STARtmp/tmp.fifo.read1"
+exec > "/data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example._STARtmp/tmp.fifo.read1"
 echo FILE 0
-zcat      "/data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz"
+zcat      "/data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz"
 
 Finished loading and checking parameters
 Reading genome generation parameters:
@@ -813,7 +813,7 @@ Number of real (reference) chromosomes= 455
 453	chrX	156040895	3066036224
 454	chrY	57227415	3222274048
 455	chrY_KI270740v1_random	37240	3279683584
-Started loading the genome: Tue Jun 20 08:17:14 2017
+Started loading the genome: Thu Jun 22 19:13:45 2017
 
 Checking Genome sizefile size: 3279945728 bytes; state: good=1 eof=0 fail=0 bad=0
 Checking SA sizefile size: 25156855213 bytes; state: good=1 eof=0 fail=0 bad=0
@@ -827,52 +827,136 @@ Loading Genome ... done! state: good=1 eof=0 fail=0 bad=0; loaded 3279945728 byt
 SA file size: 25156855213 bytes; state: good=1 eof=0 fail=0 bad=0
 Loading SA ... done! state: good=1 eof=0 fail=0 bad=0; loaded 25156855213 bytes
 Loading SAindex ... done: 1565873619 bytes
-Finished loading the genome: Tue Jun 20 08:19:11 2017
+Finished loading the genome: Thu Jun 22 19:14:10 2017
 
 alignIntronMax=alignMatesGapMax=0, the max intron size will be approximately determined by (2^winBinNbits)*winAnchorDistNbins=589824
-Jun 20 08:19:11 ..... processing annotations GTF
-Processing sjdbGTFfile=/data/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf, found:
+Jun 22 19:14:10 ..... processing annotations GTF
+Processing sjdbGTFfile=/data/share/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf, found:
 		199184 transcripts
 		1176808 exons (non-collapsed)
 		348697 collapsed junctions
-Jun 20 08:19:38 ..... finished GTF processing
-Jun 20 08:19:38   Loaded database junctions from the GTF file: /data/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf: 348697 total junctions
+Jun 22 19:14:34 ..... finished GTF processing
+Jun 22 19:14:34   Loaded database junctions from the GTF file: /data/share/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf: 348697 total junctions
 
 WARNING: long repeat for junction # 115413 : chr15 88855522 88855578; left shift = 14; right shift = 255
 WARNING: long repeat for junction # 157788 : chr18 46969610 47029116; left shift = 183; right shift = 255
-Jun 20 08:19:39   Finished preparing junctions
-Jun 20 08:19:39 ..... inserting junctions into the genome indices
-Jun 20 08:28:20   Finished SA search: number of new junctions=348621, old junctions=0
-Jun 20 08:28:49   Finished sorting SA indicesL nInd=68329716
-Jun 20 08:30:38   Finished inserting junction indices
-Jun 20 08:31:06   Finished SAi
-Jun 20 08:31:06 ..... finished inserting junctions into genome
+Jun 22 19:14:35   Finished preparing junctions
+Jun 22 19:14:35 ..... inserting junctions into the genome indices
+Jun 22 19:15:08   Finished SA search: number of new junctions=348621, old junctions=0
+Jun 22 19:15:34   Finished sorting SA indicesL nInd=68329716
+Jun 22 19:17:14   Finished inserting junction indices
+Jun 22 19:17:41   Finished SAi
+Jun 22 19:17:42 ..... finished inserting junctions into genome
+Created thread # 1
+Created thread # 2
+Created thread # 3
+Created thread # 4
+Created thread # 5
 Starting to map file # 0
-mate 1:   /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz
-Thread #0 end of input stream, nextChar=-1
+mate 1:   /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz
+Created thread # 6
+Created thread # 7
+Created thread # 8
+Created thread # 9
+Created thread # 10
+Created thread # 11
+Created thread # 12
+Created thread # 13
+Created thread # 14
+Thread #4 end of input stream, nextChar=-1
+Completed: thread #6
+Completed: thread #7
+Completed: thread #8
+Completed: thread #11
+Completed: thread #9
+Completed: thread #13
+Completed: thread #10
+Completed: thread #12
 Completed: thread #0
-Jun 20 08:32:03   Loaded database junctions from the 1st pass file: /data/share/htp/zUMIs_paper/GitHub_exampledata/example._STARpass1//SJ.out.tab: 370035 total junctions
+Completed: thread #14
+Completed: thread #4
+Completed: thread #1
+Joined thread # 1
+Completed: thread #2
+Joined thread # 2
+Completed: thread #3
+Joined thread # 3
+Joined thread # 4
+Completed: thread #5
+Joined thread # 5
+Joined thread # 6
+Joined thread # 7
+Joined thread # 8
+Joined thread # 9
+Joined thread # 10
+Joined thread # 11
+Joined thread # 12
+Joined thread # 13
+Joined thread # 14
+Jun 22 19:17:54   Loaded database junctions from the 1st pass file: /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example._STARpass1//SJ.out.tab: 368090 total junctions
 
 WARNING: long repeat for junction # 115413 : chr15 88855522 88855578; left shift = 14; right shift = 255
 WARNING: long repeat for junction # 157788 : chr18 46969610 47029116; left shift = 183; right shift = 255
-Jun 20 08:32:04   Finished preparing junctions
-Jun 20 08:32:04 ..... inserting junctions into the genome indices
-Jun 20 08:32:07   Finished SA search: number of new junctions=839, old junctions=348621
-Jun 20 08:32:08   Finished sorting SA indicesL nInd=164410
-Jun 20 08:34:01   Finished inserting junction indices
-Jun 20 08:34:08   Finished SAi
-Jun 20 08:34:08 ..... finished inserting junctions into genome
+Jun 22 19:17:56   Finished preparing junctions
+Jun 22 19:17:56 ..... inserting junctions into the genome indices
+Jun 22 19:17:57   Finished SA search: number of new junctions=718, old junctions=348621
+Jun 22 19:17:57   Finished sorting SA indicesL nInd=140694
+Jun 22 19:19:42   Finished inserting junction indices
+Jun 22 19:19:48   Finished SAi
+Jun 22 19:19:48 ..... finished inserting junctions into genome
 
-   Input read files for mate 1, from input string /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz
--rw-r--r-- 1 ziegenhain ngs 48683440 Jun 20 08:16 /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz
+   Input read files for mate 1, from input string /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz
+-rw-r--r-- 1 parekh common 40267824 Jun 22 19:13 /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz
 
    readsCommandsFile:
-exec > "/data/share/htp/zUMIs_paper/GitHub_exampledata/example._STARtmp/tmp.fifo.read1"
+exec > "/data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example._STARtmp/tmp.fifo.read1"
 echo FILE 0
-zcat      "/data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz"
+zcat      "/data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz"
 
+Created thread # 1
+Created thread # 2
+Created thread # 3
+Created thread # 4
 Starting to map file # 0
-mate 1:   /data/share/htp/zUMIs_paper/GitHub_exampledata/example.cdnaread.filtered.fastq.gz
-Thread #0 end of input stream, nextChar=-1
+mate 1:   /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/example.cdnaread.filtered.fastq.gz
+Created thread # 5
+Created thread # 6
+Created thread # 7
+Created thread # 8
+Created thread # 9
+Created thread # 10
+Created thread # 11
+Created thread # 12
+Created thread # 13
+Created thread # 14
+Thread #5 end of input stream, nextChar=-1
+Completed: thread #6
+Completed: thread #7
+Completed: thread #11
+Completed: thread #12
+Completed: thread #13
 Completed: thread #0
+Completed: thread #14
+Completed: thread #9
+Completed: thread #10
+Completed: thread #8
+Completed: thread #5
+Completed: thread #1
+Joined thread # 1
+Completed: thread #2
+Joined thread # 2
+Completed: thread #3
+Joined thread # 3
+Completed: thread #4
+Joined thread # 4
+Joined thread # 5
+Joined thread # 6
+Joined thread # 7
+Joined thread # 8
+Joined thread # 9
+Joined thread # 10
+Joined thread # 11
+Joined thread # 12
+Joined thread # 13
+Joined thread # 14
 ALL DONE!
