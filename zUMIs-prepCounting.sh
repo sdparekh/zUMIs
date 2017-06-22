@@ -17,10 +17,6 @@ echo '#SBATCH --workdir='$o >>$o/$sn.unmap.sh
 echo '#SBATCH --dependency=afterok:'$j >>$o/$sn.unmap.sh
 echo '#SBATCH --mem='$m >>$o/$sn.unmap.sh
 
-<<<<<<< HEAD
 echo "srun $samtoolsexc sort -n -O sam -T tmp.$sn -@ $t -m 2G -o $o/$sn.barcodelist.filtered.sort.sam $o/$sn.barcodelist.filtered.sam" >>$o/$sn.unmap.sh
-=======
-echo "srun $samtoolsexc sort -n -O sam -T temp -@ $t -m 2G -o $o/$sn.barcodelist.filtered.sort.sam $o/$sn.barcodelist.filtered.sam" >>$o/$sn.unmap.sh
->>>>>>> e3af221a021e1519af9bf9a4e96cd8f32ed8e173
 
 sbatch $o/$sn.unmap.sh > $o/$sn.unmapjobid.txt

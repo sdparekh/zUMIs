@@ -6,6 +6,8 @@ The input to this pipeline is paired-end fastq files, where one read contains th
 
 ![zUMIs Workflow](https://github.com/sdparekh/zUMIs/blob/master/zUMIs.png?raw=true)
 
+You can read more about zUMIs in our [biorxiv preprint](http://www.biorxiv.org/content/early/2017/06/22/153940)!
+
 
 ## Usage example
 
@@ -25,8 +27,11 @@ bash zUMIs-master.sh -f barcoderead.fastq -r cdnaread.fastq -n test -g hg38_STAR
 -	-g  <genomedir>          : Directory of STAR genome directory.  Required.
 -	-a  <GTF annotation>     : Path to GTF file. Required.
 -	-c  <XC baserange>       : Base range for cell/sample barcode in -f Barcode read(e.g. 1-6).  Required.
+                              For STRT-seq give this as 1-n where n is your first cell barcode(-f) length.
 -	-m  <XM baserange>       : Base range for UMI barcode in -f Barcode read(e.g. 7-16).  Required.
+                              For STRT-seq give this as 1-n where n is your UMI barcode length.
 -	-l  <readlength>         : Read length of -r cDNA reads (e.g. 50).  Required.
+                              For STRT-seq give this as a total length of your cdna read (length(umicdna)-length(umi)-BaseTrim).
 
 ### Default parameters
 -	-z  <cellbcbase>         : Cell barcodes with (-z)number of bases under the base quality(-q) is filtered out.  Default: 1.
@@ -35,23 +40,30 @@ bash zUMIs-master.sh -f barcoderead.fastq -r cdnaread.fastq -n test -g hg38_STAR
 -	-Q  <umibasequal>        : Minimum base quality required for molecular barcode to be accepted.  Default: 20.
 -	-p  <processors>         : Number of processors to use. Default: 1
 -	-s  <strandedness>	 : Is the library stranded? 0 = unstranded, 1 = positively stranded, 2 = negatively stranded Default: 0
--	-b  <Barcodes>           : Either number of cell/sample barcodes to output (in case of Drop-seq - e.g. 100) or defined barcodes as a text file (e.g. ATGCCAAT).  Default: 100. -The text file should contain just one column with a list of barcodes without headers and without sample names.
--	-d  <downsampling>	 : Number of reads to downsample to. Barcodes with less than <d> will not be reported. 0 means no downsampling. Default: 0.
+-	-b  <Barcodes>           : Either number of cell/sample barcodes to output (e.g. 100) or defined barcodes as a text file (e.g. ATGCCAAT).  Default: Automatic detection of relevant barcodes. Note: The text file should contain just one column with a list of barcodes without headers and without sample names.
+-	-d  <downsampling>	 : Number of reads to downsample to. Barcodes with less than <d> will not be reported. 0 means adaptive downsampling. Default: 0.
 -	-x  <STARparams>	 : Additional STAR mapping parameters. Optional. e.g. "--limitOutSJcollapsed 2000000 --limitSjdbInsertNsj 2000000 --quantMode TranscriptomeSAM".  This pipeline works based on one hit per read. Therefore, please do not report more multimapping hits. Default: "".
 
 ### Program paths
 -	-o  <outputdir>          : Where to write output bam. Default: working directory.
 -	-R  <isSLURM>		 : Do you have "SLURM" workload manger? yes/no. Default: no.
+-	-S  <isStats>		 : Do you want to produce summary stats? yes/no. Default: yes.
 -	-e  <STAR-executable>	 : path to STAR executable in your system. Default: STAR
 -	-t  <samtools-executable>: path to samtools executable in your system. Default: samtools
 -	-i  <zUMIs-dir>   	 : Directory containing zUMIs scripts.  Default: path to this script.
+-	-w  <whichStage>   	 : Start zUMIs from <-w TEXT> stage. Possible TEXT(Filtering, Mapping, Counting, Summarising). Default: Filtering. Make sure to give the same <outputdir> (-o) and <StudyName> (-n) if you start from the middle stage. zUMIs has a defined directory structure.
 
+### STRT-seq mode
+-	-y  <STRT-seq>		 : Do you have STRT-seq data? yes/no Default: no.
+-	-F  <BarcodeRead2 fastq> : In case dual index is used, provide the second cell barcode index read <-F> here. Default: NA.
+-	-C  <XC2 baserange> 	 : Base range for cell/sample barcode in -F Barcode read(e.g. 1-5).  Required.
+-	-j  <BaseTrim>		 : <-j INT> fixed number of bases(G) will be trimmed between UMI and cDNA read for STRT-seq. Default: 3.
 
 ## Preparing STAR index for mapping
 
 Please refer to the [STAR manual](https://github.com/alexdobin/STAR/blob/master/doc/STARmanual.pdf)!
 
-It is not necessary to generate the genome index with specific overhang and splice-site reference, zUMIs passes the GTF file to STAR while mapping to insert junctions on the fly.
+It is not necessary to generate the genome index with specific overhang and splice-site reference, zUMIs passes the GTF file to STAR while mapping to insert junctions on the fly. If you have spike-ins in your dataset, they can either be added in the genome and indexed or add on the fly while mapping by giving -x "--genomeFastaFiles spikes.fasta".
 
 Here is an example:
 
@@ -102,7 +114,7 @@ ipak <- function(pkg, repository = c("CRAN", "Bioconductor", "github")) {
 }
 
 #CRAN packages
-cranpackages <- c("dplyr","tidyr","parallel","reshape2","data.table","optparse","cowplot")
+cranpackages <- c("dplyr","tidyr","parallel","reshape2","data.table","optparse","cowplot","pastecs")
 ipak(cranpackages, repository = "CRAN")
 
 # BIOCONDUCTOR packages
@@ -126,10 +138,51 @@ zUMIs_output/stats
 ```
 
 - "filtered_fastq" contains the filtered, gzipped fastq files for cDNA and barcode reads.
-- "expression" contains .rds files of the generated reference annotation and expression tables. Further, expression tables are saved as tab-separated text files
+- "expression" contains .rds files of the generated reference annotation and expression tables.
 - "stats" contains plots and data files with descriptive statistics
 - a log file can be found in zUMIs_output/ with possible error messages
 - STAR output is stored in the parent directory defined by the user (-o)
+
+
+## Compatibility
+
+zUMIs is compatible with these single-cell UMI protocols:
+
+- CEL-seq with UMI (Grün et al., 2014)
+- SCRB-seq (Soumillon et al., 2014)
+- MARS-seq (Jaitin et al., 2014)
+- STRT-C1 (Islam et al., 2014)
+- Drop-seq (Macosko et al., 2015)
+- CEL-seq2 (Hashimshony et al., 2016)
+- SORT-seq (Muraro et al., 2016)
+- DroNc-seq (Habib et al., 2017)
+- SPLiT-seq (Rosenberg et al., 2017)
+- STRT-2i (Hochgerner et al., 2017)
+
+For InDrops compatibility, users need to preprocess the barcode and UMI read because of variable length cell barcodes.
+
+## STRT-seq mode
+
+STRT-seq data can be processed by zUMIs by switching on the STRT-seq mode with the -y flag. 
+Trimming of the TSO-derived G homopolymers is handled within the filtering step (eg -j 3).
+Please set the barcode and UMI base-ranges from 1 (eg. -m 1-6).
+
+Here is a STRT-2i example:
+
+```
+bash zUMIs-master.sh -f barcode1read.fastq -F barcode1read.fastq -r umicdnaread.fastq -n test2i -g hg38_STAR5idx_noGTF/ -o ./ -a Homo_sapiens.GRCh38.84.gtf -p 8 -c 1-8 -C 1-5 -m 1-6 -l 51 -b 9600 -q 17 -Q 17 -y yes -j 3
+
+```
+
+## Downsampling in zUMIs
+
+zUMIs has powerful downsampling capabilites. Independent of downsampling mode, the full data is always exported aswell.
+
+- Adaptive downsampling: According to the recommendation of the Scater package (McCarthy et al., 2017) reads are downsampled to be within 3 times median absolute deviation. This is the default setting (eg. -d 0).
+- downsampling to a fixed depth: Reads are downsampled to a user-specified depth. Any barcodes that do not reach the requested depth are omitted. Example: -d 10000
+- downsampling to a depth range: Barcodes with read depth above the maximum of the range are downsampled to this value. All barcodes within the range are reported without downsampling and barcodes below the minimum specified read depth are ommited. Example: -d 10000-20000
+- downsampling to several depths: Several depths can be requested by comma separation. Combinations of fixed depth and depth ranges may be given. Example: -d 10000,10000-20000,30000
+
 
 ## Getting help
 

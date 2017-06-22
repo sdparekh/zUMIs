@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # LMU Munich. AG Enard
-# Pipeline to filter reads based on Barcode base quality.
+# A script to filter reads based on Barcode base quality.
 # Author: Swati Parekh
 # Contact: parekh@bio.lmu.de or ziegenhain@bio.lmu.de or hellmann@bio.lmu.de
 
@@ -51,12 +51,12 @@ $bcreadoutfull = $outdir."/".$study.".barcoderead.filtered.fastq";
 $cdnareadout = $outdir."/".$study.".cdnaread.filtered.fastq";
 
 if ($bcread =~ /\.gz$/) {
-open BCF, '-|', 'gzip', '-dc', $bcread || die "Couldn't open file $bcread\n\n";
-open CDF, '-|', 'gzip', '-dc', $cdnaread || die "Couldn't open file $cdnaread\n\n";
+open BCF, '-|', 'gzip', '-dc', $bcread || die "Couldn't open file $bcread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+open CDF, '-|', 'gzip', '-dc', $cdnaread || die "Couldn't open file $cdnaread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
 }
 else {
-open BCF, "<", $bcread || die "Couldn't open file $bcread\n\n";
-open CDF, "<", $cdnaread || die "Couldn't open file $cdnaread\n\n";
+open BCF, "<", $bcread || die "Couldn't open file $bcread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+open CDF, "<", $cdnaread || die "Couldn't open file $cdnaread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
 }
 
 open BCOUT, ">", $bcreadout || die "Couldn't open file $bcreadout to write\n\n";;
