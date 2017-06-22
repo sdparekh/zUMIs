@@ -43,21 +43,34 @@ countGenes <- function(counttable,threshold=1){
   return(samples)
 }
 
+countUMIs <- function(counttable){
+  tmp <- counttable
+  
+  samples<-as.data.frame(colSums(tmp))
+  colnames(samples) <- c("Count")
+  samples[,"SampleID"] <- as.factor(row.names(samples))
+  row.names(samples) <- NULL
+  return(samples)
+}
+
 genecounts <- data.frame()
+umicounts <- data.frame()
 for(i in names(AllCounts)){
-    genecounts <- rbind.data.frame(genecounts,cbind.data.frame(countGenes(AllCounts[[i]][["umicounts"]]),featureType=i))
+  genecounts <- rbind.data.frame(genecounts,cbind.data.frame(countGenes(AllCounts[[i]][["umicounts"]]),featureType=i))
+  umicounts <- rbind.data.frame(umicounts,cbind.data.frame(countUMIs(AllCounts[[i]][["umicounts"]]),featureType=i))
 }
 med<-genecounts %>% dplyr::group_by(featureType) %>% dplyr::summarise(n=round(median(Count)))
+medUMI<-umicounts %>% dplyr::group_by(featureType) %>% dplyr::summarise(n=round(median(Count)))
 
-a <- ggplot(genecounts, aes(x=featureType, y=Count, fill=featureType))
-a<-a+geom_boxplot(notch = T) + geom_text(data=med,aes(x=featureType,y=n,label=n),size=4,vjust=-1) + scale_fill_brewer(palette="Greens") + xlab("") + ylab("Number of genes") + theme_bw() + theme( axis.text = element_text(size=15), axis.title = element_text(size=18),legend.position = "none")
+ag <- ggplot(genecounts, aes(x=featureType, y=Count, fill=featureType))
+ag<-ag+geom_boxplot(notch = T) + geom_text(data=med,aes(x=featureType,y=n,label=n),size=5,vjust=-1,col="white") + scale_fill_manual(values = c("#1A5084","#914614","#118730")) + xlab("") + ylab("Number of genes") + theme_bw() + theme( axis.text = element_text(size=18), axis.title = element_text(size=16),legend.position = "none")
+bg <- ggplot(umicounts, aes(x=featureType, y=Count, fill=featureType))
+bg<-bg+geom_boxplot(notch = T) + geom_text(data=medUMI,aes(x=featureType,y=n,label=n),size=5,vjust=-1,col="white") + scale_fill_manual(values = c("#1A5084","#914614","#118730")) + xlab("") + ylab("Number of UMIs") + theme_bw() + theme( axis.text = element_text(size=18), axis.title = element_text(size=16),legend.position = "none")
+c<-plot_grid(ag,bg,ncol = 2)
 
-b <- ggplot(genecounts, aes(x=reorder(SampleID,Count), y=Count))
-b<-b+geom_bar(stat="identity") + facet_wrap(~featureType,ncol = 1) + xlab("") + ylab("Number of genes") + theme_bw() + theme( axis.text.y = element_text(size=15),axis.text.x = element_text(size=6,angle = 90),strip.text = element_text(size=15), axis.title = element_text(size=18),legend.position = "none")
-
-c<-plot_grid(a,b,ncol = 1,rel_heights = c(0.3,0.7))
-ggsave(c,filename = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".genecounts.pdf",sep=""),width = 7,height = 12)
+ggsave(c,filename = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".geneUMIcounts.pdf",sep=""),width = 10,height = 5)
 write.table(genecounts,file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".genecounts.txt",sep=""),sep="\t",row.names = F,col.names = T)
+write.table(umicounts,file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".UMIcounts.txt",sep=""),sep="\t",row.names = F,col.names = T)
 
 
 # Feature assignment ------------------------------------------------------
@@ -67,34 +80,34 @@ bc <- colnames(AllCounts$intron.exon$readcounts)
 ## Total number of reads per cell
 cellTotal <- reads %>% dplyr::filter(XC %in% bc) %>% dplyr::group_by(XC) %>% dplyr::summarise(Total=length(GE))
 p <- ggplot(cellTotal, aes(x=reorder(XC,Total), y=Total))
-p<-p+geom_bar(stat = "identity",alpha=0.9,width=0.7) + scale_fill_brewer(labels = c("Exon Mapped","Intron Mapped","Ambiguity", "Intergenic", "Unmapped"), palette="Set2") + xlab("") + ylab("Number of reads") + theme_bw() + theme(axis.text.x = element_text(size=6,angle = 90),axis.text.y = element_text(size=10), axis.title.y = element_text(size=18))
+p<-p+geom_bar(stat = "identity",alpha=0.9,width=0.7) + scale_fill_brewer(labels = c("Exon Mapped","Intron Mapped","Ambiguity", "Intergenic", "Unmapped"), palette="Set2") + xlab("") + ylab("log10(Number of reads)") + scale_y_log10() + theme_bw() + theme(axis.text.x = element_text(size=4,angle = 90),axis.text.y = element_text(size=13), axis.title.y = element_text(size=20))
 
 ggsave(p,filename = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".readspercell.pdf",sep=""),width = 10,height = 7)
 write.table(cellTotal,file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".readspercell.txt",sep=""),sep="\t",row.names = F,col.names = T)
+###
 
-cellFeatures<-reads %>% dplyr::filter(XC %in% bc) %>% group_by(XC,GE,assignment,ftype) %>% summarise(r=length(XM),u=length(unique(XM))) 
-FeaturesBAR <- cellFeatures %>% group_by(XC,assignment,ftype) %>% summarise(rn=sum(r)-sum(u),un=sum(u)) %>% left_join(.,cellTotal,by="XC") %>% dplyr::mutate(Reads=rn/Total,UMIs=un/Total)
+##Reads per cell based on their assignment type
+cellFeatures<-reads %>% dplyr::filter(XC %in% bc) %>% group_by(XC,GE,assignment,ftype) %>% summarise(r=length(XM))
 
-dfplot<-melt(FeaturesBAR[,c("XC","assignment","ftype","Reads","UMIs")])
+FeaturesBAR <- cellFeatures %>% group_by(XC,assignment,ftype) %>% summarise(rn=sum(r)) %>% left_join(.,cellTotal,by="XC") %>% dplyr::mutate(Reads=rn/Total)
+FeaturesBAR$Type <- paste(FeaturesBAR$ftype,FeaturesBAR$assignment,sep="_")
+FeaturesBAR$Type <- gsub("inex_Unassigned_","",FeaturesBAR$Type)
+FeaturesBAR$Type <- gsub("NoFeatures","Intergenic",FeaturesBAR$Type)
+FeaturesBAR$Type <- gsub("_Assigned","",FeaturesBAR$Type)
+FeaturesBAR$Type <- factor(FeaturesBAR$Type, levels=c("exon","intron","Ambiguity","Intergenic","Unmapped"))
 
-dfplot[which(dfplot$assignment!="Assigned"),"variable"] <- "Reads"
-dfplot$Type <- paste(dfplot$ftype,dfplot$assignment,dfplot$variable,sep="_")
-dfplot$Type <- gsub("inex_Unassigned_","",dfplot$Type)
-dfplot$Type <- gsub("NoFeatures_Reads","Intergenic",dfplot$Type)
-dfplot$Type <- gsub("Assigned_","",dfplot$Type)
-dfplot$Type <- gsub("Ambiguity_Reads","Ambiguity",dfplot$Type)
-dfplot$Type <- gsub("Unmapped_Reads","Unmapped",dfplot$Type)
+a <- ggplot(FeaturesBAR, aes(x=Type, y=Reads, fill=Type))
+a<-a+geom_boxplot(alpha=0.9,width=0.7) + scale_fill_manual(values = c("grey46","tan1","gold1","#118730","#1A5084")[5:1]) + xlab("") + ylab("Fraction of reads per cell") + theme_bw() + theme( axis.text = element_text(size=18), axis.title = element_text(size=18), legend.position = "none")
 
-dfplot$Type <- factor(dfplot$Type, levels=c("exon_UMIs","exon_Reads","intron_UMIs","intron_Reads","Ambiguity","Intergenic","Unmapped")[7:1])
+dfplots<-FeaturesBAR %>% group_by(Type) %>% summarise(Reads=sum(rn),frac=sum(rn)/sum(cellTotal$Total)) %>% mutate(studyname="a")
+dfplots$Type <- factor(dfplots$Type, levels=c("exon","intron","Ambiguity","Intergenic","Unmapped")[5:1])
 
-a <- ggplot(dfplot, aes(x=Type, y=value, fill=Type))
-a<-a+geom_boxplot(alpha=0.9,width=0.7) + scale_fill_manual(values = c("grey46","tan1","gold1","steelblue1","steelblue4","seagreen1","seagreen4")) + xlab("") + ylab("Fraction of reads") + theme_bw() + theme( axis.text = element_text(size=14), axis.title = element_text(size=18), legend.position = "none")
+b <- ggplot(dfplots, aes(x=studyname, y=frac, fill=Type))
+b<-b+geom_bar(stat="identity",alpha=0.9,width=0.5) + scale_fill_manual(values = c("grey46","tan1","gold1","#118730","#1A5084")) + xlab("") +ylab(NULL)+ ggtitle("Fraction of reads in the dataset") + theme_bw() + theme( axis.text.x = element_text(size=14),axis.text.y = element_blank(),axis.ticks.y = element_blank(), axis.title = element_text(size=18), legend.position = "bottom",legend.title=element_blank(),plot.title = element_text(hjust=0.5,size=20),legend.text = element_text(size=20))+coord_flip()+ guides(fill = guide_legend(nrow = 1,reverse = T))
+d<-plot_grid(c,b,a,ncol = 1,rel_heights  = c(0.3,0.2,0.5))
 
-dfplots <- dfplot %>% dplyr::group_by(Type) %>% dplyr::summarise(n=sum(value)) %>% dplyr::mutate(studyname="a")
+ggsave(d,filename = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".features.pdf",sep=""),width = 12,height = 9)
 
-b <- ggplot(dfplots, aes(x=studyname, y=n, fill=Type))
-b<-b+geom_bar(stat="identity",alpha=0.9,width=0.7) + scale_fill_manual(values = c("grey46","tan1","gold1","steelblue1","steelblue4","seagreen1","seagreen4")) + xlab("") + ylab("Fraction of reads") + theme_bw() + theme( axis.text.x = element_text(size=14),axis.text.y = element_blank(),axis.ticks.y = element_blank(), axis.title = element_text(size=18), legend.position = "top",legend.title=element_blank())+coord_flip()
 
-c<-plot_grid(a,b,ncol = 1,rel_heights = c(0.7,0.3))
-ggsave(c,filename = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".features.pdf",sep=""),width = 10,height = 6)
-write.table(dfplot,file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".features.txt",sep=""),sep="\t",row.names = F,col.names = T)
+colnames(FeaturesBAR) <- c("XC","assignment","ftype","NumberOfReads","ReadsTotalPerlCell","FractionReads","AssignmentType")
+write.table(FeaturesBAR[,-c(2:3)],file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".features.txt",sep=""),sep="\t",row.names = F,col.names = T)
