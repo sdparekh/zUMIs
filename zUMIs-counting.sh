@@ -56,11 +56,11 @@ if [[ "$whichStage" != "summarising" ]] ; then
 	fi
 
 	if [[ $stats == "yes" ]] ; then
-		echo "srun --chdir=$o Rscript $d/zUMIs-stats.R --out $o --sn $sn  --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend" >>$o/$sn.dge.sh
+		echo "srun --chdir=$o Rscript $d/zUMIs-stats.R --out $o --sn $sn" >>$o/$sn.dge.sh
 	fi
 else
 	if [[ $stats == "yes" ]] ; then
-		echo "srun --chdir=$o Rscript $d/zUMIs-stats.R --out $o --sn $sn  --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend" >>$o/$sn.dge.sh
+		echo "srun --chdir=$o Rscript $d/zUMIs-stats.R --out $o --sn $sn" >>$o/$sn.dge.sh
 	else
 		echo "You need to switch on -S <isStats> option."
 	fi

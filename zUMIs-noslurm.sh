@@ -76,7 +76,7 @@ re='^[0-9]+$'
 			fi
 
 			if [[ $stats == "yes" ]] ; then
-			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend
+			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn
 			fi
 			;;
 		"mapping")
@@ -95,7 +95,7 @@ re='^[0-9]+$'
 			fi
 
 			if [[ $stats == "yes" ]] ; then
-			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend
+			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn
 			fi
 			;;
 		"counting")
@@ -109,12 +109,12 @@ re='^[0-9]+$'
 			fi
 
 			if [[ $stats == "yes" ]] ; then
-			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend
+			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn
 			fi
 			;;
 		"summarising")
 			if [[ $stats == "yes" ]] ; then
-			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend
+			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn
 			else
 			echo "You need to switch on -S <isStats> option to yes."
 			fi
