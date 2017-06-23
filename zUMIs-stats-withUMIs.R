@@ -59,7 +59,6 @@ ag<-ag+geom_boxplot(notch = T) + geom_text(data=med,aes(x=featureType,y=n,label=
 bg <- ggplot(umicounts, aes(x=featureType, y=Count, fill=featureType))
 bg<-bg+geom_boxplot(notch = T) + geom_text(data=medUMI,aes(x=featureType,y=n,label=n),size=5,vjust=-1,col="white") + scale_fill_manual(values = c("#1A5084","#914614","#118730")) + xlab("") + ylab("Number of UMIs") + theme_bw() + theme( axis.text = element_text(size=18), axis.title = element_text(size=16),legend.position = "none")
 c<-plot_grid(ag,bg,ncol = 2)
-
 ggsave(c,filename = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".geneUMIcounts.pdf",sep=""),width = 10,height = 5)
 write.table(genecounts,file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".genecounts.txt",sep=""),sep="\t",row.names = F,col.names = T)
 write.table(umicounts,file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".UMIcounts.txt",sep=""),sep="\t",row.names = F,col.names = T)
@@ -79,27 +78,43 @@ write.table(cellTotal,file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".reads
 ###
 
 ##Reads per cell based on their assignment type
-cellFeatures<-reads %>% dplyr::filter(XC %in% bc) %>% group_by(XC,GE,assignment,ftype) %>% summarise(r=length(XM))
+cellFeatures<-reads %>% dplyr::filter(XC %in% bc) %>% group_by(XC,GE,assignment,ftype) %>% summarise(r=length(XM),u=length(unique(XM)))
+cellFeatures[which(cellFeatures$assignment!="Assigned"),"u"] <- 0
 
-FeaturesBAR <- cellFeatures %>% group_by(XC,assignment,ftype) %>% summarise(rn=sum(r)) %>% left_join(.,cellTotal,by="XC") %>% dplyr::mutate(Reads=rn/Total)
-FeaturesBAR$Type <- paste(FeaturesBAR$ftype,FeaturesBAR$assignment,sep="_")
-FeaturesBAR$Type <- gsub("inex_Unassigned_","",FeaturesBAR$Type)
-FeaturesBAR$Type <- gsub("NoFeatures","Intergenic",FeaturesBAR$Type)
-FeaturesBAR$Type <- gsub("_Assigned","",FeaturesBAR$Type)
-FeaturesBAR$Type <- factor(FeaturesBAR$Type, levels=c("exon","intron","Ambiguity","Intergenic","Unmapped"))
+FeaturesBAR <- cellFeatures %>% group_by(XC,assignment,ftype) %>% summarise(rn=sum(r)-sum(u),un=sum(u)) %>% left_join(.,cellTotal,by="XC") %>% dplyr::mutate(Reads=rn/Total,UMIs=un/Total)
 
-a <- ggplot(FeaturesBAR, aes(x=Type, y=Reads, fill=Type))
-a<-a+geom_boxplot(alpha=0.9,width=0.7) + scale_fill_manual(values = c("grey46","tan1","gold1","#118730","#1A5084")[5:1]) + xlab("") + ylab("Fraction of reads per cell") + theme_bw() + theme( axis.text = element_text(size=18), axis.title = element_text(size=18), legend.position = "none")
+dfplot<-melt(FeaturesBAR %>% dplyr::select(XC,assignment,ftype,Reads,UMIs))
+dfplot<-dfplot[!(dfplot$ftype=="inex" & dfplot$variable=="UMIs"),]
 
-dfplots<-FeaturesBAR %>% group_by(Type) %>% summarise(Reads=sum(rn),frac=sum(rn)/sum(cellTotal$Total)) %>% mutate(studyname="a")
-dfplots$Type <- factor(dfplots$Type, levels=c("exon","intron","Ambiguity","Intergenic","Unmapped")[5:1])
+dfplot$Type <- paste(dfplot$ftype,dfplot$assignment,dfplot$variable,sep="_")
+dfplot$Type <- gsub("inex_Unassigned_","",dfplot$Type)
+dfplot$Type <- gsub("Ambiguity_Reads","Ambiguity",dfplot$Type)
+dfplot$Type <- gsub("NoFeatures_Reads","Intergenic",dfplot$Type)
+dfplot$Type <- gsub("Unmapped_Reads","Unmapped",dfplot$Type)
+dfplot$Type <- gsub("_Assigned","",dfplot$Type)
+dfplot$Type <- factor(dfplot$Type, levels=c("exon_UMIs","exon_Reads","intron_UMIs","intron_Reads","Ambiguity","Intergenic","Unmapped"))
+
+a <- ggplot(dfplot, aes(x=Type, y=value, fill=Type))
+a<-a+geom_boxplot(alpha=0.9,width=0.7) + scale_fill_manual(values = c("grey46","tan1","gold1","lightgreen","darkgreen","steelblue1","steelblue4")[7:1]) + xlab("") + ylab("Fraction of reads per cell") + theme_bw() + theme( axis.text = element_text(size=18), axis.title = element_text(size=18), legend.position = "none")
+
+dfplots<-melt(FeaturesBAR %>% dplyr::select(XC,assignment,ftype,rn,un))
+dfplots<-dfplots[!(dfplots$ftype=="inex" & dfplots$variable=="un"),]
+dfplots$Type <- paste(dfplots$ftype,dfplots$assignment,dfplots$variable,sep="_")
+dfplots$Type <- gsub("inex_Unassigned_","",dfplots$Type)
+dfplots$Type <- gsub("Ambiguity_rn","Ambiguity",dfplots$Type)
+dfplots$Type <- gsub("NoFeatures_rn","Intergenic",dfplots$Type)
+dfplots$Type <- gsub("Unmapped_rn","Unmapped",dfplots$Type)
+dfplots$Type <- gsub("_Assigned","",dfplots$Type)
+dfplots$Type <- gsub("rn","Reads",dfplots$Type)
+dfplots$Type <- gsub("un","UMIs",dfplots$Type)
+dfplots<-dfplots %>% group_by(Type) %>% summarise(Reads=sum(value),frac=sum(value)/sum(cellTotal$Total)) %>% mutate(studyname="a")
+
+dfplots$Type <- factor(dfplots$Type, levels=c("exon_UMIs","exon_Reads","intron_UMIs","intron_Reads","Ambiguity","Intergenic","Unmapped")[7:1])
+
 
 b <- ggplot(dfplots, aes(x=studyname, y=frac, fill=Type))
-b<-b+geom_bar(stat="identity",alpha=0.9,width=0.5) + scale_fill_manual(values = c("grey46","tan1","gold1","#118730","#1A5084")) + xlab("") +ylab(NULL)+ ggtitle("Fraction of reads in the dataset") + theme_bw() + theme( axis.text.x = element_text(size=14),axis.text.y = element_blank(),axis.ticks.y = element_blank(), axis.title = element_text(size=18), legend.position = "bottom",legend.title=element_blank(),plot.title = element_text(hjust=0.5,size=20),legend.text = element_text(size=20))+coord_flip()+ guides(fill = guide_legend(nrow = 1,reverse = T))
+b<-b+geom_bar(stat="identity",alpha=0.9,width=0.5) + scale_fill_manual(values = c("grey46","tan1","gold1","lightgreen","darkgreen","steelblue1","steelblue4")) + xlab("") +ylab(NULL)+ ggtitle("Fraction of reads in the dataset") + theme_bw() + theme( axis.text.x = element_text(size=14),axis.text.y = element_blank(),axis.ticks.y = element_blank(), axis.title = element_text(size=18), legend.position = "bottom",legend.title=element_blank(),plot.title = element_text(hjust=0.5,size=20),legend.text = element_text(size=20))+coord_flip()+ guides(fill = guide_legend(nrow = 1,reverse = T))
 d<-plot_grid(c,b,a,ncol = 1,rel_heights  = c(0.3,0.2,0.5))
 
 ggsave(d,filename = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".features.pdf",sep=""),width = 12,height = 9)
-
-
-colnames(FeaturesBAR) <- c("XC","assignment","ftype","NumberOfReads","ReadsTotalPerlCell","FractionReads","AssignmentType")
-write.table(FeaturesBAR[,-c(2:3)],file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".features.txt",sep=""),sep="\t",row.names = F,col.names = T)
+write.table(dfplot[,-c(2:3)],file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".features.txt",sep=""),sep="\t",row.names = F,col.names = T)
