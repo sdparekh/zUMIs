@@ -195,26 +195,35 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     reads <- tibble(XC=substring(reads$V1, bcstart, bcend),XM=substring(reads$V1, umistart, umiend),GE=fctsfile$V1)
   }
   if(is.numeric(bcfile)){
+    if(bcfile>10000){
+      print("Attention! I limited your cell barcodes to 10000!")
+      bcfile <- 10000
+    }
     bc <- reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% top_n(bcfile) %>% dplyr::select(V1=XC)
   }else if(is.na(bcfile)){
     fullstats <- reads %>% group_by(XC) %>% summarise(nreads=length(XM))
     fullstats <- fullstats[order(fullstats$nreads,decreasing = T),]
     fullstats$cs <- cumsum(fullstats$nreads)
-    d <- density(log10(fullstats[which(fullstats$cs<0.99*sum(fullstats$nreads)),]$nreads), bw = 0.5)  #taking only things that account for 99% of reads removes most crap barcodes
-    tp<-pastecs::turnpoints(ts(d$y))#find turning points
-    if(tp$nturns==1){
+    fullstats$deltarel <- c(max(diff(fullstats$cs)),diff(fullstats$cs)/max(diff(fullstats$cs)))
+    fullstats_detected<- fullstats[which(fullstats$deltarel>0.001),]
+    
+    if(nrow(fullstats_detected)>10000){
       print("Attention! I could not adaptively determine the real cell barcodes!")
-      bc <- reads %>% group_by(XC)  %>% dplyr::select(V1=XC)
+      bc <- reads %>% group_by(XC)  %>% top_n(10000) %>% dplyr::select(V1=XC)
+      fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
+    }else if(nrow(fullstats_detected)<10){
+      print("Attention! I could not adaptively determine the real cell barcodes!")
+      bc <- reads %>% group_by(XC)  %>% top_n(100) %>% dplyr::select(V1=XC)
       fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
     }else{
-      cutoff_tp <- which(d$y[tp$tp]==max(d$y[tp$tp]))+1 # select first local minimum after the major peak 
-      minreads_cutoff <- 10^(d$x[tp$tppos[cutoff_tp]])
-      
-      fullstats_detected <- fullstats[which(fullstats$nreads >= minreads_cutoff),]
-      fullstats_detected <- as.data.frame(fullstats_detected)
-      
+      print(paste(nrow(fullstats_detected)," barcodes detected.",sep=""))
       bc <- data.frame(V1=fullstats_detected$XC)
     }
+    #selected cells
+    pdf(file=paste(out,"/zUMIs_output/stats/",sn,".detected_cells.pdf",sep=""))
+    plot(cumsum(fullstats$nreads),xlab="Cell Index", ylab="Cumulative number of reads")
+    points(cumsum(fullstats_detected$nreads),col="red")
+    dev.off()
   }else{
     bc <- read.table(bcfile,header = F,stringsAsFactors = F)
   }
@@ -275,27 +284,8 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     fullstats <- fullstats[order(fullstats$nreads,decreasing = T),]
     fullstats$cs <- cumsum(fullstats$nreads)
     
-    
-    if(is.numeric(bcfile) | is.na(bcfile)){
-      d <- density(log10(fullstats[which(fullstats$cs<0.99*sum(fullstats$nreads)),]$nreads), bw = 0.5)  #taking only things that account for 99% of reads removes most crap barcodes
-      tp<-pastecs::turnpoints(ts(d$y))#find turning points
-      if(tp$nturns==1){
-        print("Attention! I could not adaptively determine the real cell barcodes!")
-        bcs_detected <- bc$V1
-        fullstats_detected<- fullstats[which(fullstats$XC %in% bcs_detected),]
-      }else{
-        cutoff_tp <- which(d$y[tp$tp]==max(d$y[tp$tp]))+1 # select first local minimum after the major peak 
-        minreads_cutoff <- 10^(d$x[tp$tppos[cutoff_tp]])
-        
-        fullstats_detected <- fullstats[which(fullstats$nreads >= minreads_cutoff),]
-        fullstats_detected <- as.data.frame(fullstats_detected)
-        
-        bcs_detected <- fullstats_detected$XC
-      }
-    }else{ #if people give a barcode annotation, only those detected barcodes that are also annotated should be selected
-      bcs_detected <- bc$V1
-      fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
-    }
+    bcs_detected <- bc$V1
+    fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
     
     medianreads <- round(median(fullstats_detected$nreads),digits = 0)
     MAD_up <- 10^(log10(medianreads) + 3*median(abs(log10(fullstats_detected$nreads)-median(log10(fullstats_detected$nreads)))))
@@ -307,7 +297,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     MAD_up <- round(MAD_up,digits = 0)
     MAD_low <- round(MAD_low,digits = 0)  
     
-    print(paste("I detected ",length(bcs_detected)," cells and am subsampling to ",medianreads," reads",sep=""))
+    print(paste("I am subsampling between ",MAD_low," and ",MAD_up," reads per barcode.",sep=""))
     tmp1 <- reads %>% dplyr::filter(XC %in% bcs_detected)  %>% group_by(XC) %>% filter(length(XC) > MAD_up) %>% dplyr::sample_n(size = MAD_up,replace=F) %>% dplyr::filter(GE!="*")  %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM))
     tmp2 <- reads %>% dplyr::filter(XC %in% bcs_detected)  %>% group_by(XC) %>% filter((length(XC) >= MAD_low )& (length(XC) <= MAD_up)) %>% dplyr::filter(GE!="*")  %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM))
     umicounts_sub <- bind_rows(tmp1,tmp2)
@@ -321,12 +311,6 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     names(downsampling_list) <- paste("downsampled",medianreads,sep="_")
     
     #make some plots for people
-    
-    #selected cells
-    pdf(file=paste(out,"/zUMIs_output/stats/",sn,".detected_cells.pdf",sep=""))
-      plot(cumsum(fullstats$nreads),xlab="Cell Index", ylab="Cumulative number of reads")
-      points(cumsum(fullstats_detected$nreads),col="red")
-    dev.off()
     
     #downsampling
     #check if ranges include MAD max
