@@ -31,7 +31,7 @@ bash zUMIs-master.sh -f barcoderead.fastq -r cdnaread.fastq -n test -g hg38_STAR
 -	-m  <XM baserange>       : Base range for UMI barcode in -f Barcode read(e.g. 7-16).  Required.
                               For STRT-seq give this as 1-n where n is your UMI barcode length.
 -	-l  <readlength>         : Read length of -r cDNA reads (e.g. 50).  Required.
-                              For STRT-seq give this as a total length of your cdna read (length(umicdna)-length(umi)-BaseTrim).
+                              For STRT-seq give this as a total length of your umicdna reads.
 
 ### Default parameters
 -	-z  <cellbcbase>         : Cell barcodes with (-z)number of bases under the base quality(-q) is filtered out.  Default: 1.
