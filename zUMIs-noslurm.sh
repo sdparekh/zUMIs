@@ -116,6 +116,6 @@ re='^[0-9]+$'
 	
 
 
-rm $o/$sn.Aligned.out.bam $o/$sn.aligned.sorted.bam.in $o/$sn.aligned.sorted.bam.ex $o/$sn.barcodelist.filtered.sam $o/zUMIs_output/expression/$sn.tbl.rds $o/$sn.barcodelist.filtered.sort.sam $o/$sn.aligned.sorted.bam.in.featureCounts $o/$sn.aligned.sorted.bam.ex.featureCounts
+rm $o/$sn.Aligned.out.bam $o/$sn.aligned.sorted.bam.in $o/$sn.aligned.sorted.bam.ex $o/$sn.barcodelist.filtered.sam 
 mv $o/$sn.barcoderead.filtered.fastq.gz $o/zUMIs_output/filtered_fastq/
 mv $o/$sn.cdnaread.filtered.fastq.gz $o/zUMIs_output/filtered_fastq/
