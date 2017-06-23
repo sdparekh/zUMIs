@@ -205,7 +205,11 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     fullstats <- fullstats[order(fullstats$nreads,decreasing = T),]
     fullstats$cs <- cumsum(fullstats$nreads)
     fullstats$deltarel <- c(max(diff(fullstats$cs)),diff(fullstats$cs)/max(diff(fullstats$cs)))
-    fullstats_detected<- fullstats[which(fullstats$deltarel>0.001),]
+    if(sum(fullstats[which(fullstats$deltarel>0.01),]$nreads)>(0.9*sum(fullstats$nreads))){ #this decides if you have droplet-based method
+      fullstats_detected<- fullstats[which(fullstats$deltarel>0.01),]
+    }else{
+      fullstats_detected<- fullstats[which(fullstats$deltarel>0.001),]
+    }
     
     if(nrow(fullstats_detected)>10000){
       print("Attention! I could not adaptively determine the real cell barcodes!")

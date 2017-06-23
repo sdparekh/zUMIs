@@ -5,12 +5,21 @@ o=$2
 g=$3
 gtf=$4
 t=$5
-rl=`expr $6 - 1`
+r=$6
 j=`cat $o/$sn.preparejobid.txt | cut -f4 -d' '`
 m=`du -B 1000000 -s $g | cut -f1`
 x=$7
 starexc=$8
 samtoolsexc=$9
+xm="${10}"
+bt="${11}"
+
+if [[ "$isstrt" == "no" ]] ; then
+	rl=`expr $r - 1`
+else
+	c=`echo $xm | cut -f2 -d '-'`
+	rl=`expr $c + $bt - 1`
+fi
 
 # MAKING THE HEADER
 echo '#!/bin/bash' >$o/$sn.map.sh  

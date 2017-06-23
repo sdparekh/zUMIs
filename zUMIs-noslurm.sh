@@ -13,7 +13,7 @@ cq="${10}"
 t="${11}"
 g="${12}"
 gtf="${13}"
-rl=`expr "${14}" - 1`
+r="${14}"
 m=`du -B 1000000 -s $g | cut -f1`
 x="${15}"
 starexc="${16}"
@@ -28,6 +28,13 @@ f3="${24}"
 bt="${25}"
 isstrt="${26}"
 xc2="${27}"
+
+if [[ "$isstrt" == "no" ]] ; then
+	rl=`expr $r - 1`
+else
+	c=`echo $xm | cut -f2 -d '-'`
+	rl=`expr $c + $bt - 1`
+fi
 
 if [[ "$isstrt" == "no" ]] ; then
 	xcst=`echo $xc | cut -f1 -d '-'`
