@@ -195,9 +195,9 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     reads <- tibble(XC=substring(reads$V1, bcstart, bcend),XM=substring(reads$V1, umistart, umiend),GE=fctsfile$V1)
   }
   if(is.numeric(bcfile)){
-    if(bcfile>10000){
-      print("Attention! I limited your cell barcodes to 10000!")
-      bcfile <- 10000
+    if(bcfile>25000){
+      print("Attention! I limited your cell barcodes to 25000!")
+      bcfile <- 25000
     }
     bc <- reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% top_n(bcfile) %>% dplyr::select(V1=XC)
   }else if(is.na(bcfile)){
@@ -211,9 +211,9 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
       fullstats_detected<- fullstats[which(fullstats$deltarel>0.001),]
     }
     
-    if(nrow(fullstats_detected)>10000){
+    if(nrow(fullstats_detected)>25000){
       print("Attention! I could not adaptively determine the real cell barcodes!")
-      bc <- reads %>% group_by(XC)  %>% top_n(10000) %>% dplyr::select(V1=XC)
+      bc <- reads %>% group_by(XC)  %>% top_n(25000) %>% dplyr::select(V1=XC)
       fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
     }else if(nrow(fullstats_detected)<10){
       print("Attention! I could not adaptively determine the real cell barcodes!")
