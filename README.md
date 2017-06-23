@@ -184,6 +184,30 @@ zUMIs has powerful downsampling capabilites. Independent of downsampling mode, t
 - downsampling to several depths: Several depths can be requested by comma separation. Combinations of fixed depth and depth ranges may be given. Example: -d 10000,10000-20000,30000
 
 
+## Cell Barcodes
+
+In order to be compatible with well-based and droplet-based scRNA-seq methods, zUMIs is flexible with handling of cell barcodes.
+As default behavior, zUMIs tries to guesstimate the relevant barcodes from the data using the cumulative read distribution ("knee plot").
+
+<img src="https://github.com/sdparekh/zUMIs/blob/master/ExampleData/zUMIs_output/stats/example.detected_cells.png?raw=true" width="350">
+
+To override automatic detection of barcodes, users can either give a fixed number of barcodes to consider (e.g. "-b 100") or refer to a plain text file containing known expected barcodes (e.g. "-b barcodefile.txt").
+The text file should contain just one column with a list of barcodes without headers and without sample names:
+
+```
+ATGAAT
+ATCAAA
+GGAGCC
+TAAGAT
+AAAACT
+GCGCTG
+CCAACC
+CTTTAA
+TCATAT
+TACTAT
+```
+
+
 ## Getting help
 
 Please report bugs :beetle::bug: to the [zUMIs Github issue page](https://github.com/sdparekh/zUMIs/issues)
