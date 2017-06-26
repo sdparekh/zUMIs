@@ -1,10 +1,6 @@
 #!/usr/bin/env Rscript
 
-print("I am loading useful packages...")
-print(Sys.time())
-packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","optparse","parallel","Rsubread","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble","pastecs")
-paks<-lapply(packages, function(x) suppressMessages(require(x, character.only = TRUE)))
-rm(paks)
+require(optparse)
 
 # optparse  ---------------------------------------------------------------
 
@@ -41,6 +37,12 @@ option_list = list(
 
 opt_parser = OptionParser(option_list=option_list);
 opt = parse_args(opt_parser);
+
+print("I am loading useful packages...")
+print(Sys.time())
+packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","optparse","parallel","Rsubread","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble","pastecs")
+paks<-lapply(packages, function(x) suppressMessages(require(x, character.only = TRUE)))
+rm(paks)
 
 ncores=opt$cores
 bcstart=opt$bcstart
@@ -165,13 +167,6 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     return(widedf)
   }
   
-  if(ftype=="in"){
-    abamfile <- abamfile[1]
-  }
-  if(ftype=="ex"){
-    abamfile <- abamfile[2]
-  }
-  
   packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","Rsubread","methods")
   bla<-lapply(packages, function(x) suppressMessages(require(x, character.only = TRUE)))
   rm(bla)
@@ -187,9 +182,10 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     saveRDS(object = reads,file = paste(out,"/zUMIs_output/expression/",sn,".tbl.rds",sep=""))
   } else{
     
-    fcts <-  featureCounts(files=abamfile,annot.ext=safannot,isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads=T,strandSpecific=stra)# do not use more than nthreads=1!
+    fcts <-  featureCounts(files=abamfile[1],annot.ext=safannot[[1]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads=T,strandSpecific=stra)# do not use more than nthreads=1!
+    fcts <-  featureCounts(files=abamfile[2],annot.ext=safannot[[2]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads=T,strandSpecific=stra)# do not use more than nthreads=1!
     
-    fctsfile <- fread(paste("cut -f3 ",abamfile,".featureCounts",sep=""), sep="\t",quote='',header = F)
+    fctsfile <- fread(paste("cut -f3 ",abamfile[2],".featureCounts",sep=""), sep="\t",quote='',header = F)
     reads <- fread(paste("cut -f10 ",ubamfile,sep=""), quote='',header = F,skip=1)
     
     reads <- tibble(XC=substring(reads$V1, bcstart, bcend),XM=substring(reads$V1, umistart, umiend),GE=fctsfile$V1)
@@ -213,11 +209,11 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     
     if(nrow(fullstats_detected)>25000){
       print("Attention! I could not adaptively determine the real cell barcodes!")
-      bc <- reads %>% group_by(XC)  %>% top_n(25000) %>% dplyr::select(V1=XC)
+      bc <- reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM))  %>% top_n(25000) %>% dplyr::select(V1=XC)
       fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
     }else if(nrow(fullstats_detected)<10){
       print("Attention! I could not adaptively determine the real cell barcodes!")
-      bc <- reads %>% group_by(XC)  %>% top_n(100) %>% dplyr::select(V1=XC)
+      bc <- reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM))  %>% top_n(100) %>% dplyr::select(V1=XC)
       fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
     }else{
       print(paste(nrow(fullstats_detected)," barcodes detected.",sep=""))
@@ -266,17 +262,17 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
         if(as.logical((reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% top_n(1))[,2] >= subsampling_no)==TRUE){
           print(paste("I am subsampling to ",subsampling_iter,sep=""))
           umicounts_sub <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% group_by(XC) %>% filter(length(XC) >= subsampling_no) %>% dplyr::sample_n(size = subsampling_no,replace=F)%>% dplyr::filter(GE!="*")  %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM))
-        
-       }else{
-         print("Error! None of the barcodes has more than the requested number of reads")
-       }
+          
+        }else{
+          print("Error! None of the barcodes has more than the requested number of reads")
+        }
       }
       umicounts_sub_wide <- makewide(umicounts_sub,"umicount")
       readcounts_sub_wide <- makewide(umicounts_sub,"readcount")
       iterlist <- list(readcounts_sub_wide,umicounts_sub_wide)
       names(iterlist) <-c("readcounts_downsampled","umicounts_downsampled")
       downsampling_list[[i]] <- iterlist
-
+      
     }
     if(ndepths==1){
       names(downsampling_list) <- paste("downsampled",subsampling,sep="_")
@@ -314,14 +310,12 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     downsampling_list[[1]] <- iterlist
     names(downsampling_list) <- paste("downsampled",medianreads,sep="_")
     
-    #make some plots for people
-    
     #downsampling
     #check if ranges include MAD max
     pdf(file=paste(out,"/zUMIs_output/stats/",sn,".downsampling_thresholds.pdf",sep=""))
-      barplot(fullstats_detected$nreads,ylab="Number of reads",xlab="Cell Barcodes",ylim = c(0,1.1*max(c(fullstats_detected$nreads,MAD_up))))
-      abline(h=MAD_low,col="red")
-      abline(h=MAD_up,col="red")
+    barplot(fullstats_detected$nreads,ylab="Number of reads",xlab="Cell Barcodes",ylim = c(0,1.1*max(c(fullstats_detected$nreads,MAD_up))))
+    abline(h=MAD_low,col="red")
+    abline(h=MAD_up,col="red")
     dev.off()
   }
   
@@ -329,32 +323,22 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
   
   readcounts_wide <- makewide(umicounts,"readcount")
   
-
+  
   l <- list(readcounts_wide,umicounts_wide,downsampling_list)
   names(l) <- c("readcounts","umicounts","downsampled")
-
+  
   
   rm(reads,readcounts_wide,umicounts,umicounts_wide)
   
   return(l)
 }
 
-#outsuffix <- paste(out,"/zUMIs_output/",sn,".DGE.log",sep="")
-
-#cl <- makeCluster(getOption("cl.cores", 2),outfile=outsuffix)
-
 bams <- c(paste(abamfile,"in",sep="."),paste(abamfile,"ex",sep="."))
 
-#clusterExport(cl, c("makeGEprofile", "saf", "bams", "ubamfile", "barcodes", "ncores","stra","bcstart","bcend","umistart","umiend","subsampling","ftype","sn","out") )
+AllCounts <-list()
+AllCounts$exons <- makeGEprofile(bams,ubamfile,barcodes,saf,ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype[2],sn,out)
 
-#AllCounts<-parLapply(cl, 1:length(saf) ,function(i){ makeGEprofile(bams,ubamfile,barcodes,saf[[i]],ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype[i],sn,out) })
-
-AllCounts<-lapply(1:length(saf) ,function(i){ makeGEprofile(bams,ubamfile,barcodes,saf[[i]],ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype[i],sn,out) })
-
-#stopCluster(cl)
-names(AllCounts)<-names(saf)
-
-AllCounts$intron.exon <- makeGEprofile(bams,ubamfile,barcodes,saf[[i]],ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype[3],sn,out)
+AllCounts$intron.exon <- makeGEprofile(bams,ubamfile,barcodes,saf[[1]],ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype[3],sn,out)
 
 
 intronunique <- function(intronexondf,exondf){
@@ -398,7 +382,6 @@ if(subsampling!= "0") {
 }
 
 saveRDS(AllCounts,file=paste(out,"/zUMIs_output/expression/",sn,".dgecounts.rds",sep=""))
-#lapply(names(AllCounts),function(x) lapply(names(AllCounts[[x]]), function(xx) write.table(AllCounts[[x]][xx],file=paste(out,"/zUMIs_output/expression/",sn,xx,".",x,".txt",sep=""),sep = "\t",row.names = T,col.names = T)))
 
 #################
 
