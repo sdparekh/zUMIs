@@ -183,6 +183,31 @@ zUMIs has powerful downsampling capabilites. Independent of downsampling mode, t
 - downsampling to a depth range: Barcodes with read depth above the maximum of the range are downsampled to this value. All barcodes within the range are reported without downsampling and barcodes below the minimum specified read depth are ommited. Example: -d 10000-20000
 - downsampling to several depths: Several depths can be requested by comma separation. Combinations of fixed depth and depth ranges may be given. Example: -d 10000,10000-20000,30000
 
+## Structure of the output dgecounts object in <sn>.dgecounts.rds 
+
+zUMIs produces dge output in .rds format that can be read in R with the following command.
+
+```
+AllCounts <- readRDS("zUMIs_output/expression/example.dgecounts.rds")
+names(AllCounts)
+[1] "introns"     "exons"       "intron.exon"
+
+names(AllCounts$exons)
+[1] "readcounts"  "umicounts"   "downsampled"
+
+names(names(AllCounts$exons$downsampled)
+[1] "downsampled_7358"
+
+```
+AllCounts is a list of lists with all the count tables. The parent list is three feature types (introns,exons and intron+exon) and each of them contain three subtypes with "readcounts" -- (without removing duplicates), "umicounts" -- (removed duplicates) and "downsampled" -- a list of all the downsampling sizes requested. Each of the downsampling list also contains "readcounts" & "umicounts".
+
+All the tables from any feature type can be saved as a count matrix using the code below.
+For example:
+```
+downsamp <- unlist(x = AllCounts$exons$downsampled,recursive = F,use.names = T)
+lapply(names(downsamp),function(x) write.table(AllCounts[[x]],file=paste("zUMIs_output/expression/",x,".txt",sep=""),sep = "\t",row.names = T,col.names = T)))
+
+```
 
 ## Cell Barcodes
 
