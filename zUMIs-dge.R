@@ -382,6 +382,7 @@ if(subsampling!= "0") {
 }
 
 saveRDS(AllCounts,file=paste(out,"/zUMIs_output/expression/",sn,".dgecounts.rds",sep=""))
+lapply(names(AllCounts),function(x) lapply(names(AllCounts[[x]])[-3], function(xx) write.table(AllCounts[[x]][xx],file=paste(out,"/zUMIs_output/expression/",sn,xx,".",x,".txt",sep=""),sep = "\t",row.names = T,col.names = T)))
 
 #################
 
