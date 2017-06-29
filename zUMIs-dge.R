@@ -249,7 +249,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
         subsampling_min <- as.numeric(strsplit(subsampling_iter,"-")[[1]][1])
         subsampling_max <- as.numeric(strsplit(subsampling_iter,"-")[[1]][2])
         
-        if(as.logical((reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% top_n(1))[,2] >= subsampling_min)==TRUE){
+        if(as.logical((nrow(reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% filter(n>=subsampling_min))) >= 2)==TRUE){
           print(paste("I am subsampling to ",subsampling_iter,sep=""))
           tmp1 <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% group_by(XC) %>% filter(length(XC) > subsampling_max) %>% dplyr::sample_n(size = subsampling_max,replace=F)%>% dplyr::filter(GE!="*")  %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM))
           tmp2 <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% group_by(XC) %>% filter((length(XC) < subsampling_max) & (length(XC) >= subsampling_min))%>% dplyr::filter(GE!="*")  %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM))
@@ -259,7 +259,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
         }
       }else{
         subsampling_no <- as.numeric(subsampling_iter)
-        if(as.logical((reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% top_n(1))[,2] >= subsampling_no)==TRUE){
+        if(as.logical((nrow(reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% filter(n>=subsampling_no))) >= 2)==TRUE){
           print(paste("I am subsampling to ",subsampling_iter,sep=""))
           umicounts_sub <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% group_by(XC) %>% filter(length(XC) >= subsampling_no) %>% dplyr::sample_n(size = subsampling_no,replace=F)%>% dplyr::filter(GE!="*")  %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM))
           
