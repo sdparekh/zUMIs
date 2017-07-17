@@ -118,7 +118,7 @@ cranpackages <- c("dplyr","tidyr","parallel","reshape2","data.table","optparse",
 ipak(cranpackages, repository = "CRAN")
 
 # BIOCONDUCTOR packages
-biocpackages <- c("AnnotationDbi","Rsubread","GenomicRanges","GenomicsFeatures","GenomicAlignments")
+biocpackages <- c("AnnotationDbi","Rsubread","GenomicRanges","GenomicFeatures","GenomicAlignments")
 ipak(biocpackages, repository = "Bioconductor")
 
 # GITHUB packages
