@@ -40,7 +40,7 @@ opt = parse_args(opt_parser);
 
 print("I am loading useful packages...")
 print(Sys.time())
-packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","optparse","parallel","Rsubread","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble","pastecs")
+packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","optparse","parallel","Rsubread","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble")
 paks<-lapply(packages, function(x) suppressMessages(require(x, character.only = TRUE)))
 rm(paks)
 
@@ -166,12 +166,12 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     widedf <- widedf[,-1]
     return(widedf)
   }
-  
+
   packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","Rsubread","methods")
   bla<-lapply(packages, function(x) suppressMessages(require(x, character.only = TRUE)))
   rm(bla)
   if(ftype == "inex"){
-    
+
     fctsfilein <- fread(paste("cut -f2,3 ",abamfile[1],".featureCounts",sep=""), sep="\t",quote='',header = F) #in
     fctsfileex <- fread(paste("cut -f2,3 ",abamfile[2],".featureCounts",sep=""), sep="\t",quote='',header = F) #ex
     reads <- fread(paste("cut -f10 ",ubamfile,sep=""), quote='',header = F,skip=1)
@@ -181,13 +181,13 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     reads$ftype <- ifelse(reads$assignment=="Assigned",reads$ftype,"inex")
     saveRDS(object = reads,file = paste(out,"/zUMIs_output/expression/",sn,".tbl.rds",sep=""))
   } else{
-    
+
     fcts <-  featureCounts(files=abamfile[1],annot.ext=safannot[[1]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads=T,strandSpecific=stra)# do not use more than nthreads=1!
     fcts <-  featureCounts(files=abamfile[2],annot.ext=safannot[[2]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads=T,strandSpecific=stra)# do not use more than nthreads=1!
-    
+
     fctsfile <- fread(paste("cut -f3 ",abamfile[2],".featureCounts",sep=""), sep="\t",quote='',header = F)
     reads <- fread(paste("cut -f10 ",ubamfile,sep=""), quote='',header = F,skip=1)
-    
+
     reads <- tibble(XC=substring(reads$V1, bcstart, bcend),XM=substring(reads$V1, umistart, umiend),GE=fctsfile$V1)
   }
   if(is.numeric(bcfile)){
@@ -206,7 +206,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     }else{
       fullstats_detected<- fullstats[which(fullstats$deltarel>0.001),]
     }
-    
+
     if(nrow(fullstats_detected)>25000){
       print("Attention! I could not adaptively determine the real cell barcodes!")
       bc <- reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM))  %>% top_n(25000) %>% dplyr::select(V1=XC)
@@ -227,17 +227,17 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
   }else{
     bc <- read.table(bcfile,header = F,stringsAsFactors = F)
   }
-  
+
   cluster <- create_cluster(ncores)
   set_default_cluster(cluster)
-  
+
   umicounts <- reads %>% dplyr::filter((XC %in% bc$V1) & (GE!="*")) %>% partition(XC, cluster = cluster) %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM)) %>% collect()
-  
+
   if(subsampling!="0") {
     if(grepl(pattern = ",",x = subsampling)==TRUE){
       tmpsplit <- strsplit(x = subsampling,split = ",")[[1]]
       ndepths <- length(tmpsplit)
-      
+
     }else{
       ndepths <- 1
       tmpsplit <- subsampling
@@ -248,7 +248,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
       if(grepl(pattern = "-",x = subsampling_iter)==TRUE){
         subsampling_min <- as.numeric(strsplit(subsampling_iter,"-")[[1]][1])
         subsampling_max <- as.numeric(strsplit(subsampling_iter,"-")[[1]][2])
-        
+
         if(as.logical((nrow(reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% filter(n>=subsampling_min))) >= 2)==TRUE){
           print(paste("I am subsampling to ",subsampling_iter,sep=""))
           tmp1 <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% group_by(XC) %>% filter(length(XC) > subsampling_max) %>% dplyr::sample_n(size = subsampling_max,replace=F)%>% dplyr::filter(GE!="*")  %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM))
@@ -262,7 +262,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
         if(as.logical((nrow(reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% filter(n>=subsampling_no))) >= 2)==TRUE){
           print(paste("I am subsampling to ",subsampling_iter,sep=""))
           umicounts_sub <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% group_by(XC) %>% filter(length(XC) >= subsampling_no) %>% dplyr::sample_n(size = subsampling_no,replace=F)%>% dplyr::filter(GE!="*")  %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM))
-          
+
         }else{
           print("Error! None of the barcodes has more than the requested number of reads")
         }
@@ -272,7 +272,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
       iterlist <- list(readcounts_sub_wide,umicounts_sub_wide)
       names(iterlist) <-c("readcounts_downsampled","umicounts_downsampled")
       downsampling_list[[i]] <- iterlist
-      
+
     }
     if(ndepths==1){
       names(downsampling_list) <- paste("downsampled",subsampling,sep="_")
@@ -283,10 +283,10 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     fullstats <- reads %>% group_by(XC) %>% summarise(nreads=length(XM))
     fullstats <- fullstats[order(fullstats$nreads,decreasing = T),]
     fullstats$cs <- cumsum(fullstats$nreads)
-    
+
     bcs_detected <- bc$V1
     fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
-    
+
     medianreads <- round(median(fullstats_detected$nreads),digits = 0)
     MAD_up <- 10^(log10(medianreads) + 3*median(abs(log10(fullstats_detected$nreads)-median(log10(fullstats_detected$nreads)))))
     MAD_low <- 10^(log10(medianreads) - 3*median(abs(log10(fullstats_detected$nreads)-median(log10(fullstats_detected$nreads)))))
@@ -295,13 +295,13 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
       MAD_low <- 0
     }
     MAD_up <- round(MAD_up,digits = 0)
-    MAD_low <- round(MAD_low,digits = 0)  
-    
+    MAD_low <- round(MAD_low,digits = 0)
+
     print(paste("I am subsampling between ",MAD_low," and ",MAD_up," reads per barcode.",sep=""))
     tmp1 <- reads %>% dplyr::filter(XC %in% bcs_detected)  %>% group_by(XC) %>% filter(length(XC) > MAD_up) %>% dplyr::sample_n(size = MAD_up,replace=F) %>% dplyr::filter(GE!="*")  %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM))
     tmp2 <- reads %>% dplyr::filter(XC %in% bcs_detected)  %>% group_by(XC) %>% filter((length(XC) >= MAD_low )& (length(XC) <= MAD_up)) %>% dplyr::filter(GE!="*")  %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM))
     umicounts_sub <- bind_rows(tmp1,tmp2)
-    
+
     downsampling_list <-list()
     umicounts_sub_wide <- makewide(umicounts_sub,"umicount")
     readcounts_sub_wide <- makewide(umicounts_sub,"readcount")
@@ -309,7 +309,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     names(iterlist) <-c("readcounts_downsampled","umicounts_downsampled")
     downsampling_list[[1]] <- iterlist
     names(downsampling_list) <- paste("downsampled",medianreads,sep="_")
-    
+
     #downsampling
     #check if ranges include MAD max
     pdf(file=paste(out,"/zUMIs_output/stats/",sn,".downsampling_thresholds.pdf",sep=""))
@@ -318,18 +318,18 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     abline(h=MAD_up,col="red")
     dev.off()
   }
-  
+
   umicounts_wide <- makewide(umicounts,"umicount")
-  
+
   readcounts_wide <- makewide(umicounts,"readcount")
-  
-  
+
+
   l <- list(readcounts_wide,umicounts_wide,downsampling_list)
   names(l) <- c("readcounts","umicounts","downsampled")
-  
-  
+
+
   rm(reads,readcounts_wide,umicounts,umicounts_wide)
-  
+
   return(l)
 }
 
@@ -344,7 +344,7 @@ AllCounts$intron.exon <- makeGEprofile(bams,ubamfile,barcodes,saf[[1]],ncores,st
 intronunique <- function(intronexondf,exondf){
   ex_in_gene_intersect <- intersect(row.names(intronexondf),row.names(exondf))
   ex_in_cell_intersect <- intersect(colnames(intronexondf),colnames(exondf))
-  
+
   uniquein <- rbind(intronexondf[which(!(row.names(intronexondf) %in% row.names(exondf))),ex_in_cell_intersect],
                     (intronexondf[ex_in_gene_intersect,ex_in_cell_intersect] - exondf[ex_in_gene_intersect,ex_in_cell_intersect])
   )
@@ -365,15 +365,15 @@ if(subsampling!= "0") {
   if(grepl(pattern = ",",x = subsampling)==TRUE){
     tmpsplit <- strsplit(x = subsampling,split = ",")[[1]]
     ndepths <- length(tmpsplit)
-    
+
   }else{
     ndepths <- 1
   }
   for(n in ndepths){
     AllCounts$introns$downsampled[[n]]$umicounts_downsampled <- intronunique(AllCounts$intron.exon$downsampled[[n]]$umicounts_downsampled,AllCounts$exons$downsampled[[n]]$umicounts_downsampled)
-    
+
     AllCounts$introns$downsampled[[n]]$readcounts_downsampled <- intronunique(AllCounts$intron.exon$downsampled[[n]]$readcounts_downsampled,AllCounts$exons$downsampled[[n]]$readcounts_downsampled)
-    
+
     tmpintersect <- intersect(row.names(AllCounts$introns$downsampled[[n]]$umicounts_downsampled),row.names(AllCounts$introns$downsampled[[n]]$readcounts_downsampled))
     AllCounts$introns$downsampled[[n]]$umicounts_downsampled <- AllCounts$introns$downsampled[[n]]$umicounts_downsampled[tmpintersect,]
     AllCounts$introns$downsampled[[n]]$readcounts_downsampled <- AllCounts$introns$downsampled[[n]]$readcounts_downsampled[tmpintersect,]
