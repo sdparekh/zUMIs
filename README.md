@@ -9,7 +9,7 @@ The input to this pipeline is paired-end fastq files, where one read contains th
 You can read more about zUMIs in our [biorxiv preprint](http://www.biorxiv.org/content/early/2017/06/22/153940)!
 
 ## Installation
-zUMIs is a wrapper around shell using scripts written in perl, shell and R. zUMIs can be installed by cloning and installing the dependencies as given below.
+zUMIs is a command line tool written in perl, shell and R. zUMIs can be installed by cloning and installing the dependencies as given below.
 
 ```
 git clone https://github.com/sdparekh/zUMIs.git
@@ -44,7 +44,7 @@ ipak <- function(pkg, repository = c("CRAN", "Bioconductor", "github")) {
 }
 
 #CRAN packages
-cranpackages <- c("dplyr","tidyr","parallel","reshape2","data.table","optparse","cowplot","pastecs")
+cranpackages <- c("dplyr","tidyr","parallel","reshape2","data.table","optparse","cowplot")
 ipak(cranpackages, repository = "CRAN")
 
 # BIOCONDUCTOR packages
