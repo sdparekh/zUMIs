@@ -235,7 +235,6 @@ if [[ "$isslurm" == "yes" ]] ; then
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"counting")
-			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
 			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
