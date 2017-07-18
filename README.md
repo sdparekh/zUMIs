@@ -8,6 +8,54 @@ The input to this pipeline is paired-end fastq files, where one read contains th
 
 You can read more about zUMIs in our [biorxiv preprint](http://www.biorxiv.org/content/early/2017/06/22/153940)!
 
+## Installation
+zUMIs is a wrapper around shell using scripts written in perl, shell and R. zUMIs can be installed by cloning and installing the dependencies as given below.
+
+```
+git clone https://github.com/sdparekh/zUMIs.git
+
+```
+
+### Dependencies
+#### General
+- [samtools :wrench:](http://samtools.sourceforge.net/)
+- [STAR :star2:](https://github.com/alexdobin/STAR)
+- [R :computer:](https://www.r-project.org/)
+- [pigz :pig:](http://zlib.net/pigz/)
+
+#### R
+To install R dependencies, please run the following:
+
+```R
+ipak <- function(pkg, repository = c("CRAN", "Bioconductor", "github")) {
+    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
+    if (length(new.pkg)) {
+        if (repository == "CRAN") {
+            install.packages(new.pkg, dependencies = TRUE)
+        }
+        if (repository == "Bioconductor") {
+            source("https://bioconductor.org/biocLite.R")
+            biocLite(new.pkg, dependencies = TRUE, ask = FALSE)
+        }
+        if (repository == "github") {
+            devtools::install_github(pkg, build_vignettes = FALSE)
+        }
+    }
+}
+
+#CRAN packages
+cranpackages <- c("dplyr","tidyr","parallel","reshape2","data.table","optparse","cowplot","pastecs")
+ipak(cranpackages, repository = "CRAN")
+
+# BIOCONDUCTOR packages
+biocpackages <- c("AnnotationDbi","Rsubread","GenomicRanges","GenomicFeatures","GenomicAlignments")
+ipak(biocpackages, repository = "Bioconductor")
+
+# GITHUB packages
+githubpackages <- c("hadley/multidplyr")
+ipak(githubpackages, repository = "github")
+
+```
 
 ## Usage example
 
@@ -15,7 +63,6 @@ You can read more about zUMIs in our [biorxiv preprint](http://www.biorxiv.org/c
 bash zUMIs-master.sh -f barcoderead.fastq -r cdnaread.fastq -n test -g hg38_STAR5idx_noGTF/ -o ./ -a Homo_sapiens.GRCh38.84.gtf -p 8 -s 0 -d 100000 -c 1-6 -m 7-16 -l 50 -b 384 -x "--outFilterMismatchNoverLmax 0.2 --quantMode TranscriptomeSAM"
 
 ```
-
 
 ## Input keys
 
@@ -86,47 +133,6 @@ As an example, data with many splice junctions (eg at sequencing depths >500M re
 -x "--limitOutSJcollapsed 2000000 --limitSjdbInsertNsj 2000000"
 ```
 
-## Dependencies
-### General
-- [samtools :wrench:](http://samtools.sourceforge.net/)
-- [STAR :star2:](https://github.com/alexdobin/STAR)
-- [R :computer:](https://www.r-project.org/)
-- [pigz :pig:](http://zlib.net/pigz/)
-
-### R
-To install R dependencies, please run the following:
-
-```R
-ipak <- function(pkg, repository = c("CRAN", "Bioconductor", "github")) {
-    new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
-    if (length(new.pkg)) {
-        if (repository == "CRAN") {
-            install.packages(new.pkg, dependencies = TRUE)
-        }
-        if (repository == "Bioconductor") {
-            source("https://bioconductor.org/biocLite.R")
-            biocLite(new.pkg, dependencies = TRUE, ask = FALSE)
-        }
-        if (repository == "github") {
-            devtools::install_github(pkg, build_vignettes = FALSE)
-        }
-    }
-}
-
-#CRAN packages
-cranpackages <- c("dplyr","tidyr","parallel","reshape2","data.table","optparse","cowplot","pastecs")
-ipak(cranpackages, repository = "CRAN")
-
-# BIOCONDUCTOR packages
-biocpackages <- c("AnnotationDbi","Rsubread","GenomicRanges","GenomicFeatures","GenomicAlignments")
-ipak(biocpackages, repository = "Bioconductor")
-
-# GITHUB packages
-githubpackages <- c("hadley/multidplyr")
-ipak(githubpackages, repository = "github")
-
-```
-
 ## Output
 
 zUMIs' output is structured in three subdirectories:
@@ -158,6 +164,7 @@ zUMIs is compatible with these single-cell UMI protocols:
 - DroNc-seq (Habib et al., 2017)
 - SPLiT-seq (Rosenberg et al., 2017)
 - STRT-2i (Hochgerner et al., 2017)
+- Quartz-seq2 (Sasagawa et al., 2017)
 
 For InDrops compatibility, users need to preprocess the barcode and UMI read because of variable length cell barcodes.
 
