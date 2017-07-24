@@ -1,0 +1,579 @@
+STAR version=STAR_2.5.3a
+STAR compilation time,server,dir=Fri Mar 17 11:35:46 EDT 2017 florence.cshl.edu:/sonas-hs/gingeras/nlsas_norepl/user/dobin/STAR/STAR.sandbox/source
+##### DEFAULT parameters:
+versionSTAR                       20201
+versionGenome                     20101   20200   
+parametersFiles                   -   
+sysShell                          -
+runMode                           alignReads
+runThreadN                        1
+runDirPerm                        User_RWX
+runRNGseed                        777
+genomeDir                         ./GenomeDir/
+genomeLoad                        NoSharedMemory
+genomeFastaFiles                  -   
+genomeChainFiles                  -   
+genomeSAindexNbases               14
+genomeChrBinNbits                 18
+genomeSAsparseD                   1
+genomeSuffixLengthMax             18446744073709551615
+genomeFileSizes                   0   
+readFilesIn                       Read1   Read2   
+readFilesCommand                  -   
+readMatesLengthsIn                NotEqual
+readMapNumber                     18446744073709551615
+readNameSeparator                 /   
+inputBAMfile                      -
+bamRemoveDuplicatesType           -
+bamRemoveDuplicatesMate2basesN    0
+limitGenomeGenerateRAM            31000000000
+limitIObufferSize                 150000000
+limitOutSAMoneReadBytes           100000
+limitOutSJcollapsed               1000000
+limitOutSJoneRead                 1000
+limitBAMsortRAM                   0
+limitSjdbInsertNsj                1000000
+outTmpDir                         -
+outTmpKeep                        None
+outStd                            Log
+outReadsUnmapped                  None
+outQSconversionAdd                0
+outMultimapperOrder               Old_2.4
+outSAMtype                        SAM   
+outSAMmode                        Full
+outSAMstrandField                 None
+outSAMattributes                  Standard   
+outSAMunmapped                    None   
+outSAMorder                       Paired
+outSAMprimaryFlag                 OneBestScore
+outSAMreadID                      Standard
+outSAMmapqUnique                  255
+outSAMflagOR                      0
+outSAMflagAND                     65535
+outSAMattrRGline                  -   
+outSAMheaderHD                    -   
+outSAMheaderPG                    -   
+outSAMheaderCommentFile           -
+outBAMcompression                 1
+outBAMsortingThreadN              0
+outSAMfilter                      None   
+outSAMmultNmax                    18446744073709551615
+outSAMattrIHstart                 1
+outSJfilterReads                  All
+outSJfilterCountUniqueMin         3   1   1   1   
+outSJfilterCountTotalMin          3   1   1   1   
+outSJfilterOverhangMin            30   12   12   12   
+outSJfilterDistToOtherSJmin       10   0   5   10   
+outSJfilterIntronMaxVsReadN       50000   100000   200000   
+outWigType                        None   
+outWigStrand                      Stranded   
+outWigReferencesPrefix            -
+outWigNorm                        RPM   
+outFilterType                     Normal
+outFilterMultimapNmax             10
+outFilterMultimapScoreRange       1
+outFilterScoreMin                 0
+outFilterScoreMinOverLread        0.66
+outFilterMatchNmin                0
+outFilterMatchNminOverLread       0.66
+outFilterMismatchNmax             10
+outFilterMismatchNoverLmax        0.3
+outFilterMismatchNoverReadLmax    1
+outFilterIntronMotifs             None
+clip5pNbases                      0   
+clip3pNbases                      0   
+clip3pAfterAdapterNbases          0   
+clip3pAdapterSeq                  -   
+clip3pAdapterMMp                  0.1   
+winBinNbits                       16
+winAnchorDistNbins                9
+winFlankNbins                     4
+winAnchorMultimapNmax             50
+winReadCoverageRelativeMin        0.5
+winReadCoverageBasesMin           0
+scoreGap                          0
+scoreGapNoncan                    -8
+scoreGapGCAG                      -4
+scoreGapATAC                      -8
+scoreStitchSJshift                1
+scoreGenomicLengthLog2scale       -0.25
+scoreDelBase                      -2
+scoreDelOpen                      -2
+scoreInsOpen                      -2
+scoreInsBase                      -2
+seedSearchLmax                    0
+seedSearchStartLmax               50
+seedSearchStartLmaxOverLread      1
+seedPerReadNmax                   1000
+seedPerWindowNmax                 50
+seedNoneLociPerWindow             10
+seedMultimapNmax                  10000
+alignIntronMin                    21
+alignIntronMax                    0
+alignMatesGapMax                  0
+alignTranscriptsPerReadNmax       10000
+alignSJoverhangMin                5
+alignSJDBoverhangMin              3
+alignSJstitchMismatchNmax         0   -1   0   0   
+alignSplicedMateMapLmin           0
+alignSplicedMateMapLminOverLmate    0.66
+alignWindowsPerReadNmax           10000
+alignTranscriptsPerWindowNmax     100
+alignEndsType                     Local
+alignSoftClipAtReferenceEnds      Yes
+alignEndsProtrude                 0   ConcordantPair   
+chimSegmentMin                    0
+chimScoreMin                      0
+chimScoreDropMax                  20
+chimScoreSeparation               10
+chimScoreJunctionNonGTAG          -1
+chimMainSegmentMultNmax           10
+chimJunctionOverhangMin           20
+chimOutType                       SeparateSAMold   
+chimFilter                        banGenomicN   
+chimSegmentReadGapMax             0
+sjdbFileChrStartEnd               -   
+sjdbGTFfile                       -
+sjdbGTFchrPrefix                  -
+sjdbGTFfeatureExon                exon
+sjdbGTFtagExonParentTranscript    transcript_id
+sjdbGTFtagExonParentGene          gene_id
+sjdbOverhang                      100
+sjdbScore                         2
+sjdbInsertSave                    Basic
+quantMode                         -   
+quantTranscriptomeBAMcompression    1
+quantTranscriptomeBan             IndelSoftclipSingleend
+twopass1readsN                    18446744073709551615
+twopassMode                       None
+##### Command Line:
+STAR --genomeDir /data/share/htp/zUMIs_paper/tiny_testdata/reference/hg38_chr22/ --runThreadN 8 --readFilesCommand zcat --sjdbGTFfile /data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf --outFileNamePrefix /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test. --outSAMtype BAM Unsorted --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --sjdbOverhang 49 --twopassMode Basic --readFilesIn /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz
+##### Initial USER parameters from Command Line:
+outFileNamePrefix                 /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.
+###### All USER parameters from Command Line:
+genomeDir                     /data/share/htp/zUMIs_paper/tiny_testdata/reference/hg38_chr22/     ~RE-DEFINED
+runThreadN                    8     ~RE-DEFINED
+readFilesCommand              zcat        ~RE-DEFINED
+sjdbGTFfile                   /data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf     ~RE-DEFINED
+outFileNamePrefix             /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.     ~RE-DEFINED
+outSAMtype                    BAM   Unsorted        ~RE-DEFINED
+outSAMmultNmax                1     ~RE-DEFINED
+outFilterMultimapNmax         50     ~RE-DEFINED
+outSAMunmapped                Within        ~RE-DEFINED
+sjdbOverhang                  49     ~RE-DEFINED
+twopassMode                   Basic     ~RE-DEFINED
+readFilesIn                   /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz        ~RE-DEFINED
+##### Finished reading parameters from all sources
+
+##### Final user re-defined parameters-----------------:
+runThreadN                        8
+genomeDir                         /data/share/htp/zUMIs_paper/tiny_testdata/reference/hg38_chr22/
+readFilesIn                       /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz   
+readFilesCommand                  zcat   
+outFileNamePrefix                 /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.
+outSAMtype                        BAM   Unsorted   
+outSAMunmapped                    Within   
+outSAMmultNmax                    1
+outFilterMultimapNmax             50
+sjdbGTFfile                       /data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf
+sjdbOverhang                      49
+twopassMode                       Basic
+
+-------------------------------
+##### Final effective command line:
+STAR   --runThreadN 8   --genomeDir /data/share/htp/zUMIs_paper/tiny_testdata/reference/hg38_chr22/   --readFilesIn /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz      --readFilesCommand zcat      --outFileNamePrefix /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.   --outSAMtype BAM   Unsorted      --outSAMunmapped Within      --outSAMmultNmax 1   --outFilterMultimapNmax 50   --sjdbGTFfile /data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf   --sjdbOverhang 49   --twopassMode Basic
+
+##### Final parameters after user input--------------------------------:
+versionSTAR                       20201
+versionGenome                     20101   20200   
+parametersFiles                   -   
+sysShell                          -
+runMode                           alignReads
+runThreadN                        8
+runDirPerm                        User_RWX
+runRNGseed                        777
+genomeDir                         /data/share/htp/zUMIs_paper/tiny_testdata/reference/hg38_chr22/
+genomeLoad                        NoSharedMemory
+genomeFastaFiles                  -   
+genomeChainFiles                  -   
+genomeSAindexNbases               14
+genomeChrBinNbits                 18
+genomeSAsparseD                   1
+genomeSuffixLengthMax             18446744073709551615
+genomeFileSizes                   0   
+readFilesIn                       /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz   
+readFilesCommand                  zcat   
+readMatesLengthsIn                NotEqual
+readMapNumber                     18446744073709551615
+readNameSeparator                 /   
+inputBAMfile                      -
+bamRemoveDuplicatesType           -
+bamRemoveDuplicatesMate2basesN    0
+limitGenomeGenerateRAM            31000000000
+limitIObufferSize                 150000000
+limitOutSAMoneReadBytes           100000
+limitOutSJcollapsed               1000000
+limitOutSJoneRead                 1000
+limitBAMsortRAM                   0
+limitSjdbInsertNsj                1000000
+outFileNamePrefix                 /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.
+outTmpDir                         -
+outTmpKeep                        None
+outStd                            Log
+outReadsUnmapped                  None
+outQSconversionAdd                0
+outMultimapperOrder               Old_2.4
+outSAMtype                        BAM   Unsorted   
+outSAMmode                        Full
+outSAMstrandField                 None
+outSAMattributes                  Standard   
+outSAMunmapped                    Within   
+outSAMorder                       Paired
+outSAMprimaryFlag                 OneBestScore
+outSAMreadID                      Standard
+outSAMmapqUnique                  255
+outSAMflagOR                      0
+outSAMflagAND                     65535
+outSAMattrRGline                  -   
+outSAMheaderHD                    -   
+outSAMheaderPG                    -   
+outSAMheaderCommentFile           -
+outBAMcompression                 1
+outBAMsortingThreadN              0
+outSAMfilter                      None   
+outSAMmultNmax                    1
+outSAMattrIHstart                 1
+outSJfilterReads                  All
+outSJfilterCountUniqueMin         3   1   1   1   
+outSJfilterCountTotalMin          3   1   1   1   
+outSJfilterOverhangMin            30   12   12   12   
+outSJfilterDistToOtherSJmin       10   0   5   10   
+outSJfilterIntronMaxVsReadN       50000   100000   200000   
+outWigType                        None   
+outWigStrand                      Stranded   
+outWigReferencesPrefix            -
+outWigNorm                        RPM   
+outFilterType                     Normal
+outFilterMultimapNmax             50
+outFilterMultimapScoreRange       1
+outFilterScoreMin                 0
+outFilterScoreMinOverLread        0.66
+outFilterMatchNmin                0
+outFilterMatchNminOverLread       0.66
+outFilterMismatchNmax             10
+outFilterMismatchNoverLmax        0.3
+outFilterMismatchNoverReadLmax    1
+outFilterIntronMotifs             None
+clip5pNbases                      0   
+clip3pNbases                      0   
+clip3pAfterAdapterNbases          0   
+clip3pAdapterSeq                  -   
+clip3pAdapterMMp                  0.1   
+winBinNbits                       16
+winAnchorDistNbins                9
+winFlankNbins                     4
+winAnchorMultimapNmax             50
+winReadCoverageRelativeMin        0.5
+winReadCoverageBasesMin           0
+scoreGap                          0
+scoreGapNoncan                    -8
+scoreGapGCAG                      -4
+scoreGapATAC                      -8
+scoreStitchSJshift                1
+scoreGenomicLengthLog2scale       -0.25
+scoreDelBase                      -2
+scoreDelOpen                      -2
+scoreInsOpen                      -2
+scoreInsBase                      -2
+seedSearchLmax                    0
+seedSearchStartLmax               50
+seedSearchStartLmaxOverLread      1
+seedPerReadNmax                   1000
+seedPerWindowNmax                 50
+seedNoneLociPerWindow             10
+seedMultimapNmax                  10000
+alignIntronMin                    21
+alignIntronMax                    0
+alignMatesGapMax                  0
+alignTranscriptsPerReadNmax       10000
+alignSJoverhangMin                5
+alignSJDBoverhangMin              3
+alignSJstitchMismatchNmax         0   -1   0   0   
+alignSplicedMateMapLmin           0
+alignSplicedMateMapLminOverLmate    0.66
+alignWindowsPerReadNmax           10000
+alignTranscriptsPerWindowNmax     100
+alignEndsType                     Local
+alignSoftClipAtReferenceEnds      Yes
+alignEndsProtrude                 0   ConcordantPair   
+chimSegmentMin                    0
+chimScoreMin                      0
+chimScoreDropMax                  20
+chimScoreSeparation               10
+chimScoreJunctionNonGTAG          -1
+chimMainSegmentMultNmax           10
+chimJunctionOverhangMin           20
+chimOutType                       SeparateSAMold   
+chimFilter                        banGenomicN   
+chimSegmentReadGapMax             0
+sjdbFileChrStartEnd               -   
+sjdbGTFfile                       /data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf
+sjdbGTFchrPrefix                  -
+sjdbGTFfeatureExon                exon
+sjdbGTFtagExonParentTranscript    transcript_id
+sjdbGTFtagExonParentGene          gene_id
+sjdbOverhang                      49
+sjdbScore                         2
+sjdbInsertSave                    Basic
+quantMode                         -   
+quantTranscriptomeBAMcompression    1
+quantTranscriptomeBan             IndelSoftclipSingleend
+twopass1readsN                    18446744073709551615
+twopassMode                       Basic
+----------------------------------------
+
+
+   Input read files for mate 1, from input string /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz
+-rw-r--r-- 1 ziegenhain ngs 40267821 Jul 20 00:44 /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz
+
+   readsCommandsFile:
+exec > "/data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test._STARtmp/tmp.fifo.read1"
+echo FILE 0
+zcat      "/data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz"
+
+Finished loading and checking parameters
+Reading genome generation parameters:
+versionGenome                 20201        ~RE-DEFINED
+genomeFastaFiles              Homo_sapiens.GRCh38.dna.chromosome.22.fa        ~RE-DEFINED
+genomeSAindexNbases           14     ~RE-DEFINED
+genomeChrBinNbits             18     ~RE-DEFINED
+genomeSAsparseD               1     ~RE-DEFINED
+sjdbOverhang                  0     ~RE-DEFINED
+sjdbFileChrStartEnd           -        ~RE-DEFINED
+sjdbGTFfile                   -     ~RE-DEFINED
+sjdbGTFchrPrefix              -     ~RE-DEFINED
+sjdbGTFfeatureExon            exon     ~RE-DEFINED
+sjdbGTFtagExonParentTranscripttranscript_id     ~RE-DEFINED
+sjdbGTFtagExonParentGene      gene_id     ~RE-DEFINED
+sjdbInsertSave                Basic     ~RE-DEFINED
+genomeFileSizes               50855936   323068164        ~RE-DEFINED
+Genome version is compatible with current STAR version
+Number of real (reference) chromosomes= 1
+1	chr22	50818468	0
+Started loading the genome: Thu Jul 20 00:44:19 2017
+
+Genome: size given as a parameter = 50855936
+SA: size given as a parameter = 323068164
+/SAindex: size given as a parameter = 1
+Read from SAindex: genomeSAindexNbases=14  nSAi=357913940
+nGenome=50855936;  nSAbyte=323068164
+GstrandBit=32   SA number of indices=78319554
+Shared memory is not used for genomes. Allocated a private copy of the genome.
+Genome file size: 50855936 bytes; state: good=1 eof=0 fail=0 bad=0
+Loading Genome ... done! state: good=1 eof=0 fail=0 bad=0; loaded 50855936 bytes
+SA file size: 323068164 bytes; state: good=1 eof=0 fail=0 bad=0
+Loading SA ... done! state: good=1 eof=0 fail=0 bad=0; loaded 323068164 bytes
+Loading SAindex ... done: 1565873619 bytes
+Finished loading the genome: Thu Jul 20 00:44:21 2017
+
+alignIntronMax=alignMatesGapMax=0, the max intron size will be approximately determined by (2^winBinNbits)*winAnchorDistNbins=589824
+Jul 20 00:44:21 ..... processing annotations GTF
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	117447	117524	.	+	.	gene_id ENSG00000276330; gene_version 1; transcript_id ENST00000615878; transcript_version 1; exon_number 1; gene_name AL353644.7; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.7-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003734725; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	121581	121672	.	+	.	gene_id ENSG00000274411; gene_version 1; transcript_id ENST00000610864; transcript_version 1; exon_number 1; gene_name hsa-mir-6724-1; gene_source ensembl; gene_biotype miRNA; transcript_name hsa-mir-6724-1.1-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003713658; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	122136	122225	.	+	.	gene_id ENSG00000273739; gene_version 1; transcript_id ENST00000618675; transcript_version 1; exon_number 1; gene_name pRNA; gene_source ensembl; gene_biotype misc_RNA; transcript_name pRNA.1-201; transcript_source ensembl; transcript_biotype misc_RNA; exon_id ENSE00003734247; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	124297	124410	.	+	.	gene_id ENSG00000275684; gene_version 1; transcript_id ENST00000610594; transcript_version 1; exon_number 1; gene_name AL353644.5; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.5-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003738251; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	124758	124937	.	+	.	gene_id ENSG00000276112; gene_version 1; transcript_id ENST00000611782; transcript_version 1; exon_number 1; gene_name AL353644.6; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.6-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003732258; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	125129	125189	.	+	.	gene_id ENSG00000277928; gene_version 1; transcript_id ENST00000611919; transcript_version 1; exon_number 1; gene_name hsa-mir-3687-1; gene_source ensembl; gene_biotype miRNA; transcript_name hsa-mir-3687-1.2-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003743707; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	128877	129029	.	+	.	gene_id ENSG00000276700; gene_version 1; transcript_id ENST00000616292; transcript_version 1; exon_number 1; gene_name RNA5-8S5; gene_source ensembl; gene_biotype rRNA; transcript_name RNA5-8S5-205; transcript_source ensembl; transcript_biotype rRNA; exon_id ENSE00003725298; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	131007	131098	.	+	.	gene_id ENSG00000277765; gene_version 1; transcript_id ENST00000611802; transcript_version 1; exon_number 1; gene_name AL353644.11; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.11-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003711757; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	134291	134339	.	+	.	gene_id ENSG00000276402; gene_version 1; transcript_id ENST00000617577; transcript_version 1; exon_number 1; gene_name AL353644.8; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.8-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003731746; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	135060	135116	.	+	.	gene_id ENSG00000277048; gene_version 1; transcript_id ENST00000611934; transcript_version 1; exon_number 1; gene_name AL353644.10; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.10-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003735886; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	166663	166754	.	+	.	gene_id ENSG00000274745; gene_version 1; transcript_id ENST00000619285; transcript_version 1; exon_number 1; gene_name AL353644.2; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.2-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003746428; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	167218	167307	.	+	.	gene_id ENSG00000276312; gene_version 1; transcript_id ENST00000615130; transcript_version 1; exon_number 1; gene_name pRNA; gene_source ensembl; gene_biotype misc_RNA; transcript_name pRNA.8-201; transcript_source ensembl; transcript_biotype misc_RNA; exon_id ENSE00003727949; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	169383	169496	.	+	.	gene_id ENSG00000276936; gene_version 1; transcript_id ENST00000616001; transcript_version 1; exon_number 1; gene_name AL353644.9; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.9-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003729482; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	169844	170023	.	+	.	gene_id ENSG00000275104; gene_version 1; transcript_id ENST00000615249; transcript_version 1; exon_number 1; gene_name AL353644.4; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.4-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003724824; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	170215	170275	.	+	.	gene_id ENSG00000274016; gene_version 1; transcript_id ENST00000619716; transcript_version 1; exon_number 1; gene_name hsa-mir-3687-1; gene_source ensembl; gene_biotype miRNA; transcript_name hsa-mir-3687-1.1-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003735874; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	173956	174108	.	+	.	gene_id ENSG00000275757; gene_version 1; transcript_id ENST00000618998; transcript_version 1; exon_number 1; gene_name RNA5-8S5; gene_source ensembl; gene_biotype rRNA; transcript_name RNA5-8S5-204; transcript_source ensembl; transcript_biotype rRNA; exon_id ENSE00003724737; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	176086	176177	.	+	.	gene_id ENSG00000274804; gene_version 1; transcript_id ENST00000612700; transcript_version 1; exon_number 1; gene_name AL353644.3; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.3-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003729505; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270733v1_random' not found in Genome fasta files for line:
+chr22_KI270733v1_random	ensembl	exon	179370	179418	.	+	.	gene_id ENSG00000274224; gene_version 1; transcript_id ENST00000621427; transcript_version 1; exon_number 1; gene_name AL353644.1; gene_source ensembl; gene_biotype miRNA; transcript_name AL353644.1-201; transcript_source ensembl; transcript_biotype miRNA; exon_id ENSE00003718377; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	59711	60178	.	+	.	gene_id ENSG00000278573; gene_version 1; transcript_id ENST00000615362; transcript_version 1; exon_number 1; gene_name AC007325.3; gene_source ensembl; gene_biotype pseudogene; transcript_name AC007325.3-201; transcript_source ensembl; transcript_biotype pseudogene; exon_id ENSE00003744323; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	60182	60316	.	+	.	gene_id ENSG00000278573; gene_version 1; transcript_id ENST00000615362; transcript_version 1; exon_number 2; gene_name AC007325.3; gene_source ensembl; gene_biotype pseudogene; transcript_name AC007325.3-201; transcript_source ensembl; transcript_biotype pseudogene; exon_id ENSE00003747300; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	72411	74814	.	+	.	gene_id ENSG00000276017; gene_version 1; transcript_id ENST00000617983; transcript_version 1; exon_number 1; gene_name AC007325.1; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.1-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003721512; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	131494	131755	.	+	.	gene_id ENSG00000278817; gene_version 1; transcript_id ENST00000613204; transcript_version 1; exon_number 1; gene_name AC007325.4; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.4-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003729133; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	131836	131996	.	+	.	gene_id ENSG00000278817; gene_version 1; transcript_id ENST00000613204; transcript_version 1; exon_number 2; gene_name AC007325.4; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.4-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003729010; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	135443	135543	.	+	.	gene_id ENSG00000278817; gene_version 1; transcript_id ENST00000613204; transcript_version 1; exon_number 3; gene_name AC007325.4; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.4-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003716987; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	136159	136299	.	+	.	gene_id ENSG00000278817; gene_version 1; transcript_id ENST00000613204; transcript_version 1; exon_number 4; gene_name AC007325.4; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.4-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003730904; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	136845	137392	.	+	.	gene_id ENSG00000278817; gene_version 1; transcript_id ENST00000613204; transcript_version 1; exon_number 5; gene_name AC007325.4; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.4-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003712507; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	161689	161852	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 1; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003746084; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	161314	161626	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 2; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003719550; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	156289	156497	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 3; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003723757; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	150987	151021	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 4; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003731891; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	150350	150499	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 5; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003724613; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	148414	148478	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 6; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003732418; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	148116	148232	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 7; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003733960; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	147624	147703	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 8; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003727207; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	146640	146721	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 9; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003728972; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	145004	145096	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 10; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003733844; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	144749	144895	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 11; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003752738; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	143614	143789	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 12; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003720006; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	142194	142292	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 13; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003719283; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	138743	138831	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 14; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003751415; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	138082	138667	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000621424; transcript_version 4; exon_number 15; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003753010; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	161689	161750	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 1; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003735197; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	156289	156497	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 2; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003737280; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	150987	151021	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 3; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003731891; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	150350	150499	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 4; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003724613; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	148414	148478	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 5; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003732418; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	148116	148232	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 6; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003733960; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	147624	147703	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 7; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003727207; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	146640	146721	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 8; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003728972; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	145004	145096	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 9; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003733844; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	144749	144895	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 10; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003752738; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	143614	143789	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 11; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003720006; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	142194	142292	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 12; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003719283; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	138743	138831	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 13; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003751415; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270734v1_random' not found in Genome fasta files for line:
+chr22_KI270734v1_random	ensembl	exon	138082	138667	.	-	.	gene_id ENSG00000277196; gene_version 4; transcript_id ENST00000615165; transcript_version 1; exon_number 14; gene_name AC007325.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC007325.2-202; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003753010; exon_version 1; tag basic; transcript_support_level 1;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270731v1_random' not found in Genome fasta files for line:
+chr22_KI270731v1_random	ensembl	exon	10598	13001	.	-	.	gene_id ENSG00000278633; gene_version 1; transcript_id ENST00000619792; transcript_version 1; exon_number 1; gene_name AC023491.2; gene_source ensembl; gene_biotype protein_coding; transcript_name AC023491.2-201; transcript_source ensembl; transcript_biotype protein_coding; exon_id ENSE00003722305; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270731v1_random' not found in Genome fasta files for line:
+chr22_KI270731v1_random	ensembl	exon	26671	27138	.	-	.	gene_id ENSG00000278066; gene_version 1; transcript_id ENST00000620795; transcript_version 1; exon_number 1; gene_name AC023491.1; gene_source ensembl; gene_biotype pseudogene; transcript_name AC023491.1-201; transcript_source ensembl; transcript_biotype pseudogene; exon_id ENSE00003752618; exon_version 1; tag basic; transcript_support_level NA;
+WARNING: while processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: chromosome 'chr22_KI270731v1_random' not found in Genome fasta files for line:
+chr22_KI270731v1_random	ensembl	exon	26533	26667	.	-	.	gene_id ENSG00000278066; gene_version 1; transcript_id ENST00000620795; transcript_version 1; exon_number 2; gene_name AC023491.1; gene_source ensembl; gene_biotype pseudogene; transcript_name AC023491.1-201; transcript_source ensembl; transcript_biotype pseudogene; exon_id ENSE00003754098; exon_version 1; tag basic; transcript_support_level NA;
+Processing sjdbGTFfile=/data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf, found:
+		4511 transcripts
+		26073 exons (non-collapsed)
+		7638 collapsed junctions
+Jul 20 00:44:22 ..... finished GTF processing
+Jul 20 00:44:22   Loaded database junctions from the GTF file: /data/share/htp/zUMIs_paper/tiny_testdata/reference/GRCh38.84.chr22.gtf: 7638 total junctions
+
+Jul 20 00:44:22   Finished preparing junctions
+Jul 20 00:44:22 ..... inserting junctions into the genome indices
+Jul 20 00:44:23   Finished SA search: number of new junctions=7634, old junctions=0
+Jul 20 00:44:23   Finished sorting SA indicesL nInd=1496264
+Jul 20 00:44:25   Finished inserting junction indices
+Jul 20 00:44:39   Finished SAi
+Jul 20 00:44:39 ..... finished inserting junctions into genome
+Created thread # 1
+Created thread # 2
+Created thread # 3
+Created thread # 4
+Created thread # 5
+Created thread # 6
+Created thread # 7
+Starting to map file # 0
+mate 1:   /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz
+Thread #4 end of input stream, nextChar=-1
+Completed: thread #6
+Completed: thread #0
+Completed: thread #7
+Completed: thread #4
+Completed: thread #5
+Completed: thread #2
+Completed: thread #3
+Completed: thread #1
+Joined thread # 1
+Joined thread # 2
+Joined thread # 3
+Joined thread # 4
+Joined thread # 5
+Joined thread # 6
+Joined thread # 7
+Jul 20 00:46:53   Loaded database junctions from the 1st pass file: /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test._STARpass1//SJ.out.tab: 15012 total junctions
+
+Jul 20 00:46:53   Finished preparing junctions
+Jul 20 00:46:53 ..... inserting junctions into the genome indices
+Jul 20 00:46:54   Finished SA search: number of new junctions=7088, old junctions=7634
+Jul 20 00:46:54   Finished sorting SA indicesL nInd=1389248
+Jul 20 00:46:56   Finished inserting junction indices
+Jul 20 00:47:10   Finished SAi
+Jul 20 00:47:10 ..... finished inserting junctions into genome
+
+   Input read files for mate 1, from input string /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz
+-rw-r--r-- 1 ziegenhain ngs 40267821 Jul 20 00:44 /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz
+
+   readsCommandsFile:
+exec > "/data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test._STARtmp/tmp.fifo.read1"
+echo FILE 0
+zcat      "/data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz"
+
+Created thread # 1
+Created thread # 2
+Created thread # 3
+Created thread # 4
+Created thread # 5
+Created thread # 6
+Created thread # 7
+Starting to map file # 0
+mate 1:   /data/share/htp/zUMIs_paper/tiny_testdata/ExampleData//test.cdnaread.filtered.fastq.gz
+Thread #0 end of input stream, nextChar=-1
+Completed: thread #7
+Completed: thread #5
+Completed: thread #6
+Completed: thread #0
+Completed: thread #1
+Joined thread # 1
+Completed: thread #3
+Completed: thread #2
+Joined thread # 2
+Joined thread # 3
+Completed: thread #4
+Joined thread # 4
+Joined thread # 5
+Joined thread # 6
+Joined thread # 7
+ALL DONE!
