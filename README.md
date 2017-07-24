@@ -8,6 +8,10 @@ The input to this pipeline is paired-end fastq files, where one read contains th
 
 You can read more about zUMIs in our [biorxiv preprint](http://www.biorxiv.org/content/early/2017/06/22/153940)!
 
+## Installation and Usage
+
+Please find information on [installation](https://github.com/sdparekh/zUMIs/wiki/Installation) and [usaage](https://github.com/sdparekh/zUMIs/wiki/Usage) in the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/).
+
 ## Compatibility
 
 zUMIs is compatible with these single-cell UMI protocols:
