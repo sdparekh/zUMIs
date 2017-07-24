@@ -10,7 +10,7 @@ You can read more about zUMIs in our [biorxiv preprint](http://www.biorxiv.org/c
 
 ## Installation and Usage
 
-Please find information on [installation](https://github.com/sdparekh/zUMIs/wiki/Installation) and [usaage](https://github.com/sdparekh/zUMIs/wiki/Usage) in the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/).
+Please find information on [installation](https://github.com/sdparekh/zUMIs/wiki/Installation) and [usage](https://github.com/sdparekh/zUMIs/wiki/Usage) in the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/).
 
 ## Compatibility
 
