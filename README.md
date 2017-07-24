@@ -27,6 +27,7 @@ zUMIs is compatible with these single-cell UMI protocols:
 - SPLiT-seq (Rosenberg et al., 2017)
 - STRT-2i (Hochgerner et al., 2017)
 - Quartz-seq2 (Sasagawa et al., 2017)
+- 10x Genomics Chromium (Zheng et al., 2017)
 
 For InDrops compatibility, users need to preprocess the barcode and UMI read because of variable length cell barcodes.
 
