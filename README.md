@@ -28,6 +28,7 @@ For InDrops compatibility, users need to preprocess the barcode and UMI read bec
 
 ## Getting help
 
+Refer to zUMIs wiki for help: https://github.com/sdparekh/zUMIs/wiki
 Please report bugs :beetle::bug: to the [zUMIs Github issue page](https://github.com/sdparekh/zUMIs/issues)
 
 If you encounter issues when using zUMIs for the first time, please try to run the example data set included in this repository.
