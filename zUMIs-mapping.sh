@@ -13,6 +13,7 @@ starexc=$8
 samtoolsexc=$9
 xm="${10}"
 bt="${11}"
+isstrt="${12}"
 
 if [[ "$isstrt" == "no" ]] ; then
 	rl=`expr $r - 1`

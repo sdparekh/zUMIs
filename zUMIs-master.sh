@@ -223,13 +223,13 @@ if [[ "$isslurm" == "yes" ]] ; then
 		else
 			bash $zumisdir/zUMIs-filtering-strt.sh $cdnaread $bcread $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $bcread2 $BaseTrim
 		fi
-			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim
+			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
 			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"mapping")
-			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim
+			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
 			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
