@@ -63,6 +63,14 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 	-e  <STAR-executable>	 : path to STAR executable in your system. Default: STAR
 	-t  <samtools-executable>: path to samtools executable in your system. Default: samtools
 	-i  <zUMIs-dir>   	 : Directory containing zUMIs scripts.  Default: path to this script.
+	
+## zUMIs from any stage ##
+	-A  <isCustomFASTQ>	 : yes/no. Start zUMIs from Mapping stage with your own FASTQ files if you don't want to use zUMIs filter.
+					Only works with -w Mapping.
+					Make sure to provide the Required parameters. Default: no.
+	-X  <CustomMappedBAM>	 : Mapped BAM file. Start zUMIs from Counting stage with your own BAM file if you don't want to use STAR.
+					Only works with -w Counting.
+					Make sure to provide the Required parameters. Default: NA.
 	-w  <whichStage>   	 : Start zUMIs from <-w TEXT> stage. Possible TEXT(Filtering, Mapping, Counting, Summarising). Default: Filtering.
 					Make sure to give the same <outputdir> (-o) and <StudyName> (-n) if you start from the middle stage.
 					zUMIs has a defined directory structure.
@@ -95,13 +103,17 @@ zumisdir=$(dirname `readlink -f $0`)
 whichStage=filtering
 isstrt=no
 bcread2=NA
+CustomMappedBAM=NA
+isCustomFASTQ=no
 BaseTrim=3
 xcrange2=0-0
 
-while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:q:Q:z:u:x:e:p:i:d:w:j:F:C:y:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
+while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
   case $options in
   R ) isslurm=$OPTARG;;
   S ) isStats=$OPTARG;;
+  X ) isCustomFASTQ=$OPTARG;;
+  A ) isCustomFASTQ=$OPTARG;;
   w ) whichStage=$OPTARG;;
   f ) bcread=$OPTARG;;
   r ) cdnaread=$OPTARG;;
@@ -142,6 +154,7 @@ if [[ $OPTIND -eq 1 ]] ; then
 fi
 
 isslurm=`echo "$isslurm" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
+isCustomFASTQ=`echo "$isCustomFASTQ" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
 isStats=`echo "$isStats" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
 isstrt=`echo "$isstrt" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
 whichStage=`echo "$whichStage" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
@@ -182,6 +195,8 @@ echo -e "\n\n You provided these parameters:
  SLURM workload manager:	$isslurm
  Summary Stats to produce:	$isStats
  Start the pipeline from:	$whichStage
+ A custom mapped BAM:		$CustomMappedBAM
+ Custom filtered FASTQ:		$isCustomFASTQ
  Barcode read:			$bcread
  cDNA read:			$cdnaread
  Study/sample name:		$sname
@@ -214,6 +229,12 @@ echo -e "\n\n You provided these parameters:
 [ -d $outdir/zUMIs_output/stats ] || mkdir $outdir/zUMIs_output/stats
 [ -d $outdir/zUMIs_output/filtered_fastq ] || mkdir $outdir/zUMIs_output/filtered_fastq
 
+if [[ "$CustomMappedBAM" != "NA" ]] ; then
+	whichStage=counting
+fi
+if [[ "$isCustomFASTQ" != "no" ]] ; then
+	whichStage=mapping
+fi
 #Submit all the jobs
 if [[ "$isslurm" == "yes" ]] ; then
 	case "$whichStage" in
@@ -229,12 +250,43 @@ if [[ "$isslurm" == "yes" ]] ; then
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"mapping")
+		if [[ "$isCustomFASTQ" == "yes" ]] ; then
+			if [[ $cdnaread =~ \.gz$ ]] ; then
+				ln -s $cdnaread $outdir/$sname.cdnaread.filtered.fastq.gz
+			else
+				pigz -c -p $threads $cdnaread > $outdir/$sname.cdnaread.filtered.fastq.gz
+			fi
+			if [[ $bcread =~ \.gz$ ]] ; then
+				ln -s $bcread $outdir/$sname.barcoderead.filtered.fastq.gz
+			else
+				pigz -c -p $threads $bcread > $outdir/$sname.barcoderead.filtered.fastq.gz
+			fi
+			bash $zumisdir/zUMIs-prep.sh $outdir/$sname.barcoderead.filtered.fastq.gz $outdir/$sname.cdnaread.filtered.fastq.gz $sname $outdir $zumisdir
+		fi
 			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
 			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"counting")
+		if [[ "$CustomMappedBAM" != "NA" ]] ; then
+			if [[ $cdnaread =~ \.gz$ ]] ; then
+				ln -s $cdnaread $outdir/$sname.cdnaread.filtered.fastq.gz
+			else
+				pigz -c -p $threads $cdnaread > $outdir/$sname.cdnaread.filtered.fastq.gz
+			fi
+			if [[ $bcread =~ \.gz$ ]] ; then
+				ln -s $bcread $outdir/$sname.barcoderead.filtered.fastq.gz
+			else
+				pigz -c -p $threads $bcread > $outdir/$sname.barcoderead.filtered.fastq.gz
+			fi
+			bash $zumisdir/zUMIs-prep.sh $outdir/$sname.barcoderead.filtered.fastq.gz $outdir/$sname.cdnaread.filtered.fastq.gz $sname $outdir $zumisdir
+		fi
+
+		if [[ ! -f $outdir/$sname.barcodelist.filtered.sort.sam ]] ; then
+			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
+		fi
+
 			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
@@ -244,6 +296,6 @@ if [[ "$isslurm" == "yes" ]] ; then
 			;;
 	esac
 else
-	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2
+	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2 $CustomMappedBAM $isCustomFASTQ
 fi
 

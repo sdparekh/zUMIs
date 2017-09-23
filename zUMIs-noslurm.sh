@@ -28,6 +28,8 @@ f3="${24}"
 bt="${25}"
 isstrt="${26}"
 xc2="${27}"
+CustomMappedBAM="${28}"
+isCustomFASTQ="${29}"
 
 if [[ "$isstrt" == "no" ]] ; then
 	rl=`expr $r - 1`
@@ -80,6 +82,20 @@ re='^[0-9]+$'
 			fi
 			;;
 		"mapping")
+		if [[ "$isCustomFASTQ" == "yes" ]] ; then
+			if [[ $f1 =~ \.gz$ ]] ; then
+				ln -s $f1 $o/$sn.cdnaread.filtered.fastq.gz
+			else
+				pigz -c -p $t $f1 > $o/$sn.cdnaread.filtered.fastq.gz
+			fi
+			if [[ $f2 =~ \.gz$ ]] ; then
+				ln -s $f2 $o/$sn.barcoderead.filtered.fastq.gz
+			else
+				pigz -c -p $t $f2 > $o/$sn.barcoderead.filtered.fastq.gz
+			fi
+			perl $zumisdir/fqcheck.pl $o/$sn.barcoderead.filtered.fastq.gz $o/$sn.cdnaread.filtered.fastq.gz $sn $o $zumisdir
+		fi
+
 			$starexc --genomeDir $g --runThreadN $t --readFilesCommand zcat --sjdbGTFfile $gtf --outFileNamePrefix $o/$sn. --outSAMtype BAM Unsorted --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --sjdbOverhang $rl --twopassMode Basic --readFilesIn $o/$sn.cdnaread.filtered.fastq.gz $x
 
 			$samtoolsexc sort -n -O bam -T temp.$sn -@ $t -m 2G -o $o/$sn.aligned.sorted.bam $o/$sn.Aligned.out.bam
@@ -99,9 +115,27 @@ re='^[0-9]+$'
 			fi
 			;;
 		"counting")
+		if [[ "$CustomMappedBAM" != "NA" ]] ; then
+			if [[ $f1 =~ \.gz$ ]] ; then
+				ln -s $f1 $o/$sn.cdnaread.filtered.fastq.gz
+			else
+				pigz -c -p $t $f1 > $o/$sn.cdnaread.filtered.fastq.gz
+			fi
+			if [[ $f2 =~ \.gz$ ]] ; then
+				ln -s $f2 $o/$sn.barcoderead.filtered.fastq.gz
+			else
+				pigz -c -p $t $f2 > $o/$sn.barcoderead.filtered.fastq.gz
+			fi
+			perl $zumisdir/fqcheck.pl $o/$sn.barcoderead.filtered.fastq.gz $o/$sn.cdnaread.filtered.fastq.gz $sn $o $zumisdir
+		fi
+
 			ln -s -f $o/$sn.aligned.sorted.bam "$o/$sn.aligned.sorted.bam.in"
 			ln -s -f $o/$sn.aligned.sorted.bam $o/$sn.aligned.sorted.bam.ex
-
+			
+			if [[ ! -f $o/$sn.barcodelist.filtered.sort.sam ]] ; then
+				$samtoolsexc sort -n -O sam -T tmp.$sn -@ $t -m 2G -o $o/$sn.barcodelist.filtered.sort.sam $o/$sn.barcodelist.filtered.sam
+			fi
+			
 			if [[ $bn =~ $re ]] ; then
 				Rscript $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs
 			else
