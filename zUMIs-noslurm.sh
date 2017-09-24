@@ -93,7 +93,7 @@ re='^[0-9]+$'
 			else
 				pigz -c -p $t $f2 > $o/$sn.barcoderead.filtered.fastq.gz
 			fi
-			perl $zumisdir/fqcheck.pl $o/$sn.barcoderead.filtered.fastq.gz $o/$sn.cdnaread.filtered.fastq.gz $sn $o $zumisdir
+			perl $zumisdir/fqcheck.pl $o/$sn.barcoderead.filtered.fastq.gz $o/$sn.cdnaread.filtered.fastq.gz $sn $o
 		fi
 
 			$starexc --genomeDir $g --runThreadN $t --readFilesCommand zcat --sjdbGTFfile $gtf --outFileNamePrefix $o/$sn. --outSAMtype BAM Unsorted --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --sjdbOverhang $rl --twopassMode Basic --readFilesIn $o/$sn.cdnaread.filtered.fastq.gz $x
