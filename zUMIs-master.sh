@@ -32,15 +32,17 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 
 ## Required parameters ##
 
-	-f  <Barcode read fastq> : Path to Barcode reads fastq file (It can also be gzip fastq file). Required.
-	-r  <cDNA read fastq>    : Path to cDNA reads fastq file (It can also be gzip fastq file). Required.
+	-f  <Barcode read fastq> : Path to Barcode reads fastq file (preferably gzipped). Required.
+				   In case of InDrops mode, path to first gel-barcode reads fastq file. Required.
+	-r  <cDNA read fastq>    : Path to cDNA reads fastq file (preferably gzipped). Required.
 	-n  <StudyName>          : Name of the study/sample in use. Required.
 	-g  <genomedir>          : Directory of STAR genome directory.  Required.
 	-a  <GTF annotation>     : Path to GTF file. Required.
 	-c  <XC baserange>       : Base range for cell/sample barcode in -f Barcode read(e.g. 1-6).  Required.
-				   For STRT-seq give this as 1-n where n is your first cell barcode(-f) length.
+				   For STRT-seq/InDrops give this as 1-n where n is your first cell barcode(-f) length.
+				   For InDrops give this as 1-n where n is the total length of cell barcode(e.g. 1-22).
 	-m  <XM baserange>       : Base range for UMI barcode in -f Barcode read(e.g. 7-16).  Required.
-				   For STRT-seq give this as 1-n where n is your UMI barcode length.
+				   For STRT-seq/InDrops give this as 1-n where n is your UMI length.
 	-l  <readlength>         : Read length of -r cDNA reads (e.g. 50).  Required.
 				   For STRT-seq give this as a total length of your umicdna read.
 
@@ -51,8 +53,13 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 	-Q  <umibasequal>        : Minimum base quality required for molecular barcode to be accepted.  Default: 20.
 	-p  <processors>         : Number of processors to use. Default: 1
 	-s  <strandedness>	 : Is the library stranded? 0 = unstranded, 1 = positively stranded, 2 = negatively stranded Default: 0
-	-b  <Barcodes>           : Either number of cell/sample barcodes to output (e.g. 100) or defined barcodes as a text file (e.g. ATGCCAAT).  Default: Automatic 					   detection of relevant barcodes. Note: The text file should contain just one column with a list of barcodes without headers and without 					   sample names.
-	-d  <downsampling>	 : Number of reads to downsample to. This value can be a fixed number of reads (e.g. 10000) or a desired range (e.g. 10000-20000). Barcodes 					   with less than <d> will not be reported. 0 means adaptive downsampling. Default: 0.
+	-b  <Barcodes>           : Either number of cell/sample barcodes to output (e.g. 100) or
+				   defined barcodes as a text file with a list of barcodes without headers (e.g. ATGCCAAT). Default: Adaptive cell barcode selection
+				   We highly reccomend to provide expected number of barcodes for Drop-seq protocol.
+	-N  <nReadsperCell>	 : Keep the cell barcodes with atleast "-N <int>" number of reads. Default: 100
+				   Cells with less than "-N <int>" number of total reads are removed.
+	-d  <downsampling>	 : Number of reads to downsample to. This value can be a fixed number of reads (e.g. 10000) or a desired range (e.g. 10000-20000). 
+				   Barcodes with less than <d> will not be reported. 0 means adaptive downsampling. Default: 0.
 	-x  <STARparams>	 : Additional STAR mapping parameters. Optional. e.g. "--outFilterMismatchNoverLmax 0.2 --quantMode TranscriptomeSAM".
 					This pipeline works based on one hit per read. Therefore, please do not report more multimapping hits. Default: "".
 
@@ -81,6 +88,11 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 	-C  <XC2 baserange> 	 : Base range for cell/sample barcode in -F Barcode read(e.g. 1-5). Required if -F is given.  Default: 0-0.
 	-j  <BaseTrim>		 : <-j INT> fixed number of bases(G) will be trimmed between UMI and cDNA read for STRT-seq. Default: 3.
 
+## InDrops mode ##
+	-Y  <InDrops>		 : Do you have InDrops data? yes/no Default: no.
+	-F  <gel-barcode2 fastq> : Provide the second half of gel barcode + UMI read <-F> here. Default: NA.
+	-L  <library barcode fastq> : Provide the library barcode read here. Default: NA
+
 EOF
 }
 
@@ -102,13 +114,16 @@ samtoolsexc=samtools
 zumisdir=$(dirname `readlink -f $0`)
 whichStage=filtering
 isstrt=no
+isindrops=no
 bcread2=NA
+libread=NA
 CustomMappedBAM=NA
 isCustomFASTQ=no
 BaseTrim=3
 xcrange2=0-0
+nreads=100
 
-while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
+while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:L:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
   case $options in
   R ) isslurm=$OPTARG;;
   S ) isStats=$OPTARG;;
@@ -127,6 +142,7 @@ while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:h" o
   l ) readlen=$OPTARG;;
   b ) barcodes=$OPTARG;;
   n ) sname=$OPTARG;;
+  N ) nreads=$OPTARG;;
   q ) cbasequal=$OPTARG;;
   Q ) mbasequal=$OPTARG;;
   z ) cellbcbase=$OPTARG;;
@@ -137,6 +153,8 @@ while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:h" o
   x ) starparams=$OPTARG;;
   d ) subsampling=$OPTARG;;
   y ) isstrt=$OPTARG;;
+  Y ) isindrops=$OPTARG;;
+  L ) libread=$OPTARG;;
   F ) bcread2=$OPTARG;;
   C ) xcrange2=$OPTARG;;
   j ) BaseTrim=$OPTARG;;
@@ -157,6 +175,7 @@ isslurm=`echo "$isslurm" | tr '[:upper:]' '[:lower:]'`  # convert to all lower c
 isCustomFASTQ=`echo "$isCustomFASTQ" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
 isStats=`echo "$isStats" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
 isstrt=`echo "$isstrt" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
+isindrops=`echo "$isindrops" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
 whichStage=`echo "$whichStage" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
 
 memory=`du -sh $genomedir | cut -f1` #STAR genome index size
@@ -203,6 +222,7 @@ echo -e "\n\n You provided these parameters:
  Output directory:		$outdir
  Cell/sample barcode range:	$xcrange
  UMI barcode range:		$xmrange
+ Retain cell with >=N reads:	$nreads  
  Genome directory:		$genomedir
  GTF annotation file:		$gtf
  Number of processors:		$threads
@@ -218,6 +238,8 @@ echo -e "\n\n You provided these parameters:
  samtools executable		$samtoolsexc
  Additional STAR parameters:	$starparams
  STRT-seq data:			$isstrt
+ InDrops data:			$isindrops
+ Library read for InDrops:	$libread
  Barcode read2(STRT-seq):	$bcread2
  Barcode read2 range(STRT-seq):	$xcrange2
  Bases(G) to trim(STRT-seq):	$BaseTrim
@@ -239,14 +261,16 @@ fi
 if [[ "$isslurm" == "yes" ]] ; then
 	case "$whichStage" in
 		"filtering")
-		if [[ "$isstrt" == "no" ]] ; then
-			bash $zumisdir/zUMIs-filtering.sh $bcread $cdnaread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir
-		else
+		if [[ "$isstrt" == "yes" ]] ; then
 			bash $zumisdir/zUMIs-filtering-strt.sh $cdnaread $bcread $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $bcread2 $BaseTrim
+		elif [[ "$isindrops" == "yes" ]] ; then
+			bash $zumisdir/zUMIs-filtering-inDrops.sh $cdnaread $bcread $libread $bcread2 $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir
+		else
+			bash $zumisdir/zUMIs-filtering.sh $bcread $cdnaread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir
 		fi
 			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"mapping")
@@ -265,7 +289,7 @@ if [[ "$isslurm" == "yes" ]] ; then
 		fi
 			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"counting")
@@ -287,15 +311,15 @@ if [[ "$isslurm" == "yes" ]] ; then
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
 		fi
 
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"summarising")
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 	esac
 else
-	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2 $CustomMappedBAM $isCustomFASTQ
+	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2 $CustomMappedBAM $isCustomFASTQ $nreads $isindrops $libread
 fi
 
