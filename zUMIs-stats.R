@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-print("I am loading useful packages...")
+print("I am loading useful packages for plotting...")
 print(Sys.time())
 packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","optparse","parallel","Rsubread","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble")
 paks<-lapply(packages, function(x) suppressMessages(require(x, character.only = TRUE)))
@@ -25,10 +25,10 @@ reads=readRDS(paste(opt$out,"/zUMIs_output/expression/",opt$sn,".tbl.rds",sep=""
 countGenes <- function(counttable,threshold=1){
   tmp <- counttable
   
-  tmp[tmp<threshold]<-0
+  #tmp[tmp<threshold]<-0
   tmp[tmp>=threshold]<-1
   
-  samples<-as.data.frame(colSums(tmp))
+  samples<-as.data.frame(Matrix::colSums(tmp))
   colnames(samples) <- c("Count")
   samples[,"SampleID"] <- as.factor(row.names(samples))
   row.names(samples) <- NULL
@@ -38,7 +38,7 @@ countGenes <- function(counttable,threshold=1){
 countUMIs <- function(counttable){
   tmp <- counttable
   
-  samples<-as.data.frame(colSums(tmp))
+  samples<-as.data.frame(Matrix::colSums(tmp))
   colnames(samples) <- c("Count")
   samples[,"SampleID"] <- as.factor(row.names(samples))
   row.names(samples) <- NULL

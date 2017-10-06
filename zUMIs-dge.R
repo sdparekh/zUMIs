@@ -32,7 +32,9 @@ option_list = list(
   make_option(c("--umiend"), type="integer", default=16,
               help="End position of UMI barcode in the read", metavar="integer"),
   make_option(c("--subsamp"), type="character", default="0",
-              help="Number of reads for downsampling.", metavar="character")
+              help="Number of reads for downsampling.", metavar="character"),
+  make_option(c("--nReadsBC"), type="character", default="100",
+              help="Retain cells with atleast N reads.", metavar="character")
 );
 
 opt_parser = OptionParser(option_list=option_list);
@@ -40,7 +42,7 @@ opt = parse_args(opt_parser);
 
 print("I am loading useful packages...")
 print(Sys.time())
-packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","optparse","parallel","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble")
+packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","optparse","parallel","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble","mclust","Matrix")
 paks<-lapply(packages, function(x) suppressMessages(require(x, character.only = TRUE)))
 rm(paks)
 
@@ -86,7 +88,7 @@ stra=opt$strandedness
 subsampling=opt$subsamp
 sn=opt$sn
 out=opt$out
-
+nReadsBC=opt$nReadsBC
 if(is.null(opt$barcodefile)==F){
   if(opt$barcodefile=="NA"){
     barcodes <- NA
@@ -191,18 +193,26 @@ print(Sys.time())
 
 
 # make umi and read count tables ------------------------------------------
-makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype,sn,out){
-  makewide <- function(longdf,type){
-    widedf <- longdf %>% dplyr::select_("XC","GE",type)  %>% tidyr::spread_(.,key = "XC",value = type,fill = 0,drop = T)
-    widedf <- as.data.frame(widedf)
-    row.names(widedf) <- widedf$GE
-    widedf <- widedf[,-1]
+makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype,sn,out,nReadsBC){
+
+  makewide <- function(longdf,nbc,type){
+      print("I am making a sparseMatrix!!")
+      longdf$XC <- as.factor(longdf$XC)
+      longdf$GE <- as.factor(longdf$GE)
+      widedf <- Matrix::sparseMatrix(i=as.integer(longdf$GE), j=as.integer(longdf$XC), x=as.numeric(pull(longdf[,type])), dimnames=list(levels(longdf$GE), levels(longdf$XC)))
     return(widedf)
   }
 
-  packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","Rsubread","methods")
-  bla<-lapply(packages, function(x) suppressMessages(require(x, character.only = TRUE)))
-  rm(bla)
+  BCselection <- function(fullstats){
+    tmp<-mclust::Mclust(log10(fullstats$nreads))
+    mm<-tmp$parameters$mean[tmp$G]
+    va<-tmp$parameters$variance$sigmasq[tmp$G]
+    
+    cut<-10^(qnorm(0.01, m=mm,sd=sqrt(va)))
+    rcfilt <- fullstats[fullstats$nreads>=cut,]
+    return(rcfilt)
+  }
+  
   if(ftype == "inex"){
 
     fctsfilein <- fread(paste("cut -f2,3 ",abamfile[1],".featureCounts",sep=""), sep="\t",quote='',header = F) #in
@@ -223,41 +233,42 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
 
     reads <- tibble(XC=substring(reads$V1, bcstart, bcend),XM=substring(reads$V1, umistart, umiend),GE=fctsfile$V1)
   }
-  if(is.numeric(bcfile)){
-    if(bcfile>25000){
-      print("Attention! I limited your cell barcodes to 25000!")
-      bcfile <- 25000
-    }
-    bc <- reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% top_n(bcfile) %>% dplyr::select(V1=XC)
-  }else if(is.na(bcfile)){
-    fullstats <- reads %>% group_by(XC) %>% summarise(nreads=length(XM))
+
+   if(is.na(bcfile) || is.numeric(bcfile)){
+     if(is.numeric(bcfile)){
+       fullstats <- reads %>% group_by(XC) %>% dplyr::summarise(nreads=length(XM)) %>% top_n(bcfile)
+     }else{
+       fullstats <- reads %>% group_by(XC) %>% summarise(nreads=length(XM))
+     }
+    
+    fullstats<-fullstats[fullstats$nreads>=nReadsBC,]
     fullstats <- fullstats[order(fullstats$nreads,decreasing = T),]
     fullstats$cs <- cumsum(fullstats$nreads)
-    fullstats$deltarel <- c(max(diff(fullstats$cs)),diff(fullstats$cs)/max(diff(fullstats$cs)))
-    if(sum(fullstats[which(fullstats$deltarel>0.01),]$nreads)>(0.9*sum(fullstats$nreads))){ #this decides if you have droplet-based method
-      fullstats_detected<- fullstats[which(fullstats$deltarel>0.01),]
-    }else{
-      fullstats_detected<- fullstats[which(fullstats$deltarel>0.001),]
-    }
+    fullstats$cellindex <- seq(1:nrow(fullstats))
+    fullstats_detected <- BCselection(fullstats)
 
-    if(nrow(fullstats_detected)>25000){
-      print("Attention! I could not adaptively determine the real cell barcodes!")
-      bc <- reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM))  %>% top_n(25000) %>% dplyr::select(V1=XC)
-      fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
-    }else if(nrow(fullstats_detected)<10){
-      print("Attention! I could not adaptively determine the real cell barcodes!")
+    if(nrow(fullstats_detected)<10){
+      print("Attention! Adaptive BC selection gave < 10 cells so I will now use top 100 cells!")
       bc <- reads %>% group_by(XC) %>% dplyr::summarise(n=length(XM))  %>% top_n(100) %>% dplyr::select(V1=XC)
       fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
     }else{
       print(paste(nrow(fullstats_detected)," barcodes detected.",sep=""))
       bc <- data.frame(V1=fullstats_detected$XC)
     }
+    
     #selected cells
-    pdf(file=paste(out,"/zUMIs_output/stats/",sn,".detected_cells.pdf",sep=""))
-    plot(cumsum(fullstats$nreads),xlab="Cell Index", ylab="Cumulative number of reads")
-    points(cumsum(fullstats_detected$nreads),col="red")
-    dev.off()
-  }else{
+    fullstats$col<-1
+    fullstats[which(fullstats$XC %in% fullstats_detected$XC),"col"] <- 2
+    
+    p_dens<-ggplot(fullstats,aes(x=log10(nreads)))+geom_density()+theme_classic()+geom_vline(xintercept = log10(min(fullstats_detected$nreads)),col="#56B4E9",size=1.5)+xlab("log10(Number of reads per cell)")+ylab("Density")+ggtitle("Cells left to the blue line are selected")+theme(axis.text = element_text(size=12),axis.title = element_text(size=13),plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
+    
+    p_bc<-ggplot(fullstats,aes(y=cs,x=cellindex,color=col))+geom_point(size=2)+xlab("Cell Index")+ ylab("Cumulative number of reads")+ggtitle("Detected cells are highlighted in blue")+theme_classic()+theme(legend.position = "none",legend.text = element_text(size=15),legend.title = element_blank(),axis.text = element_text(size=12),axis.title = element_text(size=13),plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
+    
+    bcplot <- plot_grid(p_dens,p_bc,labels = c("a","b"))
+    
+    ggsave(bcplot,filename=paste(out,"/zUMIs_output/stats/",sn,".detected_cells.pdf",sep=""),width = 10,height = 4)
+
+      }else{
     bc <- read.table(bcfile,header = F,stringsAsFactors = F)
   }
 
@@ -300,8 +311,9 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
           print("Error! None of the barcodes has more than the requested number of reads")
         }
       }
-      umicounts_sub_wide <- makewide(umicounts_sub,"umicount")
-      readcounts_sub_wide <- makewide(umicounts_sub,"readcount")
+
+      umicounts_sub_wide <- makewide(umicounts_sub,length(bc$V1),"umicount")
+      readcounts_sub_wide <- makewide(umicounts_sub,length(bc$V1),"readcount")
       iterlist <- list(readcounts_sub_wide,umicounts_sub_wide)
       names(iterlist) <-c("readcounts_downsampled","umicounts_downsampled")
       downsampling_list[[i]] <- iterlist
@@ -336,8 +348,8 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     umicounts_sub <- bind_rows(tmp1,tmp2)
 
     downsampling_list <-list()
-    umicounts_sub_wide <- makewide(umicounts_sub,"umicount")
-    readcounts_sub_wide <- makewide(umicounts_sub,"readcount")
+    umicounts_sub_wide <- makewide(umicounts_sub,length(bc$V1),"umicount")
+    readcounts_sub_wide <- makewide(umicounts_sub,length(bc$V1),"readcount")
     iterlist <- list(readcounts_sub_wide,umicounts_sub_wide)
     names(iterlist) <-c("readcounts_downsampled","umicounts_downsampled")
     downsampling_list[[1]] <- iterlist
@@ -352,9 +364,9 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     dev.off()
   }
 
-  umicounts_wide <- makewide(umicounts,"umicount")
+  umicounts_wide <- makewide(umicounts,length(bc$V1),"umicount")
 
-  readcounts_wide <- makewide(umicounts,"readcount")
+  readcounts_wide <- makewide(umicounts,length(bc$V1),"readcount")
 
 
   l <- list(readcounts_wide,umicounts_wide,downsampling_list)
@@ -369,9 +381,9 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
 bams <- c(paste(abamfile,"in",sep="."),paste(abamfile,"ex",sep="."))
 
 AllCounts <-list()
-AllCounts$exons <- makeGEprofile(bams,ubamfile,barcodes,saf,ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype[2],sn,out)
+AllCounts$exons <- makeGEprofile(bams,ubamfile,barcodes,saf,ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype[2],sn,out,nReadsBC)
 
-AllCounts$intron.exon <- makeGEprofile(bams,ubamfile,barcodes,saf[[1]],ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype[3],sn,out)
+AllCounts$intron.exon <- makeGEprofile(bams,ubamfile,barcodes,saf[[1]],ncores,stra,bcstart,bcend,umistart,umiend,subsampling,ftype[3],sn,out,nReadsBC)
 
 
 intronunique <- function(intronexondf,exondf){
@@ -415,7 +427,6 @@ if(subsampling!= "0") {
 }
 
 saveRDS(AllCounts,file=paste(out,"/zUMIs_output/expression/",sn,".dgecounts.rds",sep=""))
-lapply(names(AllCounts),function(x) lapply(names(AllCounts[[x]])[-3], function(xx) write.table(AllCounts[[x]][xx],file=paste(out,"/zUMIs_output/expression/",sn,xx,".",x,".txt",sep=""),sep = "\t",row.names = T,col.names = T)))
 
 #################
 
