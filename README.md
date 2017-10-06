@@ -8,6 +8,10 @@ The input to this pipeline is paired-end fastq files, where one read contains th
 
 You can read more about zUMIs in our [biorxiv preprint](http://www.biorxiv.org/content/early/2017/07/26/153940)!
 
+## Releases
+
+You can find the older version of zUMIs in [zUMIs.0.0.1](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.1).
+
 ## Installation and Usage
 
 Please find information on [installation](https://github.com/sdparekh/zUMIs/wiki/Installation) and [usage](https://github.com/sdparekh/zUMIs/wiki/Usage) in the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/).
@@ -31,8 +35,7 @@ zUMIs is compatible with these single-cell UMI protocols:
 - 10x Genomics Chromium (Zheng et al., 2017)
 - Wafergen ICELL8 (Gao et al., 2017)
 - Illumina ddSEQ SureCell
-
-For InDrops compatibility, users need to preprocess the barcode and UMI read because of variable length cell barcodes.
+- inDrops (Zilionis et al., 2017)
 
 ## Getting help
 
