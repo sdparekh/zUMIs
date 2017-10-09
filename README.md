@@ -35,7 +35,7 @@ zUMIs is compatible with these single-cell UMI protocols:
 - 10x Genomics Chromium (Zheng et al., 2017)
 - Wafergen ICELL8 (Gao et al., 2017)
 - Illumina ddSEQ SureCell
-- inDrops (Zilionis et al., 2017)
+- inDrops (Zilionis et al., 2017; Klein et al. 2015)
 
 ## Getting help
 
