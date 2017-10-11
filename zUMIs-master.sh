@@ -58,7 +58,7 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 				   We highly reccomend to provide expected number of barcodes for Drop-seq protocol.
 	-N  <nReadsperCell>	 : Keep the cell barcodes with atleast "-N <int>" number of reads. Default: 100
 				   Cells with less than "-N <int>" number of total reads are removed.
-	-d  <downsampling>	 : Number of reads to downsample to. This value can be a fixed number of reads (e.g. 10000) or a desired range (e.g. 10000-20000). 
+	-d  <downsampling>	 : Number of reads to downsample to. This value can be a fixed number of reads (e.g. 10000) or a desired range (e.g. 10000-20000).
 				   Barcodes with less than <d> will not be reported. 0 means adaptive downsampling. Default: 0.
 	-x  <STARparams>	 : Additional STAR mapping parameters. Optional. e.g. "--outFilterMismatchNoverLmax 0.2 --quantMode TranscriptomeSAM".
 					This pipeline works based on one hit per read. Therefore, please do not report more multimapping hits. Default: "".
@@ -70,7 +70,7 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 	-e  <STAR-executable>	 : path to STAR executable in your system. Default: STAR
 	-t  <samtools-executable>: path to samtools executable in your system. Default: samtools
 	-i  <zUMIs-dir>   	 : Directory containing zUMIs scripts.  Default: path to this script.
-	
+
 ## zUMIs from any stage ##
 	-A  <isCustomFASTQ>	 : yes/no. Start zUMIs from Mapping stage with your own FASTQ files if you don't want to use zUMIs filter.
 					Only works with -w Mapping.
@@ -180,6 +180,10 @@ whichStage=`echo "$whichStage" | tr '[:upper:]' '[:lower:]'`  # convert to all l
 
 memory=`du -sh $genomedir | cut -f1` #STAR genome index size
 
+if [[ ! "$o" =~ ^[/|~] ]] ; then
+  o=`pwd`/$o
+fi
+
 if [[ "$isslurm" != "no" ]] ; then
 	if sinfo; then
 		echo "Your jobs will be submitted to these nodes."
@@ -222,7 +226,7 @@ echo -e "\n\n You provided these parameters:
  Output directory:		$outdir
  Cell/sample barcode range:	$xcrange
  UMI barcode range:		$xmrange
- Retain cell with >=N reads:	$nreads  
+ Retain cell with >=N reads:	$nreads
  Genome directory:		$genomedir
  GTF annotation file:		$gtf
  Number of processors:		$threads
@@ -322,4 +326,3 @@ if [[ "$isslurm" == "yes" ]] ; then
 else
 	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2 $CustomMappedBAM $isCustomFASTQ $nreads $isindrops $libread
 fi
-
