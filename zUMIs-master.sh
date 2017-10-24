@@ -186,8 +186,8 @@ whichStage=`echo "$whichStage" | tr '[:upper:]' '[:lower:]'`  # convert to all l
 
 memory=`du -sh $genomedir | cut -f1` #STAR genome index size
 
-if [[ ! "$o" =~ ^[/|~] ]] ; then
-  o=`pwd`/$o
+if [[ ! "$outdir" =~ ^[/|~] ]] ; then
+  outdir=`pwd`/$outdir
 fi
 
 if [[ "$isslurm" != "no" ]] ; then
