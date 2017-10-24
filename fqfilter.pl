@@ -4,11 +4,11 @@
 # Author: Swati Parekh
 # Contact: parekh@bio.lmu.de or ziegenhain@bio.lmu.de or hellmann@bio.lmu.de
 
-if(@ARGV != 11)
+if(@ARGV != 12)
 {
-print 
+print
 "\n#####################################################################################
-Usage: perl $0 <barcode-Read.fq.gz> <cDNA-Read.fq.gz> <cellbc_threshold> <Cellbc_Qual_threshold> <umi_threshold> <UMIbc_Qual_threshold> <Cellbc_range> <UMI_range> <Threads> <StudyName> <Outdir> \n
+Usage: perl $0 <barcode-Read.fq.gz> <cDNA-Read.fq.gz> <cellbc_threshold> <Cellbc_Qual_threshold> <umi_threshold> <UMIbc_Qual_threshold> <Cellbc_range> <UMI_range> <Threads> <StudyName> <Outdir> <pigz-executable> \n
 Explanation of parameter:
 
 barcode-Read.fq.gz	- Input barcode reads fastq file name.
@@ -22,6 +22,7 @@ UMI_range		- Base range for UMI barcode in -f Barcode read(e.g. 7-16).
 Threads			- Number of threads to use.
 Study       - Study name.
 OUTDIR      - Output directory.
+pigz-executable - Location of pigz executable
 Please drop your suggestions and clarifications to <parekh\@bio.lmu.de>\n
 ######################################################################################\n\n";
 exit;
@@ -38,6 +39,7 @@ $mcrange=$ARGV[7];
 $threads=$ARGV[8];
 $study=$ARGV[9];
 $outdir=$ARGV[10];
+$pigz=$ARGV[11];
 
 @b = split("-",$bcrange);
 @m = split("-",$mcrange);
@@ -51,8 +53,8 @@ $bcreadoutfull = $outdir."/".$study.".barcoderead.filtered.fastq";
 $cdnareadout = $outdir."/".$study.".cdnaread.filtered.fastq";
 
 if ($bcread =~ /\.gz$/) {
-open BCF, '-|', 'gzip', '-dc', $bcread || die "Couldn't open file $bcread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
-open CDF, '-|', 'gzip', '-dc', $cdnaread || die "Couldn't open file $cdnaread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+open BCF, '-|', $pigz, '-dc', $bcread || die "Couldn't open file $bcread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+open CDF, '-|', $pigz, '-dc', $cdnaread || die "Couldn't open file $cdnaread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
 }
 else {
 open BCF, "<", $bcread || die "Couldn't open file $bcread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
@@ -87,11 +89,11 @@ $total++;
 	$crseq=<CDF>;
 	$cqid=<CDF>;
 	$cqseq=<CDF>;
-	
+
 	@c = split(/\/|\s/,$crid);
 	@b = split(/\/|\s/,$brid);
-	
-	if($c[0] eq $b[0]){ 
+
+	if($c[0] eq $b[0]){
 		@bquals = map {$_ - $offset} unpack "C*", $bcqual;
 		@mquals = map {$_ - $offset} unpack "C*", $mcqual;
 		$btmp = grep {$_ < $bqualthreshold} @bquals;
@@ -119,5 +121,5 @@ close BCOUTFULL;
 
 print "Raw reads: $total \nFiltered reads: $filtered \n\n";
 
-`pigz -f -p $threads $cdnareadout`;
-`pigz -f -p $threads $bcreadoutfull`;
+`$pigz -f -p $threads $cdnareadout`;
+`$pigz -f -p $threads $bcreadoutfull`;

@@ -5,11 +5,11 @@
 # Contact: parekh@bio.lmu.de or ziegenhain@bio.lmu.de or hellmann@bio.lmu.de
 
 
-if(@ARGV != 12)
+if(@ARGV != 13)
 {
-print 
+print
 "\n#####################################################################################
-Usage: perl $0 <umicdna-Read.fq.gz> <cellbarcode1-Read.fq.gz> <cellbarcode2-Read.fq.gz> <cellbc_threshold> <Cellbc_Qual_threshold> <umi_threshold> <UMIbc_Qual_threshold> <UMI_range> <BasesToTrim> <Threads> <StudyName> <Outdir> \n
+Usage: perl $0 <umicdna-Read.fq.gz> <cellbarcode1-Read.fq.gz> <cellbarcode2-Read.fq.gz> <cellbc_threshold> <Cellbc_Qual_threshold> <umi_threshold> <UMIbc_Qual_threshold> <UMI_range> <BasesToTrim> <Threads> <StudyName> <Outdir> <pigz-executable> \n
 Explanation of parameter:
 
 umicDNA-Read.fq.gz	- Input fastq file with UMI and cDNA reads.
@@ -25,6 +25,7 @@ bases to trim		- Number of bases to trim between UMI and cDNA read (e.g. 3).
 Threads			- Number of threads to use.
 Study       - Study name.
 OUTDIR      - Output directory.
+pigz-executable - Location of pigz executable
 Please drop your suggestions and clarifications to <parekh\@bio.lmu.de>\n
 ######################################################################################\n\n";
 exit;
@@ -41,6 +42,7 @@ $btrim=$ARGV[8];
 $threads=$ARGV[9];
 $study=$ARGV[10];
 $outdir=$ARGV[11];
+$pigz=$ARGV[12];
 
 @m = split("-",$mcrange);
 $ms = $m[0] - 1;
@@ -54,8 +56,8 @@ $umicdnareadout = $outdir."/".$study.".umicdnaread.filtered.fastq";
 
 if($bcread2 eq "NA"){
 	if ($bcread1 =~ /\.gz$/) {
-	open BCF1, '-|', 'pigz', '-dc', $bcread1 || die "Couldn't open file $bcread1. Check permissions!\n Check if it is differently zipped then .gz\n\n";
-	open CDF, '-|', 'pigz', '-dc', $umicdnaread || die "Couldn't open file $umicdnaread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+	open BCF1, '-|', $pigz, '-dc', $bcread1 || die "Couldn't open file $bcread1. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+	open CDF, '-|', $pigz, '-dc', $umicdnaread || die "Couldn't open file $umicdnaread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
 	}
 	else {
 	open BCF1, "<", $bcread1 || die "Couldn't open file $bcread1. Check permissions!\n Check if it is differently zipped then .gz\n\n";
@@ -64,9 +66,9 @@ if($bcread2 eq "NA"){
 }
 else{
 	if ($bcread1 =~ /\.gz$/) {
-	open BCF1, '-|', 'pigz', '-dc', $bcread1 || die "Couldn't open file $bcread1. Check permissions!\n Check if it is differently zipped then .gz\n\n";
-	open BCF2, '-|', 'pigz', '-dc', $bcread2 || die "Couldn't open file $bcread2. Check permissions!\n Check if it is differently zipped then .gz\n\n";
-	open CDF, '-|', 'pigz', '-dc', $umicdnaread || die "Couldn't open file $umicdnaread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+	open BCF1, '-|', $pigz, '-dc', $bcread1 || die "Couldn't open file $bcread1. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+	open BCF2, '-|', $pigz, '-dc', $bcread2 || die "Couldn't open file $bcread2. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+	open CDF, '-|', $pigz, '-dc', $umicdnaread || die "Couldn't open file $umicdnaread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
 	}
 	else {
 	open BCF1, "<", $bcread1 || die "Couldn't open file $bcread1. Check permissions!\n Check if it is differently zipped then .gz\n\n";
@@ -125,11 +127,11 @@ $total++;
 	$mqual = substr($mcqseq,$ms,$ml);
 
 	@c = split(/\/|\s/,$mcrid);
-	@b1 = split(/\/|\s/,$brid1);	
-	@b2 = split(/\/|\s/,$brid1);	
+	@b1 = split(/\/|\s/,$brid1);
+	@b2 = split(/\/|\s/,$brid1);
 	if($bcread2 ne "NA"){@b2 = split(/\/|\s/,$brid2);}
-		
-	if(($c[0] eq $b1[0]) && ($c[0] eq $b2[0])){ 
+
+	if(($c[0] eq $b1[0]) && ($c[0] eq $b2[0])){
 		@bquals = map {$_ - $offset} unpack "C*", $bqseq;
 		@mquals = map {$_ - $offset} unpack "C*", $mqual;
 		$btmp = grep {$_ < $bqualthreshold} @bquals;
@@ -137,13 +139,13 @@ $total++;
 
 		if(($btmp < $bnbases) && ($mtmp < $mnbases)){
 		$filtered++;
-		
+
 		$tl=$ml+$btrim;
 		$st=$tl-1;
 		$crseq = substr($mcrseq,$st);
 		$cqseq = substr($mcqseq,$st);
 		$mrseq = substr($mcrseq,$ms,$ml);
-		
+
 		chomp($brseq); chomp($bqseq);
 		print BCOUT $b1[0],"\t4\t*\t0\t0\t*\t*\t0\t0\t$brseq$mrseq\t$bqseq$mqual\n";
 		print BCOUTFULL $brid1,$brseq1,"\n",$bqid1,$bqseq1,"\n";
@@ -168,7 +170,7 @@ close UMIOUTFULL;
 
 print "Raw reads: $total \nFiltered reads: $filtered \n\n";
 
-`pigz -f -p $threads $cdnareadout`;
-`pigz -f -p $threads $bcreadoutfull`;
-if($bcread2 ne "NA"){`pigz -f -p $threads $bcreadoutfull2`;}
-`pigz -f -p $threads $umicdnareadout`;
+`$pigz -f -p $threads $cdnareadout`;
+`$pigz -f -p $threads $bcreadoutfull`;
+if($bcread2 ne "NA"){`$pigz -f -p $threads $bcreadoutfull2`;}
+`$pigz -f -p $threads $umicdnareadout`;

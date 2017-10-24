@@ -69,6 +69,8 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 	-S  <isStats>		 : Do you want to produce summary stats? yes/no. Default: yes.
 	-e  <STAR-executable>	 : path to STAR executable in your system. Default: STAR
 	-t  <samtools-executable>: path to samtools executable in your system. Default: samtools
+  -P <pigz-executable> : path to pigz executable in your system. Default: pigz
+  -V <Rscript-executable> : path to Rscript executable in your system. Default: Rscript
 	-i  <zUMIs-dir>   	 : Directory containing zUMIs scripts.  Default: path to this script.
 
 ## zUMIs from any stage ##
@@ -111,6 +113,8 @@ isslurm=no
 isStats=yes
 starexc=STAR
 samtoolsexc=samtools
+pigzexc=pigz
+Rexc=Rscript
 zumisdir=$(dirname `readlink -f $0`)
 whichStage=filtering
 isstrt=no
@@ -123,7 +127,7 @@ BaseTrim=3
 xcrange2=0-0
 nreads=100
 
-while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:L:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
+while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:L:P:V:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
   case $options in
   R ) isslurm=$OPTARG;;
   S ) isStats=$OPTARG;;
@@ -158,6 +162,8 @@ while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:
   F ) bcread2=$OPTARG;;
   C ) xcrange2=$OPTARG;;
   j ) BaseTrim=$OPTARG;;
+  P ) pigzexc=$OPTARG;;
+  V ) Rexc=$OPTARG;;
   h ) usage
           exit 1;;
   \? ) echo -e "\n This key is not available! Please check the usage again: -$OPTARG"
@@ -240,6 +246,8 @@ echo -e "\n\n You provided these parameters:
  zUMIs directory:		$zumisdir
  STAR executable		$starexc
  samtools executable		$samtoolsexc
+ pigz executable		$pigzexc
+ Rscript executable		$Rexc
  Additional STAR parameters:	$starparams
  STRT-seq data:			$isstrt
  InDrops data:			$isindrops
@@ -266,15 +274,15 @@ if [[ "$isslurm" == "yes" ]] ; then
 	case "$whichStage" in
 		"filtering")
 		if [[ "$isstrt" == "yes" ]] ; then
-			bash $zumisdir/zUMIs-filtering-strt.sh $cdnaread $bcread $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $bcread2 $BaseTrim
+			bash $zumisdir/zUMIs-filtering-strt.sh $cdnaread $bcread $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $bcread2 $BaseTrim $pigzexc
 		elif [[ "$isindrops" == "yes" ]] ; then
-			bash $zumisdir/zUMIs-filtering-inDrops.sh $cdnaread $bcread $libread $bcread2 $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir
+			bash $zumisdir/zUMIs-filtering-inDrops.sh $cdnaread $bcread $libread $bcread2 $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $pigzexc
 		else
-			bash $zumisdir/zUMIs-filtering.sh $bcread $cdnaread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir
+			bash $zumisdir/zUMIs-filtering.sh $bcread $cdnaread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $pigzexc
 		fi
 			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"mapping")
@@ -282,18 +290,18 @@ if [[ "$isslurm" == "yes" ]] ; then
 			if [[ $cdnaread =~ \.gz$ ]] ; then
 				ln -s $cdnaread $outdir/$sname.cdnaread.filtered.fastq.gz
 			else
-				pigz -c -p $threads $cdnaread > $outdir/$sname.cdnaread.filtered.fastq.gz
+				$pigzexc -c -p $threads $cdnaread > $outdir/$sname.cdnaread.filtered.fastq.gz
 			fi
 			if [[ $bcread =~ \.gz$ ]] ; then
 				ln -s $bcread $outdir/$sname.barcoderead.filtered.fastq.gz
 			else
-				pigz -c -p $threads $bcread > $outdir/$sname.barcoderead.filtered.fastq.gz
+				$pigzexc -c -p $threads $bcread > $outdir/$sname.barcoderead.filtered.fastq.gz
 			fi
 			bash $zumisdir/zUMIs-prep.sh $outdir/$sname.barcoderead.filtered.fastq.gz $outdir/$sname.cdnaread.filtered.fastq.gz $sname $outdir $zumisdir
 		fi
 			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"counting")
@@ -301,12 +309,12 @@ if [[ "$isslurm" == "yes" ]] ; then
 			if [[ $cdnaread =~ \.gz$ ]] ; then
 				ln -s $cdnaread $outdir/$sname.cdnaread.filtered.fastq.gz
 			else
-				pigz -c -p $threads $cdnaread > $outdir/$sname.cdnaread.filtered.fastq.gz
+				$pigzexc -c -p $threads $cdnaread > $outdir/$sname.cdnaread.filtered.fastq.gz
 			fi
 			if [[ $bcread =~ \.gz$ ]] ; then
 				ln -s $bcread $outdir/$sname.barcoderead.filtered.fastq.gz
 			else
-				pigz -c -p $threads $bcread > $outdir/$sname.barcoderead.filtered.fastq.gz
+				$pigzexc -c -p $threads $bcread > $outdir/$sname.barcoderead.filtered.fastq.gz
 			fi
 			bash $zumisdir/zUMIs-prep.sh $outdir/$sname.barcoderead.filtered.fastq.gz $outdir/$sname.cdnaread.filtered.fastq.gz $sname $outdir $zumisdir
 		fi
@@ -315,14 +323,14 @@ if [[ "$isslurm" == "yes" ]] ; then
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
 		fi
 
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"summarising")
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 	esac
 else
-	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2 $CustomMappedBAM $isCustomFASTQ $nreads $isindrops $libread
+	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2 $CustomMappedBAM $isCustomFASTQ $nreads $isindrops $libread $pigzexc $Rexc
 fi

@@ -33,6 +33,8 @@ isCustomFASTQ="${29}"
 nreads="${30}"
 isindrops="${31}"
 libread="${32}"
+pigzexc="${33}"
+Rexc="${34}"
 
 if [[ "$isstrt" == "no" ]] ; then
 	rl=`expr $r - 1`
@@ -61,13 +63,13 @@ re='^[0-9]+$'
 	case "$whichStage" in
 		"filtering")
 			if [[ "$isstrt" == "yes" ]] ; then
-				perl $zumisdir/fqfilter-strt.pl $f1 $f2 $f3 $cq $cbq $mq $mbq $xm $bt $t $sn $o
+				perl $zumisdir/fqfilter-strt.pl $f1 $f2 $f3 $cq $cbq $mq $mbq $xm $bt $t $sn $o $pigzexc
 			elif [[ "$isindrops" == "yes" ]] ; then
-				perl $zumisdir/fqfilter-inDrops.pl $f1 $f2 $libread $f3 $cq $cbq $mq $mbq $xm $t $sn $o
+				perl $zumisdir/fqfilter-inDrops.pl $f1 $f2 $libread $f3 $cq $cbq $mq $mbq $xm $t $sn $o $pigzexc
 			else
-				perl $zumisdir/fqfilter.pl $f2 $f1 $cq $cbq $mq $mbq $xc $xm $t $sn $o				
+				perl $zumisdir/fqfilter.pl $f2 $f1 $cq $cbq $mq $mbq $xc $xm $t $sn $o $pigzexc
 			fi
-			
+
 			$starexc --genomeDir $g --runThreadN $t --readFilesCommand zcat --sjdbGTFfile $gtf --outFileNamePrefix $o/$sn. --outSAMtype BAM Unsorted --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --sjdbOverhang $rl --twopassMode Basic --readFilesIn $o/$sn.cdnaread.filtered.fastq.gz $x
 
 			$samtoolsexc sort -n -O bam -T temp.$sn -@ $t -m 2G -o $o/$sn.aligned.sorted.bam $o/$sn.Aligned.out.bam
@@ -77,13 +79,13 @@ re='^[0-9]+$'
 			$samtoolsexc sort -n -O sam -T tmp.$sn -@ $t -m 2G -o $o/$sn.barcodelist.filtered.sort.sam $o/$sn.barcodelist.filtered.sam
 
 			if [[ $bn =~ $re ]] ; then
-				Rscript $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
 			else
-				Rscript $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
 			fi
 
 			if [[ $stats == "yes" ]] ; then
-			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn
+			$Rexc $zumisdir/zUMIs-stats.R --out $o --sn $sn
 			fi
 			;;
 		"mapping")
@@ -91,12 +93,12 @@ re='^[0-9]+$'
 			if [[ $f1 =~ \.gz$ ]] ; then
 				ln -s $f1 $o/$sn.cdnaread.filtered.fastq.gz
 			else
-				pigz -c -p $t $f1 > $o/$sn.cdnaread.filtered.fastq.gz
+				$pigzexc -c -p $t $f1 > $o/$sn.cdnaread.filtered.fastq.gz
 			fi
 			if [[ $f2 =~ \.gz$ ]] ; then
 				ln -s $f2 $o/$sn.barcoderead.filtered.fastq.gz
 			else
-				pigz -c -p $t $f2 > $o/$sn.barcoderead.filtered.fastq.gz
+				$pigzexc -c -p $t $f2 > $o/$sn.barcoderead.filtered.fastq.gz
 			fi
 			perl $zumisdir/fqcheck.pl $o/$sn.barcoderead.filtered.fastq.gz $o/$sn.cdnaread.filtered.fastq.gz $sn $o
 		fi
@@ -110,13 +112,13 @@ re='^[0-9]+$'
 			$samtoolsexc sort -n -O sam -T tmp.$sn -@ $t -m 2G -o $o/$sn.barcodelist.filtered.sort.sam $o/$sn.barcodelist.filtered.sam
 
 			if [[ $bn =~ $re ]] ; then
-				Rscript $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
 			else
-				Rscript $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
 			fi
 
 			if [[ $stats == "yes" ]] ; then
-			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn
+			$Rexc $zumisdir/zUMIs-stats.R --out $o --sn $sn
 			fi
 			;;
 		"counting")
@@ -124,44 +126,44 @@ re='^[0-9]+$'
 			if [[ $f1 =~ \.gz$ ]] ; then
 				ln -s $f1 $o/$sn.cdnaread.filtered.fastq.gz
 			else
-				pigz -c -p $t $f1 > $o/$sn.cdnaread.filtered.fastq.gz
+				$pigzexc -c -p $t $f1 > $o/$sn.cdnaread.filtered.fastq.gz
 			fi
 			if [[ $f2 =~ \.gz$ ]] ; then
 				ln -s $f2 $o/$sn.barcoderead.filtered.fastq.gz
 			else
-				pigz -c -p $t $f2 > $o/$sn.barcoderead.filtered.fastq.gz
+				$pigzexc -c -p $t $f2 > $o/$sn.barcoderead.filtered.fastq.gz
 			fi
 			perl $zumisdir/fqcheck.pl $o/$sn.barcoderead.filtered.fastq.gz $o/$sn.cdnaread.filtered.fastq.gz $sn $o $zumisdir
 		fi
 
 			ln -s -f $o/$sn.aligned.sorted.bam "$o/$sn.aligned.sorted.bam.in"
 			ln -s -f $o/$sn.aligned.sorted.bam $o/$sn.aligned.sorted.bam.ex
-			
+
 			if [[ ! -f $o/$sn.barcodelist.filtered.sort.sam ]] ; then
 				$samtoolsexc sort -n -O sam -T tmp.$sn -@ $t -m 2G -o $o/$sn.barcodelist.filtered.sort.sam $o/$sn.barcodelist.filtered.sam
 			fi
-			
+
 			if [[ $bn =~ $re ]] ; then
-				Rscript $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
 			else
-				Rscript $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
 			fi
 
 			if [[ $stats == "yes" ]] ; then
-			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn
+			$Rexc $zumisdir/zUMIs-stats.R --out $o --sn $sn
 			fi
 			;;
 		"summarising")
 			if [[ $stats == "yes" ]] ; then
-			Rscript $zumisdir/zUMIs-stats.R --out $o --sn $sn
+			$Rexc $zumisdir/zUMIs-stats.R --out $o --sn $sn
 			else
 			echo "You need to switch on -S <isStats> option to yes."
 			fi
 			;;
 	esac
-	
 
 
-rm $o/$sn.Aligned.out.bam $o/$sn.aligned.sorted.bam.in $o/$sn.aligned.sorted.bam.ex $o/$sn.barcodelist.filtered.sam 
+
+rm $o/$sn.Aligned.out.bam $o/$sn.aligned.sorted.bam.in $o/$sn.aligned.sorted.bam.ex $o/$sn.barcodelist.filtered.sam
 mv $o/$sn.barcoderead.filtered.fastq.gz $o/zUMIs_output/filtered_fastq/
 mv $o/$sn.cdnaread.filtered.fastq.gz $o/zUMIs_output/filtered_fastq/

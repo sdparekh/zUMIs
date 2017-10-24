@@ -4,11 +4,11 @@
 # Author: Swati Parekh
 # Contact: parekh@bio.lmu.de or ziegenhain@bio.lmu.de or hellmann@bio.lmu.de
 
-if(@ARGV != 12)
+if(@ARGV != 13)
 {
-print 
+print
 "\n#####################################################################################
-Usage: perl $0 <cDNA-read.fq.gz> <cellbarcode1-Read.fq.gz> <librarybarcode-Read.fq.gz> <cellbarcode2-Read.fq.gz> <nBase_BC_threshold> <BC_Qual_threshold> <nBase_umi_threshold> <UMI_Qual_threshold> <UMI_range> <Threads> <StudyName> <Outdir> \n
+Usage: perl $0 <cDNA-read.fq.gz> <cellbarcode1-Read.fq.gz> <librarybarcode-Read.fq.gz> <cellbarcode2-Read.fq.gz> <nBase_BC_threshold> <BC_Qual_threshold> <nBase_umi_threshold> <UMI_Qual_threshold> <UMI_range> <Threads> <StudyName> <Outdir> <pigz-executable> \n
 Explanation of parameter:
 
 cDNA-Read.fq.gz		- Input fastq file with cDNA reads.
@@ -25,6 +25,8 @@ UMI_range		- Base range for UMI barcode in -f Barcode read (e.g. 1-6).
 Threads			- Number of threads to use for zipping.
 Study      		- Study name.
 OUTDIR      		- Output directory.
+
+pigz-executable - Location of pigz executable
 
 Please drop your suggestions and clarifications to <parekh\@bio.lmu.de>\n
 ######################################################################################\n\n";
@@ -45,16 +47,17 @@ $mcrange=$ARGV[8];
 $threads=$ARGV[9];
 $study=$ARGV[10];
 $outdir=$ARGV[11];
+$pigz=$ARGV[12];
 
 $bcreadout = $outdir."/".$study.".barcodelist.filtered.sam";
 $bcreadoutfull = $outdir."/".$study.".barcoderead.filtered.fastq";
 $cdnareadout = $outdir."/".$study.".cdnaread.filtered.fastq";
 
 if ($cdnaread =~ /\.gz$/) {
-open BCF1, '-|', 'pigz', '-dc', $fgelread || die "Couldn't open file $fgelread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
-open BCF2, '-|', 'pigz', '-dc', $sgelread || die "Couldn't open file $sgelread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
-open LDF, '-|', 'pigz', '-dc', $libread || die "Couldn't open file $libread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
-open CDF, '-|', 'pigz', '-dc', $cdnaread || die "Couldn't open file $cdnaread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+open BCF1, '-|', $pigz, '-dc', $fgelread || die "Couldn't open file $fgelread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+open BCF2, '-|', $pigz, '-dc', $sgelread || die "Couldn't open file $sgelread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+open LDF, '-|', $pigz, '-dc', $libread || die "Couldn't open file $libread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
+open CDF, '-|', $pigz, '-dc', $cdnaread || die "Couldn't open file $cdnaread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
 }
 else {
 open BCF1, "<", $fgelread || die "Couldn't open file $fgelread. Check permissions!\n Check if it is differently zipped then .gz\n\n";
@@ -95,21 +98,21 @@ $total++;
 	$crid=<CDF>;
 	chomp($crid);
 	$crseq=<CDF>;
-	chomp($crseq);	
+	chomp($crseq);
 	$cqid=<CDF>;
 	chomp($cqid);
 	$cqseq=<CDF>;
-	chomp($cqseq);	
+	chomp($cqseq);
 
 	$lrid=<LDF>;
 	chomp($lrid);
 	$lrseq=<LDF>;
-	chomp($lrseq);	
+	chomp($lrseq);
 	$lqid=<LDF>;
 	chomp($lqid);
 	$lqseq=<LDF>;
-	chomp($lqseq);	
-	
+	chomp($lqseq);
+
 	$seq=$lrseq.$brseq1.$brseq2;
 	$qseq=$lqseq.$bqseq1.$bqseq2;
 
@@ -125,11 +128,11 @@ $total++;
 	$mqual = substr($qseq,22,6);
 
 	@c = split(/\/|\s/,$crid);
-	@b1 = split(/\/|\s/,$brid1);	
-	@b2 = split(/\/|\s/,$brid2);	
-	@l = split(/\/|\s/,$lrid);	
-		
-	if(($c[0] eq $b1[0]) && ($c[0] eq $b2[0]) && ($c[0] eq $l[0])){ 
+	@b1 = split(/\/|\s/,$brid1);
+	@b2 = split(/\/|\s/,$brid2);
+	@l = split(/\/|\s/,$lrid);
+
+	if(($c[0] eq $b1[0]) && ($c[0] eq $b2[0]) && ($c[0] eq $l[0])){
 		@bquals = map {$_ - $offset} unpack "C*", $bqual;
 		@mquals = map {$_ - $offset} unpack "C*", $mqual;
 		$btmp = grep {$_ < $bqualthreshold} @bquals;
@@ -137,7 +140,7 @@ $total++;
 
 		if(($btmp < $bnbases) && ($mtmp < $mnbases)){
 		$filtered++;
-		
+
 		print BCOUT $b1[0],"\t4\t*\t0\t0\t*\t*\t0\t0\t$bseq$mseq\t$bqual$mqual\n";
 		print BCOUTFULL $b1[0],"\n",$bseq,$mseq,"\n+\n",$bqual,$mqual,"\n";
 		print CDOUT $c[0],"\n",$crseq,"\n",$cqid,"\n",$cqseq,"\n";
@@ -159,6 +162,5 @@ close BCOUTFULL;
 
 print "Raw reads: $total \nFiltered reads: $filtered \n\n";
 
-`pigz -f -p $threads $cdnareadout`;
-`pigz -f -p $threads $bcreadoutfull`;
-
+`$pigz -f -p $threads $cdnareadout`;
+`$pigz -f -p $threads $bcreadoutfull`;
