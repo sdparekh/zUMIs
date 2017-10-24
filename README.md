@@ -6,7 +6,7 @@ The input to this pipeline is paired-end fastq files, where one read contains th
 
 ![zUMIs Workflow](https://github.com/sdparekh/zUMIs/blob/master/zUMIs.png?raw=true)
 
-You can read more about zUMIs in our [biorxiv preprint](http://www.biorxiv.org/content/early/2017/07/26/153940)!
+You can read more about zUMIs in our [biorxiv preprint](https://www.biorxiv.org/content/early/2017/10/18/153940)!
 
 ## Releases
 
