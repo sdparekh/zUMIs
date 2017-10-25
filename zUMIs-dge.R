@@ -204,9 +204,10 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
   }
 
   BCselection <- function(fullstats){
-    tmp<-mclust::Mclust(log10(fullstats$nreads))
+    tmp<-mclust::Mclust(log10(fullstats$nreads), modelNames = c("E","V"))
+    ss <- ifelse(tmp$modelName=="E",1,tmp$G)
     mm<-tmp$parameters$mean[tmp$G]
-    va<-tmp$parameters$variance$sigmasq[tmp$G]
+    va<-tmp$parameters$variance$sigmasq[ss]
     
     cut<-10^(qnorm(0.01, m=mm,sd=sqrt(va)))
     rcfilt <- fullstats[fullstats$nreads>=cut,]
@@ -234,13 +235,8 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     reads <- tibble(XC=substring(reads$V1, bcstart, bcend),XM=substring(reads$V1, umistart, umiend),GE=fctsfile$V1)
   }
 
-   if(is.na(bcfile) || is.numeric(bcfile)){
-     if(is.numeric(bcfile)){
-       fullstats <- reads %>% group_by(XC) %>% dplyr::summarise(nreads=length(XM)) %>% top_n(bcfile)
-     }else{
-       fullstats <- reads %>% group_by(XC) %>% summarise(nreads=length(XM))
-     }
-    
+   if(is.na(bcfile)){
+    fullstats <- reads %>% group_by(XC) %>% summarise(nreads=length(XM))
     fullstats<-fullstats[fullstats$nreads>=nReadsBC,]
     fullstats <- fullstats[order(fullstats$nreads,decreasing = T),]
     fullstats$cs <- cumsum(fullstats$nreads)
@@ -269,7 +265,12 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     ggsave(bcplot,filename=paste(out,"/zUMIs_output/stats/",sn,".detected_cells.pdf",sep=""),width = 10,height = 4)
 
       }else{
-    bc <- read.table(bcfile,header = F,stringsAsFactors = F)
+        if(is.numeric(bcfile)){
+          fullstats_detected <- reads %>% group_by(XC) %>% dplyr::summarise(nreads=length(XM)) %>% top_n(bcfile)
+          bc <- data.frame(V1=fullstats_detected$XC)
+        }else{
+          bc <- read.table(bcfile,header = F,stringsAsFactors = F)
+        }
   }
 
   cluster <- create_cluster(ncores)
