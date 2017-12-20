@@ -81,7 +81,7 @@ write.table(cellTotal,file = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".reads
 ##Reads per cell based on their assignment type
 cellFeatures<-reads %>% dplyr::filter(XC %in% bc) %>% group_by(XC,GE,assignment,ftype) %>% summarise(r=length(XM))
 
-FeaturesBAR <- cellFeatures %>% group_by(XC,assignment,ftype) %>% summarise(rn=sum(r)) %>% left_join(.,cellTotal,by="XC") %>% dplyr::mutate(Reads=rn/Total)
+FeaturesBAR <- cellFeatures %>% dplyr::group_by(XC,assignment,ftype) %>% dplyr::summarise(rn=sum(r)) %>% dplyr::left_join(.,cellTotal,by="XC") %>% dplyr::mutate(Reads=rn/Total)
 FeaturesBAR$Type <- paste(FeaturesBAR$ftype,FeaturesBAR$assignment,sep="_")
 FeaturesBAR$Type <- gsub("inex_Unassigned_","",FeaturesBAR$Type)
 FeaturesBAR$Type <- gsub("NoFeatures","Intergenic",FeaturesBAR$Type)
@@ -91,7 +91,7 @@ FeaturesBAR$Type <- factor(FeaturesBAR$Type, levels=c("exon","intron","Ambiguity
 a <- ggplot(FeaturesBAR, aes(x=Type, y=Reads, fill=Type))
 a<-a+geom_boxplot(alpha=0.9,width=0.7) + scale_fill_manual(values = c("grey46","tan1","gold1","#118730","#1A5084")[5:1]) + xlab("") + ylab("Fraction of reads per cell") + theme_bw() + theme( axis.text = element_text(size=18), axis.title = element_text(size=18), legend.position = "none")
 
-dfplots<-FeaturesBAR %>% group_by(Type) %>% summarise(Reads=sum(rn),frac=sum(rn)/sum(cellTotal$Total)) %>% mutate(studyname="a")
+dfplots<-FeaturesBAR %>% dplyr::group_by(Type) %>% dplyr::summarise(Reads=sum(rn),frac=sum(rn)/sum(cellTotal$Total)) %>% mutate(studyname="a")
 dfplots$Type <- factor(dfplots$Type, levels=c("exon","intron","Ambiguity","Intergenic","Unmapped")[5:1])
 
 b <- ggplot(dfplots, aes(x=studyname, y=frac, fill=Type))

@@ -39,7 +39,7 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 	-g  <genomedir>          : Directory of STAR genome directory.  Required.
 	-a  <GTF annotation>     : Path to GTF file. Required.
 	-c  <XC baserange>       : Base range for cell/sample barcode in -f Barcode read(e.g. 1-6).  Required.
-				   For STRT-seq/InDrops give this as 1-n where n is your first cell barcode(-f) length.
+				   For STRT-seq give this as 1-n where n is your first cell barcode(-f) length.
 				   For InDrops give this as 1-n where n is the total length of cell barcode(e.g. 1-22).
 	-m  <XM baserange>       : Base range for UMI barcode in -f Barcode read(e.g. 7-16).  Required.
 				   For STRT-seq/InDrops give this as 1-n where n is your UMI length.
@@ -69,8 +69,8 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 	-S  <isStats>		 : Do you want to produce summary stats? yes/no. Default: yes.
 	-e  <STAR-executable>	 : path to STAR executable in your system. Default: STAR
 	-t  <samtools-executable>: path to samtools executable in your system. Default: samtools
-  -P <pigz-executable> : path to pigz executable in your system. Default: pigz
-  -V <Rscript-executable> : path to Rscript executable in your system. Default: Rscript
+  	-P <pigz-executable> 	 : path to pigz executable in your system. Default: pigz
+  	-V <Rscript-executable>  : path to Rscript executable in your system. Default: Rscript
 	-i  <zUMIs-dir>   	 : Directory containing zUMIs scripts.  Default: path to this script.
 
 ## zUMIs from any stage ##

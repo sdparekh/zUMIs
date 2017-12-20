@@ -12,6 +12,7 @@ echo '#SBATCH -n 1' >>$o/$sn.prep.sh
 echo '#SBATCH --error='prep'.%J.err' >>$o/$sn.prep.sh
 echo '#SBATCH --output='prep'.%J.out' >>$o/$sn.prep.sh
 echo '#SBATCH --workdir='$o >>$o/$sn.prep.sh
+echo '#SBATCH --mem=1000' >>$o/$sn.prep.sh
 
 echo "srun perl $d/fqcheck.pl $f1 $f2 $sn $o" >>$o/$sn.prep.sh
 
