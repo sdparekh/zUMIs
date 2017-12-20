@@ -21,6 +21,7 @@ echo '#SBATCH --error='prep'.%J.err' >>$o/$sn.prep.sh
 echo '#SBATCH --output='prep'.%J.out' >>$o/$sn.prep.sh
 echo '#SBATCH --cpus-per-task='$t >>$o/$sn.prep.sh
 echo '#SBATCH --workdir='$o >>$o/$sn.prep.sh
+echo '#SBATCH --mem=1000' >>$o/$sn.prep.sh
 
 echo "srun perl $d/fqfilter.pl $f1 $f2 $cq $cbq $mq $mbq $xc $xm $t $sn $o $pigz" >>$o/$sn.prep.sh
 
