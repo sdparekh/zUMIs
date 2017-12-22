@@ -65,7 +65,11 @@ if(length(grep("Rsubread",installed.packages()))==0){
   if(installed.packages()[grep("Rsubread",installed.packages()),"Version"] != "1.26.0"){
     print("I need Rsubread 1.26.0 so I am installing it...")
     install.packages("https://bioarchive.galaxyproject.org/Rsubread_1.26.0.tar.gz", repos = NULL, type = "source")
-    bla<-data.frame((installed.packages()[grep("Rsubread",installed.packages()),c("LibPath","Version")]),row.names = NULL)
+    if(length(grep("Rsubread",installed.packages()))==1){
+      bla<-data.frame(t(installed.packages()[grep("Rsubread",installed.packages()),c("LibPath","Version")]),row.names = NULL)
+    }else{
+      bla<-data.frame((installed.packages()[grep("Rsubread",installed.packages()),c("LibPath","Version")]),row.names = NULL)
+    }
     library("Rsubread", lib.loc=as.character(bla[bla$Version %in% "1.26.0", "LibPath"]))
   }else{
     print("I am loading Rsubread 1.26.0...")
