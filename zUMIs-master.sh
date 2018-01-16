@@ -131,7 +131,7 @@ while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:
   case $options in
   R ) isslurm=$OPTARG;;
   S ) isStats=$OPTARG;;
-  X ) isCustomFASTQ=$OPTARG;;
+  X ) CustomMappedBAM=$OPTARG;;
   A ) isCustomFASTQ=$OPTARG;;
   w ) whichStage=$OPTARG;;
   f ) bcread=$OPTARG;;
