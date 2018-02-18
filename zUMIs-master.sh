@@ -1,8 +1,8 @@
 #!/bin/bash
 # LMU Munich. AG Enard
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
-# Author: Swati Parekh
-# Contact: parekh@bio.lmu.de or ziegenhain@bio.lmu.de or hellmann@bio.lmu.de
+# Authors: Swati Parekh &  Christoph Ziegenhain
+# Contact: parekh@bio.lmu.de or christoph.ziegenhain@ki.se or hellmann@bio.lmu.de
 
 function check_opts() {
     value=$1
@@ -62,6 +62,8 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 				   Barcodes with less than <d> will not be reported. 0 means adaptive downsampling. Default: 0.
 	-x  <STARparams>	 : Additional STAR mapping parameters. Optional. e.g. "--outFilterMismatchNoverLmax 0.2 --quantMode TranscriptomeSAM".
 					This pipeline works based on one hit per read. Therefore, please do not report more multimapping hits. Default: "".
+	-H  <HammingDistance>    : Hamming distance collapsing of UMI sequences. Default: 0.
+	-B  <BarcodeBinning>     : Hamming distance binning of close cell barcode sequences. Default: 0.
 
 ## Program paths ##
 	-o  <outputdir>          : Where to write output bam. Default: working directory.
@@ -126,12 +128,14 @@ isCustomFASTQ=no
 BaseTrim=3
 xcrange2=0-0
 nreads=100
+ham=0
+XCbin=0
 
-while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:L:P:V:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
+while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:L:P:V:H:B:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
   case $options in
   R ) isslurm=$OPTARG;;
   S ) isStats=$OPTARG;;
-  X ) CustomMappedBAM=$OPTARG;;
+  X ) isCustomFASTQ=$OPTARG;;
   A ) isCustomFASTQ=$OPTARG;;
   w ) whichStage=$OPTARG;;
   f ) bcread=$OPTARG;;
@@ -164,6 +168,8 @@ while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:
   j ) BaseTrim=$OPTARG;;
   P ) pigzexc=$OPTARG;;
   V ) Rexc=$OPTARG;;
+  H ) ham=$OPTARG;;
+  B ) XCbin=$OPTARG;;
   h ) usage
           exit 1;;
   \? ) echo -e "\n This key is not available! Please check the usage again: -$OPTARG"
@@ -242,6 +248,8 @@ echo -e "\n\n You provided these parameters:
  UMI barcode Phred:		$mbasequal
  # bases below phred in CellBC:	$cellbcbase
  # bases below phred in UMI:	$molbcbase
+ Hamming Distance (UMI):	$ham
+ Hamming Distance (CellBC):	$XCbin
  Barcodes:			$barcodes
  zUMIs directory:		$zumisdir
  STAR executable		$starexc
@@ -282,7 +290,7 @@ if [[ "$isslurm" == "yes" ]] ; then
 		fi
 			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"mapping")
@@ -301,7 +309,7 @@ if [[ "$isslurm" == "yes" ]] ; then
 		fi
 			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"counting")
@@ -323,14 +331,14 @@ if [[ "$isslurm" == "yes" ]] ; then
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
 		fi
 
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"summarising")
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 	esac
 else
-	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2 $CustomMappedBAM $isCustomFASTQ $nreads $isindrops $libread $pigzexc $Rexc
+	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2 $CustomMappedBAM $isCustomFASTQ $nreads $isindrops $libread $pigzexc $Rexc $ham $XCbin
 fi
