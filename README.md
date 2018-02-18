@@ -12,6 +12,9 @@ You can glance through zUMIs in [zUMIs poster](https://github.com/sdparekh/zUMIs
 
 ## Releases
 
+18 Feb 2018: zUMIs.0.0.3 released.
+Switched support to the new Rsubread version and data format. Furthermore to compensate sequencing/PCR errors, zUMIs now features UMI correction using Hamming distance and binning of adjacent cell barcodes.
+
 You can find the older version of zUMIs in [zUMIs.0.0.1](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.1).
 
 ## Installation and Usage

@@ -16,6 +16,8 @@ f3="${14}"
 xc2="${15}"
 nreads="${16}"
 Rexc="${17}"
+ham="${18}"
+XCbin="${19}"
 
 j=`cat $o/$sn.mapjobid.txt | cut -f4 -d' '`
 u=`cat $o/$sn.unmapjobid.txt | cut -f4 -d' '`
@@ -52,9 +54,9 @@ echo "ln -s -f $o/$sn.aligned.sorted.bam $o/$sn.aligned.sorted.bam.ex" >>$o/$sn.
 
 if [[ "$whichStage" != "summarising" ]] ; then
 	if [[ $n =~ $re ]] ; then
-		echo "srun --chdir=$o $Rexc $d/zUMIs-dge.R --gtf $g --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $n --out $o --sn $sn --cores $t --strandedness $s --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads" >>$o/$sn.dge.sh
+		echo "srun --chdir=$o $Rexc $d/zUMIs-dge.R --gtf $g --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $n --out $o --sn $sn --cores $t --strandedness $s --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads --hamming $ham --XCbin $XCbin" >>$o/$sn.dge.sh
 	else
-		echo "srun --chdir=$o $Rexc $d/zUMIs-dge.R --gtf $g --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $n --out $o --sn $sn --cores $t --strandedness $s --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads" >>$o/$sn.dge.sh
+		echo "srun --chdir=$o $Rexc $d/zUMIs-dge.R --gtf $g --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $n --out $o --sn $sn --cores $t --strandedness $s --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads --hamming $ham --XCbin $XCbin" >>$o/$sn.dge.sh
 	fi
 
 	if [[ $stats == "yes" ]] ; then

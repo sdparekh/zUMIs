@@ -34,7 +34,11 @@ option_list = list(
   make_option(c("--subsamp"), type="character", default="0",
               help="Number of reads for downsampling.", metavar="character"),
   make_option(c("--nReadsBC"), type="character", default="100",
-              help="Retain cells with atleast N reads.", metavar="character")
+              help="Retain cells with atleast N reads.", metavar="character"),
+  make_option(c("--hamming"), type="character", default=0,
+                          help="Hamming distance filter", metavar="integer"),
+  make_option(c("--XCbin"), type="character", default=0,
+                          help="Hamming distance of XC binning", metavar="integer")
 );
 
 opt_parser = OptionParser(option_list=option_list);
@@ -42,46 +46,21 @@ opt = parse_args(opt_parser);
 
 print("I am loading useful packages...")
 print(Sys.time())
-packages <-c("multidplyr","dplyr","tidyr","reshape2","data.table","optparse","parallel","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble","mclust","Matrix")
+packages <-c("multidplyr","dplyr","tidyr","broom","stringdist","reshape2","data.table","optparse","parallel","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble","mclust","Matrix","Rsubread")
 paks<-lapply(packages, function(x) suppressMessages(require(x, character.only = TRUE)))
 rm(paks)
 
-# Check the version of Rsubread
-if(length(grep("Rsubread",installed.packages()))==1){
-  bla<-data.frame(t(installed.packages()[grep("Rsubread",installed.packages()),c("LibPath","Version")]),row.names = NULL)
-}else{
-  bla<-data.frame((installed.packages()[grep("Rsubread",installed.packages()),c("LibPath","Version")]),row.names = NULL)
-}
-
-
+ #Check the version of Rsubread
 if(length(grep("Rsubread",installed.packages()))==0){
-  print("I did not find Rsubread so I am installing it...")
-  install.packages("https://bioarchive.galaxyproject.org/Rsubread_1.26.0.tar.gz", repos = NULL, type = "source")
-  bla<-data.frame(t(installed.packages()[grep("Rsubread",installed.packages()),c("LibPath","Version")]),row.names = NULL)
-  library("Rsubread", lib.loc=as.character(bla[bla$Version %in% "1.26.0", "LibPath"]))
-  
-}else{
-  
-  if(installed.packages()[grep("Rsubread",installed.packages()),"Version"] != "1.26.0"){
-    print("I need Rsubread 1.26.0 so I am installing it...")
-    install.packages("https://bioarchive.galaxyproject.org/Rsubread_1.26.0.tar.gz", repos = NULL, type = "source")
-    if(length(grep("Rsubread",installed.packages()))==1){
-      bla<-data.frame(t(installed.packages()[grep("Rsubread",installed.packages()),c("LibPath","Version")]),row.names = NULL)
-    }else{
-      bla<-data.frame((installed.packages()[grep("Rsubread",installed.packages()),c("LibPath","Version")]),row.names = NULL)
-    }
-    library("Rsubread", lib.loc=as.character(bla[bla$Version %in% "1.26.0", "LibPath"]))
-  }else{
-    print("I am loading Rsubread 1.26.0...")
-    if(length(grep("Rsubread",installed.packages()))==1){
-      bla<-data.frame(t(installed.packages()[grep("Rsubread",installed.packages()),c("LibPath","Version")]),row.names = NULL)
-    }else{
-      bla<-data.frame((installed.packages()[grep("Rsubread",installed.packages()),c("LibPath","Version")]),row.names = NULL)
-    }
-    library("Rsubread", lib.loc=as.character(bla[bla$Version %in% "1.26.0", "LibPath"]))
-  }
-  
+   print("I did not find Rsubread so I am installing it...")
+   BiocInstaller::biocLite("Rsubread",dependencies = TRUE, ask = FALSE)
+ }else{
+   if(all(as.numeric_version(installed.packages()[grep("Rsubread",installed.packages()),"Version"])<'1.26.1')){
+     print("I need newer Rsubread so I am updating it...")
+     BiocInstaller::biocUpdatePackages("Rsubread", ask=FALSE)
+   }
 }
+suppressMessages(require("Rsubread"))
 
 ncores=opt$cores
 bcstart=opt$bcstart
@@ -92,7 +71,9 @@ stra=opt$strandedness
 subsampling=opt$subsamp
 sn=opt$sn
 out=opt$out
+HamDist=opt$hamming
 nReadsBC=opt$nReadsBC
+XCbin=opt$XCbin
 if(is.null(opt$barcodefile)==F){
   if(opt$barcodefile=="NA"){
     barcodes <- NA
@@ -134,6 +115,8 @@ if(is.null(opt$gtf)==F){
   print("Provide a GTF file please.")
   q()
 }
+
+
 
 setwd(dirname(abamfile))
 #################
@@ -185,7 +168,6 @@ exon.saf<-data.frame(GeneID= names(gr.gene)[ol.ex],
                      Strand =  strand(unlist(exon)))
 
 saf <- list(introns=intron.saf,exons=exon.saf)
-ftype <- c("in","ex","inex")
 safout <- paste(out,"/zUMIs_output/expression/",sn,".annotationsSAF.rds",sep="")
 
 saveRDS(saf, file=safout)
@@ -212,77 +194,137 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     ss <- ifelse(tmp$modelName=="E",1,tmp$G)
     mm<-tmp$parameters$mean[tmp$G]
     va<-tmp$parameters$variance$sigmasq[ss]
-    
+
     cut<-10^(qnorm(0.01, m=mm,sd=sqrt(va)))
     rcfilt <- fullstats[fullstats$nreads>=cut,]
     return(rcfilt)
   }
-  
+
+  hammingFilter<-function(umiseq, edit=1){
+      library(dplyr) #necessary for pipe to work within multidplyr workers
+      # umiseq a vector of umis, one per read
+      umiseq <- sort(umiseq)
+      uc     <- data.frame(us = umiseq) %>% dplyr::count(us) # normal UMI counts
+
+      if(length(uc$us)>1 && length(uc$us)<10000){ #prevent use of > 100Gb RAM
+        umi <- stringdist::stringdistmatrix(uc$us,method="hamming",useNames = "strings",nthread=1) %>% #only 1 core for each multidplyr worker
+          broom::tidy() %>%
+          dplyr::filter( distance <= edit  ) %>% # only remove below chosen dist
+          dplyr::left_join(uc, by = c( "item1" = "us")) %>%
+          dplyr::left_join(uc, by = c( "item2" = "us"), suffix =c(".1",".2")) %>%
+          dplyr::transmute( rem=if_else( n.1>=n.2, item2, item1 )) %>% #discard the UMI with fewer reads
+          unique()
+        if(nrow(umi)>0){
+          uc <- uc[-match(umi$rem,uc$us),] #discard all filtered UMIs
+        }
+      }
+    n <- nrow(uc)
+    return(n)
+  }
+
   if(ftype == "inex"){
 
-    fctsfilein <- data.table::fread(paste("cut -f2,3 ",abamfile[1],".featureCounts",sep=""), sep="\t",quote='',header = F) #in
-    fctsfileex <- data.table::fread(paste("cut -f2,3 ",abamfile[2],".featureCounts",sep=""), sep="\t",quote='',header = F) #ex
+    fctsfilein <- data.table::fread(paste("cut -f2,4 ",abamfile[1],".featureCounts",sep=""), sep="\t",quote='',header = F) #in
+    fctsfileex <- data.table::fread(paste("cut -f2,4 ",abamfile[2],".featureCounts",sep=""), sep="\t",quote='',header = F) #ex
     reads <- data.table::fread(paste("cut -f10 ",ubamfile,sep=""), quote='',header = F,skip=1)
     reads <- tibble::tibble(XC=substring(reads$V1, bcstart, bcend),XM=substring(reads$V1, umistart, umiend),GE=fctsfileex$V2,assignment=fctsfileex$V1,ftype="exon")
     fctsfilein$ftype<-"intron"
-    reads[which(reads$GE=="*"),c("GE","assignment","ftype")] <- fctsfilein[which(reads$GE=="*"),c("V2","V1","ftype")]
+    reads[which(is.na(reads$GE)),c("GE","assignment","ftype")] <- fctsfilein[which(is.na(reads$GE)),c("V2","V1","ftype")]
     reads$ftype <- ifelse(reads$assignment=="Assigned",reads$ftype,"inex")
     saveRDS(object = reads,file = paste(out,"/zUMIs_output/expression/",sn,".tbl.rds",sep=""))
   } else{
 
-    fcts <-  Rsubread::featureCounts(files=abamfile[1],annot.ext=safannot[[1]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads=T,strandSpecific=stra)# do not use more than nthreads=1!
-    fcts <-  Rsubread::featureCounts(files=abamfile[2],annot.ext=safannot[[2]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads=T,strandSpecific=stra)# do not use more than nthreads=1!
+    fcts <-  Rsubread::featureCounts(files=abamfile[1],annot.ext=safannot[[1]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads="CORE",strandSpecific=stra)# do not use more than nthreads=1!
+    fcts <-  Rsubread::featureCounts(files=abamfile[2],annot.ext=safannot[[2]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads="CORE",strandSpecific=stra)# do not use more than nthreads=1!
 
-    fctsfile <- data.table::fread(paste("cut -f3 ",abamfile[2],".featureCounts",sep=""), sep="\t",quote='',header = F)
+    fctsfile <- data.table::fread(paste("cut -f4 ",abamfile[2],".featureCounts",sep=""), sep="\t",quote='',header = F)
     reads <- data.table::fread(paste("cut -f10 ",ubamfile,sep=""), quote='',header = F,skip=1)
 
     reads <- tibble::tibble(XC=substring(reads$V1, bcstart, bcend),XM=substring(reads$V1, umistart, umiend),GE=fctsfile$V1)
-  }
 
-   if(is.na(bcfile)){
-    fullstats <- reads %>% dplyr::group_by(XC) %>% dplyr::summarise(nreads=length(XM))
-    fullstats<-fullstats[fullstats$nreads>=nReadsBC,]
-    fullstats <- fullstats[order(fullstats$nreads,decreasing = T),]
-    fullstats$cs <- cumsum(fullstats$nreads)
-    fullstats$cellindex <- seq(1:nrow(fullstats))
-    fullstats_detected <- BCselection(fullstats)
 
-    if(nrow(fullstats_detected)<10){
-      print("Attention! Adaptive BC selection gave < 10 cells so I will now use top 100 cells!")
-      bc <- reads %>% dplyr::group_by(XC) %>% dplyr::summarise(n=length(XM))  %>% dplyr::top_n(100) %>% dplyr::select(V1=XC)
-      fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
-    }else{
-      print(paste(nrow(fullstats_detected)," barcodes detected.",sep=""))
-      bc <- data.frame(V1=fullstats_detected$XC)
-    }
-    
-    #selected cells
-    fullstats$col<-1
-    fullstats[which(fullstats$XC %in% fullstats_detected$XC),"col"] <- 2
-    
-    p_dens<-ggplot2::ggplot(fullstats,aes(x=log10(nreads)))+geom_density()+theme_classic()+geom_vline(xintercept = log10(min(fullstats_detected$nreads)),col="#56B4E9",size=1.5)+xlab("log10(Number of reads per cell)")+ylab("Density")+ggtitle("Cells right to the blue line are selected")+theme(axis.text = element_text(size=12),axis.title = element_text(size=13),plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
-    
-    p_bc<-ggplot2::ggplot(fullstats,aes(y=cs,x=cellindex,color=col))+geom_point(size=2)+xlab("Cell Index")+ ylab("Cumulative number of reads")+ggtitle("Detected cells are highlighted in blue")+theme_classic()+theme(legend.position = "none",legend.text = element_text(size=15),legend.title = element_blank(),axis.text = element_text(size=12),axis.title = element_text(size=13),plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
-    
-    bcplot <- cowplot::plot_grid(p_dens,p_bc,labels = c("a","b"))
-    
-    ggplot2::ggsave(bcplot,filename=paste(out,"/zUMIs_output/stats/",sn,".detected_cells.pdf",sep=""),width = 10,height = 4)
+     if(is.na(bcfile)){
+      fullstats <- reads %>% dplyr::group_by(XC) %>% dplyr::summarise(nreads=length(XM))
+      fullstats<-fullstats[fullstats$nreads>=nReadsBC,]
+      fullstats <- fullstats[order(fullstats$nreads,decreasing = T),]
+      fullstats$cs <- cumsum(fullstats$nreads)
+      fullstats$cellindex <- seq(1:nrow(fullstats))
+      fullstats_detected <- BCselection(fullstats)
 
+      if(nrow(fullstats_detected)<10){
+        print("Attention! Adaptive BC selection gave < 10 cells so I will now use top 100 cells!")
+        bc <<- reads %>% dplyr::group_by(XC) %>% dplyr::summarise(n=length(XM))  %>% dplyr::top_n(100) %>% dplyr::select(V1=XC)
+        fullstats_detected<- fullstats[which(fullstats$XC %in% bc$V1),]
       }else{
-        if(is.numeric(bcfile)){
-          fullstats_detected <- reads %>% dplyr::group_by(XC) %>% dplyr::summarise(nreads=length(XM)) %>% dplyr::top_n(bcfile)
-          bc <- data.frame(V1=fullstats_detected$XC)
+        print(paste(nrow(fullstats_detected)," barcodes detected.",sep=""))
+        bc <<- data.frame(V1=fullstats_detected$XC)
+      }
+
+      #selected cells
+      fullstats$col<-1
+      fullstats[which(fullstats$XC %in% fullstats_detected$XC),"col"] <- 2
+
+      p_dens<-ggplot2::ggplot(fullstats,aes(x=log10(nreads)))+geom_density()+theme_classic()+geom_vline(xintercept = log10(min(fullstats_detected$nreads)),col="#56B4E9",size=1.5)+xlab("log10(Number of reads per cell)")+ylab("Density")+ggtitle("Cells right to the blue line are selected")+theme(axis.text = element_text(size=12),axis.title = element_text(size=13),plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
+
+      p_bc<-ggplot2::ggplot(fullstats,aes(y=cs,x=cellindex,color=col))+geom_point(size=2)+xlab("Cell Index")+ ylab("Cumulative number of reads")+ggtitle("Detected cells are highlighted in blue")+theme_classic()+theme(legend.position = "none",legend.text = element_text(size=15),legend.title = element_blank(),axis.text = element_text(size=12),axis.title = element_text(size=13),plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
+
+      bcplot <- cowplot::plot_grid(p_dens,p_bc,labels = c("a","b"))
+
+      ggplot2::ggsave(bcplot,filename=paste(out,"/zUMIs_output/stats/",sn,".detected_cells.pdf",sep=""),width = 10,height = 4)
+
         }else{
-          bc <- read.table(bcfile,header = F,stringsAsFactors = F)
+          if(is.numeric(bcfile)){
+            fullstats_detected <- reads %>% dplyr::group_by(XC) %>% dplyr::summarise(nreads=length(XM)) %>% dplyr::top_n(bcfile)
+            bc <<- data.frame(V1=fullstats_detected$XC)
+          }else{
+            bc <<- read.table(bcfile,header = F,stringsAsFactors = F)
+          }
+    }
+  }
+  ## XC binning below
+  if(XCbin != 0){
+    print(paste("I am binning cell barcodes within hamming distance ",XCbin,sep=""))
+    binmat <- stringdist::stringdistmatrix(bc$V1,unique(reads$XC),method="hamming",useNames = "strings",nthread=ncores)
+    tmp <- reshape2::melt(binmat) %>% dplyr::mutate_if(is.factor, as.character) %>% dplyr::filter(value>0 & value <=XCbin)
+    if(XCbin > 1){ #if there are conflicts we can choose the closer ones for dists >1
+      dups <- tmp$Var2[duplicated(tmp$Var2)]
+      for(i in dups){
+        tmpdists<-tmp[which(tmp$Var2==i),"value"]
+        if(min(tmpdists)==max(tmpdists)){ #if the dups are all with same dist
+          tmp <- tmp[-which(tmp$Var2==i),] #..remove them
+        }else{
+          tmp <- tmp[-which(tmp$Var2==i & tmp$value>min(tmpdists)),] #keep only the minimal distance
+          if(nrow(bla[which(tmp$Var2==i),])>1){ #if still more than one possibility
+            tmp <- tmp[-which(tmp$Var2==i),] #...remove them
+          }
         }
+      }
+    }else{
+      dups <- tmp$Var2[duplicated(tmp$Var2)]
+      binnable <- tmp$Var2[!(tmp$Var2 %in% dups)] #avoid conflicts
+    }
+    print(paste(length(binnable)," adjacent barcodes will be binned",sep=""))
+    for(i in 1:nrow(binmat)){
+      tobin<-names(which(binmat[i,]>0 & binmat[i,]<=XCbin))
+      tobin<-tobin[which(tobin %in% binnable)]
+      if(length(tobin)>0){
+        reads[which(reads$XC %in% tobin),"XC"] <- row.names(binmat)[i]
+      }
+    }
+    saveRDS(object = reads,file = paste(out,"/zUMIs_output/expression/",sn,".XCbinned.tbl.rds",sep=""))
+  }
+  ## end XC binning
+
+  if(HamDist==0){
+    umicounts <- reads %>% dplyr::filter((XC %in% bc$V1) & (!is.na(GE))) %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
+  }else{
+    cluster <- create_cluster(ncores) # The clustering seems to have issue in partition when there is not enough data to spread on all the cores.
+    set_default_cluster(cluster)
+    cluster_copy(cluster, hammingFilter)
+    cluster_copy(cluster, HamDist)
+    umicounts <- reads %>% dplyr::filter((XC %in% bc$V1) & (!is.na(GE))) %>% multidplyr::partition(XC, cluster = cluster) %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=hammingFilter(XM,edit = HamDist),readcount=length(XM)) %>% dplyr::collect()
   }
 
-  #cluster <- create_cluster(ncores) # The clustering seems to have issue in partition when there is not enough data to spread on all the cores.
-  #set_default_cluster(cluster)
-
-  #umicounts <- reads %>% dplyr::filter((XC %in% bc$V1) & (GE!="*")) %>% partition(XC, cluster = cluster) %>% group_by(XC,GE) %>% summarise(umicount=length(unique(XM)),readcount=length(XM)) %>% collect()
-  umicounts <- reads %>% dplyr::filter((XC %in% bc$V1) & (GE!="*")) %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM)) 
-  
   if(subsampling!="0") {
     if(grepl(pattern = ",",x = subsampling)==TRUE){
       tmpsplit <- strsplit(x = subsampling,split = ",")[[1]]
@@ -301,8 +343,17 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
 
         if(as.logical((nrow(reads %>% dplyr::group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% dplyr::filter(n>=subsampling_min))) >= 2)==TRUE){
           print(paste("I am subsampling to ",subsampling_iter,sep=""))
-          tmp1 <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% dplyr::group_by(XC) %>% dplyr::filter(length(XC) > subsampling_max) %>% dplyr::sample_n(size = subsampling_max,replace=F)%>% dplyr::filter(GE!="*")  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
-          tmp2 <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% dplyr::group_by(XC) %>% dplyr::filter((length(XC) < subsampling_max) & (length(XC) >= subsampling_min))%>% dplyr::filter(GE!="*")  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
+          if(HamDist==0){
+            tmp1 <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% dplyr::group_by(XC) %>% dplyr::filter(length(XC) > subsampling_max) %>% dplyr::sample_n(size = subsampling_max,replace=F)%>% dplyr::filter(!is.na(GE))  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
+
+            tmp2 <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% dplyr::group_by(XC) %>% dplyr::filter((length(XC) < subsampling_max) & (length(XC) >= subsampling_min))%>% dplyr::filter(!is.na(GE))  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
+          }else{
+            tmp1 <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% dplyr::group_by(XC) %>% dplyr::filter(length(XC) > subsampling_max) %>% dplyr::sample_n(size = subsampling_max,replace=F)%>% dplyr::filter(!is.na(GE))
+            if(nrow(tmp1)>0){
+                tmp1 %>% multidplyr::partition(XC, cluster = cluster) %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=hammingFilter(XM,edit = HamDist),readcount=length(XM)) %>% dplyr::collect()
+              }
+            tmp2 <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% dplyr::group_by(XC) %>% dplyr::filter((length(XC) < subsampling_max) & (length(XC) >= subsampling_min))%>% dplyr::filter(!is.na(GE)) %>% multidplyr::partition(XC, cluster = cluster)  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=hammingFilter(XM,edit = HamDist),readcount=length(XM)) %>% dplyr::collect()
+          }
           umicounts_sub <- dplyr::bind_rows(tmp1,tmp2)
         }else{
           print("Error! None of the barcodes has more than the requested minimal number of reads")
@@ -311,8 +362,11 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
         subsampling_no <- as.numeric(subsampling_iter)
         if(as.logical((nrow(reads %>% dplyr::group_by(XC) %>% dplyr::summarise(n=length(XM)) %>% dplyr::filter(n>=subsampling_no))) >= 2)==TRUE){
           print(paste("I am subsampling to ",subsampling_iter,sep=""))
-          umicounts_sub <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% dplyr::group_by(XC) %>% dplyr::filter(length(XC) >= subsampling_no) %>% dplyr::sample_n(size = subsampling_no,replace=F)%>% dplyr::filter(GE!="*")  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
-
+          if(HamDist==0){
+            umicounts_sub <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% dplyr::group_by(XC) %>% dplyr::filter(length(XC) >= subsampling_no) %>% dplyr::sample_n(size = subsampling_no,replace=F)%>% dplyr::filter(!is.na(GE))  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
+          }else{
+            umicounts_sub <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% dplyr::group_by(XC) %>% dplyr::filter(length(XC) >= subsampling_no) %>% dplyr::sample_n(size = subsampling_no,replace=F)%>% dplyr::filter(!is.na(GE)) %>% multidplyr::partition(XC, cluster = cluster) %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=hammingFilter(XM,edit = HamDist),readcount=length(XM)) %>% dplyr::collect()
+          }
         }else{
           print("Error! None of the barcodes has more than the requested number of reads")
         }
@@ -349,8 +403,16 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     MAD_low <- round(MAD_low,digits = 0)
 
     print(paste("I am subsampling between ",MAD_low," and ",MAD_up," reads per barcode.",sep=""))
-    tmp1 <- reads %>% dplyr::filter(XC %in% bcs_detected)  %>% dplyr::group_by(XC) %>% dplyr::filter(length(XC) > MAD_up) %>% dplyr::sample_n(size = MAD_up,replace=F) %>% dplyr::filter(GE!="*")  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
-    tmp2 <- reads %>% dplyr::filter(XC %in% bcs_detected)  %>% dplyr::group_by(XC) %>% dplyr::filter((length(XC) >= MAD_low )& (length(XC) <= MAD_up)) %>% dplyr::filter(GE!="*")  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
+    if(HamDist==0){
+      tmp1 <- reads %>% dplyr::filter(XC %in% bcs_detected)  %>% dplyr::group_by(XC) %>% dplyr::filter(length(XC) > MAD_up) %>% dplyr::sample_n(size = MAD_up,replace=F) %>% dplyr::filter(!is.na(GE))  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
+      tmp2 <- reads %>% dplyr::filter(XC %in% bcs_detected)  %>% dplyr::group_by(XC) %>% dplyr::filter((length(XC) >= MAD_low )& (length(XC) <= MAD_up)) %>% dplyr::filter(!is.na(GE))  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
+    }else{
+      tmp1 <- reads %>% dplyr::filter(XC %in% bc$V1)  %>% dplyr::group_by(XC) %>% dplyr::filter(length(XC) > MAD_up) %>% dplyr::sample_n(size = MAD_up,replace=F)%>% dplyr::filter(!is.na(GE))
+      if(nrow(tmp1)>0){
+          tmp1 %>% multidplyr::partition(XC, cluster = cluster) %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=hammingFilter(XM,edit = HamDist),readcount=length(XM)) %>% dplyr::collect()
+        }
+      tmp2 <- reads %>% dplyr::filter(XC %in% bcs_detected)  %>% dplyr::group_by(XC) %>% dplyr::filter((length(XC) >= MAD_low )& (length(XC) <= MAD_up)) %>% dplyr::filter(!is.na(GE))  %>% multidplyr::partition(XC, cluster = cluster)  %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=hammingFilter(XM,edit = HamDist),readcount=length(XM)) %>% dplyr::collect()
+    }
     umicounts_sub <- dplyr::bind_rows(tmp1,tmp2)
 
     downsampling_list <-list()
@@ -383,6 +445,8 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
 
   return(l)
 }
+
+ftype <- c("in","ex","inex")
 
 bams <- c(paste(abamfile,"in",sep="."),paste(abamfile,"ex",sep="."))
 

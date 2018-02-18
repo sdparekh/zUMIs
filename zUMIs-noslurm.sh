@@ -35,6 +35,8 @@ isindrops="${31}"
 libread="${32}"
 pigzexc="${33}"
 Rexc="${34}"
+ham="${35}"
+XCbin="${36}"
 
 if [[ "$isstrt" == "no" ]] ; then
 	rl=`expr $r - 1`
@@ -79,9 +81,9 @@ re='^[0-9]+$'
 			$samtoolsexc sort -n -O sam -T tmp.$sn -@ $t -m 2G -o $o/$sn.barcodelist.filtered.sort.sam $o/$sn.barcodelist.filtered.sam
 
 			if [[ $bn =~ $re ]] ; then
-				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads --hamming $ham --XCbin $XCbin
 			else
-				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads --hamming $ham --XCbin $XCbin
 			fi
 
 			if [[ $stats == "yes" ]] ; then
@@ -112,9 +114,9 @@ re='^[0-9]+$'
 			$samtoolsexc sort -n -O sam -T tmp.$sn -@ $t -m 2G -o $o/$sn.barcodelist.filtered.sort.sam $o/$sn.barcodelist.filtered.sam
 
 			if [[ $bn =~ $re ]] ; then
-				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads --hamming $ham --XCbin $XCbin
 			else
-				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads --hamming $ham --XCbin $XCbin
 			fi
 
 			if [[ $stats == "yes" ]] ; then
@@ -144,9 +146,9 @@ re='^[0-9]+$'
 			fi
 
 			if [[ $bn =~ $re ]] ; then
-				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodenumber $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads --hamming $ham --XCbin $XCbin
 			else
-				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads
+				$Rexc $zumisdir/zUMIs-dge.R --gtf $gtf --abam $o/$sn.aligned.sorted.bam --ubam $o/$sn.barcodelist.filtered.sort.sam --barcodefile $bn --out $o --sn $sn --cores $t --strandedness $stra --bcstart $xcst --bcend $xcend --umistart $xmst --umiend $xmend --subsamp $subs --nReadsBC $nreads --hamming $ham --XCbin $XCbin
 			fi
 
 			if [[ $stats == "yes" ]] ; then
