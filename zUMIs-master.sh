@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh &  Christoph Ziegenhain
 # Contact: parekh@bio.lmu.de or christoph.ziegenhain@ki.se or hellmann@bio.lmu.de
-
+vers=0.0.4
 function check_opts() {
     value=$1
     name=$2
@@ -64,6 +64,8 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 					This pipeline works based on one hit per read. Therefore, please do not report more multimapping hits. Default: "".
 	-H  <HammingDistance>    : Hamming distance collapsing of UMI sequences. Default: 0.
 	-B  <BarcodeBinning>     : Hamming distance binning of close cell barcode sequences. Default: 0.
+        -T  <PlateBC fastq>      : Fastq file for plate barcode read. Default: NA
+        -U  <PlateBC range>      : Barcode range for plate barcode read (e.g. 1-8). Default: NA
 
 ## Program paths ##
 	-o  <outputdir>          : Where to write output bam. Default: working directory.
@@ -96,6 +98,8 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 	-Y  <InDrops>		 : Do you have InDrops data? yes/no Default: no.
 	-F  <gel-barcode2 fastq> : Provide the second half of gel barcode + UMI read <-F> here. Default: NA.
 	-L  <library barcode fastq> : Provide the library barcode read here. Default: NA
+
+zUMIs version $vers
 
 EOF
 }
@@ -130,8 +134,10 @@ xcrange2=0-0
 nreads=100
 ham=0
 XCbin=0
+pbcfastq=NA
+pbcrange=NA
 
-while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:L:P:V:H:B:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
+while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:L:P:V:H:B:U:T:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
   case $options in
   R ) isslurm=$OPTARG;;
   S ) isStats=$OPTARG;;
@@ -170,6 +176,8 @@ while getopts ":R:S:f:r:g:o:a:t:s:c:m:l:b:n:N:q:Q:z:u:x:e:p:i:d:X:A:w:j:F:C:y:Y:
   V ) Rexc=$OPTARG;;
   H ) ham=$OPTARG;;
   B ) XCbin=$OPTARG;;
+  T ) pbcfastq=$OPTARG;;
+  U ) pbcrange=$OPTARG;;
   h ) usage
           exit 1;;
   \? ) echo -e "\n This key is not available! Please check the usage again: -$OPTARG"
@@ -250,6 +258,8 @@ echo -e "\n\n You provided these parameters:
  # bases below phred in UMI:	$molbcbase
  Hamming Distance (UMI):	$ham
  Hamming Distance (CellBC):	$XCbin
+ Plate Barcode Read:    $pbcfastq
+ Plate Barcode range:   $pbcrange
  Barcodes:			$barcodes
  zUMIs directory:		$zumisdir
  STAR executable		$starexc
@@ -263,7 +273,8 @@ echo -e "\n\n You provided these parameters:
  Barcode read2(STRT-seq):	$bcread2
  Barcode read2 range(STRT-seq):	$xcrange2
  Bases(G) to trim(STRT-seq):	$BaseTrim
- Subsampling reads:		$subsampling \n\n"
+ Subsampling reads:		$subsampling \n\n
+ zUMIs version $vers \n\n" | tee "$sname.zUMIs_run.txt"
 
 #create output folders
 [ -d $outdir/zUMIs_output/ ] || mkdir $outdir/zUMIs_output/
@@ -279,6 +290,29 @@ if [[ "$isCustomFASTQ" != "no" ]] ; then
 fi
 #Submit all the jobs
 if [[ "$isslurm" == "yes" ]] ; then
+  if [[ "$pbcfastq" != "NA" ]] ; then
+    tmpa=`echo $pbcrange | cut -f1 -d '-'`
+    tmpb=`echo $pbcrange | cut -f2 -d '-'`
+    pbcl=`expr $tmpa + $tmpb - 1`
+    tmpa=`echo $xcrange | cut -f1 -d '-'`
+    tmpb=`echo $xcrange | cut -f2 -d '-'`
+    bcl=`expr $tmpa + $tmpb - 1`
+    l=`expr $bcl + $pbcl`
+    xc=1-"$l"
+    xcst=1
+    xcend=$l
+    xmst=`expr $l + 1`
+    tmpa=`echo $xmrange | cut -f1 -d '-'`
+    tmpb=`echo $xmrange | cut -f2 -d '-'`
+    ml=`expr $tmpb - $tmpa`
+    xmend=`expr $xmst + $ml`
+    xmr="$xmst"-"$xmend"
+    xcr="$xcst"-"$xcend"
+  else
+    xmr=$xmrange
+    xcr=$xcrange
+  fi
+
 	case "$whichStage" in
 		"filtering")
 		if [[ "$isstrt" == "yes" ]] ; then
@@ -286,11 +320,11 @@ if [[ "$isslurm" == "yes" ]] ; then
 		elif [[ "$isindrops" == "yes" ]] ; then
 			bash $zumisdir/zUMIs-filtering-inDrops.sh $cdnaread $bcread $libread $bcread2 $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $pigzexc
 		else
-			bash $zumisdir/zUMIs-filtering.sh $bcread $cdnaread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $pigzexc
+			bash $zumisdir/zUMIs-filtering.sh $bcread $cdnaread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $pigzexc $pbcfastq $pbcrange
 		fi
 			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcr $xmr $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"mapping")
@@ -309,7 +343,7 @@ if [[ "$isslurm" == "yes" ]] ; then
 		fi
 			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcr $xmr $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"counting")
@@ -331,14 +365,14 @@ if [[ "$isslurm" == "yes" ]] ; then
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
 		fi
 
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcr $xmr $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 		"summarising")
-			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcrange $xmrange $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
+			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcr $xmr $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin
 			bash $zumisdir/zUMIs-cleaning.sh $sname $outdir
 			;;
 	esac
 else
-	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2 $CustomMappedBAM $isCustomFASTQ $nreads $isindrops $libread $pigzexc $Rexc $ham $XCbin
+	bash $zumisdir/zUMIs-noslurm.sh $cdnaread $bcread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $genomedir $gtf $readlen "$starparams" $starexc $barcodes $strandedness $subsampling $zumisdir $samtoolsexc $isStats $whichStage $bcread2 $BaseTrim $isstrt $xcrange2 $CustomMappedBAM $isCustomFASTQ $nreads $isindrops $libread $pigzexc $Rexc $ham $XCbin $pbcfastq $pbcrange
 fi

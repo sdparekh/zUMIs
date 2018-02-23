@@ -206,7 +206,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
       umiseq <- sort(umiseq)
       uc     <- data.frame(us = umiseq) %>% dplyr::count(us) # normal UMI counts
 
-      if(length(uc$us)>1 && length(uc$us)<10000){ #prevent use of > 100Gb RAM
+      if(length(uc$us)>1 && length(uc$us)<100000){ #prevent use of > 100Gb RAM
         umi <- stringdist::stringdistmatrix(uc$us,method="hamming",useNames = "strings",nthread=1) %>% #only 1 core for each multidplyr worker
           broom::tidy() %>%
           dplyr::filter( distance <= edit  ) %>% # only remove below chosen dist
