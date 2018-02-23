@@ -37,6 +37,9 @@ pigzexc="${33}"
 Rexc="${34}"
 ham="${35}"
 XCbin="${36}"
+pbcfastq="${37}"
+pbcrange="${38}"
+
 
 if [[ "$isstrt" == "no" ]] ; then
 	rl=`expr $r - 1`
@@ -69,7 +72,25 @@ re='^[0-9]+$'
 			elif [[ "$isindrops" == "yes" ]] ; then
 				perl $zumisdir/fqfilter-inDrops.pl $f1 $f2 $libread $f3 $cq $cbq $mq $mbq $xm $t $sn $o $pigzexc
 			else
-				perl $zumisdir/fqfilter.pl $f2 $f1 $cq $cbq $mq $mbq $xc $xm $t $sn $o $pigzexc
+				perl $zumisdir/fqfilter.pl $f2 $f1 $pbcfastq $cq $cbq $mq $mbq $xc $pbcrange $xm $t $sn $o $pigzexc
+				if [[ "$pbcfastq" != "NA" ]] ; then
+					tmpa=`echo $pbcrange | cut -f1 -d '-'`
+					tmpb=`echo $pbcrange | cut -f2 -d '-'`
+					pbcl=`expr $tmpa + $tmpb - 1`
+					tmpa=`echo $xc | cut -f1 -d '-'`
+					tmpb=`echo $xc | cut -f2 -d '-'`
+					bcl=`expr $tmpa + $tmpb - 1`
+					l=`expr $bcl + $pbcl`
+					xc=1-"$l"
+					xcst=1
+					xcend=$l
+					xmst=`expr $l + 1`
+					tmpa=`echo $xm | cut -f1 -d '-'`
+					tmpb=`echo $xm | cut -f2 -d '-'`
+					ml=`expr $tmpb - $tmpa`
+					xmend=`expr $xmst + $ml`
+					xm="$xmst"-"$xmend"
+				fi
 			fi
 
 			$starexc --genomeDir $g --runThreadN $t --readFilesCommand zcat --sjdbGTFfile $gtf --outFileNamePrefix $o/$sn. --outSAMtype BAM Unsorted --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --sjdbOverhang $rl --twopassMode Basic --readFilesIn $o/$sn.cdnaread.filtered.fastq.gz $x
@@ -169,3 +190,6 @@ re='^[0-9]+$'
 rm $o/$sn.Aligned.out.bam $o/$sn.aligned.sorted.bam.in $o/$sn.aligned.sorted.bam.ex $o/$sn.barcodelist.filtered.sam
 mv $o/$sn.barcoderead.filtered.fastq.gz $o/zUMIs_output/filtered_fastq/
 mv $o/$sn.cdnaread.filtered.fastq.gz $o/zUMIs_output/filtered_fastq/
+if [[ "$pbcfastq" != "NA" ]] ; then
+	mv $o/$sn.platebarcoderead.filtered.fastq.gz $o/zUMIs_output/filtered_fastq/
+fi

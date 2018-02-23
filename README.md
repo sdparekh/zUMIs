@@ -10,12 +10,14 @@ You can read more about zUMIs in our [biorxiv preprint](https://www.biorxiv.org/
 
 You can glance through zUMIs in [zUMIs poster](https://github.com/sdparekh/zUMIs/blob/master/zUMIs_GI2017_poster.pdf)!
 
-## Releases
+## Releases/Changelog
+23 Feb 2018: [zUMIs.0.0.3 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.4).
+Added support for plate barcodes with input of an additional barcode fastq file (eg. Illumina i7 index read). Addition of version number in zUMIs-master. Parameters are printed in a .zUMIs_run.txt file for each call.
 
 18 Feb 2018: [zUMIs.0.0.3 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.3).
 Switched support to the new Rsubread version and data format. Furthermore to compensate sequencing/PCR errors, zUMIs now features UMI correction using Hamming distance and binning of adjacent cell barcodes.
 
-You can find the older version of zUMIs [here](https://github.com/sdparekh/zUMIs/releases/).
+You can find the older versions of zUMIs [here](https://github.com/sdparekh/zUMIs/releases/).
 
 ## Installation and Usage
 
