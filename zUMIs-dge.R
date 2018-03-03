@@ -294,7 +294,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
           tmp <- tmp[-which(tmp$Var2==i),] #..remove them
         }else{
           tmp <- tmp[-which(tmp$Var2==i & tmp$value>min(tmpdists)),] #keep only the minimal distance
-          if(nrow(bla[which(tmp$Var2==i),])>1){ #if still more than one possibility
+          if(nrow(tmp[which(tmp$Var2==i),])>1){ #if still more than one possibility
             tmp <- tmp[-which(tmp$Var2==i),] #...remove them
           }
         }
