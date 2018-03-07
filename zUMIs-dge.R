@@ -291,11 +291,11 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
       for(i in dups){
         tmpdists<-tmp[which(tmp$Var2==i),"value"]
         if(min(tmpdists)==max(tmpdists)){ #if the dups are all with same dist
-          tmp <- tmp[-which(tmp$Var2==i),] #..remove them
+          binnable <- tmp[-which(tmp$Var2==i),] #..remove them
         }else{
-          tmp <- tmp[-which(tmp$Var2==i & tmp$value>min(tmpdists)),] #keep only the minimal distance
-          if(nrow(tmp[which(tmp$Var2==i),])>1){ #if still more than one possibility
-            tmp <- tmp[-which(tmp$Var2==i),] #...remove them
+          binnable <- tmp[-which(tmp$Var2==i & tmp$value>min(tmpdists)),] #keep only the minimal distance
+          if(nrow(binnable[which(binnable$Var2==i),])>1){ #if still more than one possibility
+            binnable <- binnable[-which(binnable$Var2==i),] #...remove them
           }
         }
       }
