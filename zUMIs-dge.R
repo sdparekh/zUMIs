@@ -157,15 +157,16 @@ ol.in<-GenomicRanges::findOverlaps(intron.only, gr.gene, select="arbitrary")
 ol.ex<-GenomicRanges::findOverlaps(unlist(exon), gr.gene, select="arbitrary")
 
 intron.saf<-data.frame(GeneID= names(gr.gene)[ol.in],
-                       Chr   = seqnames(intron.only),
-                       Start = start(intron.only),
-                       End	 =   end(intron.only),
-                       Strand =  strand(intron.only))
+		       Chr   = seqnames(intron.only),
+		       Start = start(intron.only),
+		       End	 =   end(intron.only),stringsAsFactors = F)
 exon.saf<-data.frame(GeneID= names(gr.gene)[ol.ex],
-                     Chr   = seqnames(unlist(exon)),
-                     Start = start(unlist(exon)),
-                     End	 =   end(unlist(exon)),
-                     Strand =  strand(unlist(exon)))
+		     Chr   = seqnames(unlist(exon)),
+		     Start = start(unlist(exon)),
+		     End	 =   end(unlist(exon)),
+		     Strand =  strand(unlist(exon)),stringsAsFactors = F)
+
+intron.saf<-dplyr::left_join(intron.saf,unique(exon.saf[,c("GeneID","Strand")]),by=c("GeneID"))
 
 saf <- list(introns=intron.saf,exons=exon.saf)
 safout <- paste(out,"/zUMIs_output/expression/",sn,".annotationsSAF.rds",sep="")
