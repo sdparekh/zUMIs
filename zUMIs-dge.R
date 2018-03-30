@@ -46,7 +46,7 @@ opt = parse_args(opt_parser);
 
 print("I am loading useful packages...")
 print(Sys.time())
-packages <-c("multidplyr","dplyr","tidyr","broom","stringdist","reshape2","data.table","optparse","parallel","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble","mclust","Matrix","Rsubread")
+packages <-c("multidplyr","dplyr","tidyr","broom","reshape2","data.table","optparse","parallel","methods","GenomicRanges","GenomicFeatures","GenomicAlignments","AnnotationDbi","ggplot2","cowplot","tibble","mclust","Matrix","Rsubread")
 paks<-lapply(packages, function(x) suppressMessages(require(x, character.only = TRUE)))
 rm(paks)
 
@@ -200,25 +200,53 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     rcfilt <- fullstats[fullstats$nreads>=cut,]
     return(rcfilt)
   }
+  
+  ham_twomats <- function(barcodes,XCstrings) {
+    barcodes<-as.character(barcodes) #make sure this is a character, not a factor
+    X<- matrix(unlist(strsplit(barcodes, "")),ncol = length(barcodes))
+    Y<- matrix(unlist(strsplit(XCstrings, "")),ncol = length(XCstrings))
+    
+    #function below thanks to Johann de Jong
+    #https://goo.gl/u8RBBZ
+    uniqs <- union(X, Y)
+    H <- t(X == uniqs[1]) %*% (Y == uniqs[1])
+    for ( uniq in uniqs[-1] ) {
+      H <- H + t(X == uniq) %*% (Y == uniq)
+    }
+    nrow(X) - H
+  }
 
   hammingFilter<-function(umiseq, edit=1){
-      library(dplyr) #necessary for pipe to work within multidplyr workers
-      # umiseq a vector of umis, one per read
-      umiseq <- sort(umiseq)
-      uc     <- data.frame(us = umiseq) %>% dplyr::count(us) # normal UMI counts
-
-      if(length(uc$us)>1 && length(uc$us)<100000){ #prevent use of > 100Gb RAM
-        umi <- stringdist::stringdistmatrix(uc$us,method="hamming",useNames = "strings",nthread=1) %>% #only 1 core for each multidplyr worker
-          broom::tidy() %>%
-          dplyr::filter( distance <= edit  ) %>% # only remove below chosen dist
-          dplyr::left_join(uc, by = c( "item1" = "us")) %>%
-          dplyr::left_join(uc, by = c( "item2" = "us"), suffix =c(".1",".2")) %>%
-          dplyr::transmute( rem=if_else( n.1>=n.2, item2, item1 )) %>% #discard the UMI with fewer reads
-          unique()
-        if(nrow(umi)>0){
-          uc <- uc[-match(umi$rem,uc$us),] #discard all filtered UMIs
-        }
+    ham_mat <- function(umistrings) {
+      X<- matrix(unlist(strsplit(umistrings, "")),ncol = length(umistrings))
+      #function below thanks to Johann de Jong
+      #https://goo.gl/u8RBBZ
+      uniqs <- unique(as.vector(X))
+      U <- X == uniqs[1]
+      H <- t(U) %*% U
+      for ( uniq in uniqs[-1] ) {
+        U <- X == uniq
+        H <- H + t(U) %*% U
       }
+      nrow(X) - H
+    }
+    library(dplyr) #necessary for pipe to work within multidplyr workers
+    # umiseq a vector of umis, one per read
+    umiseq <- sort(umiseq)
+    uc     <- data.frame(us = umiseq,stringsAsFactors = F) %>% dplyr::count(us) # normal UMI counts
+    
+    if(length(uc$us)>1 && length(uc$us)<100000){ #prevent use of > 100Gb RAM
+      Sys.time()
+      umi <-  ham_mat(uc$us) #construct pairwise UMI distances
+      umi[upper.tri(umi,diag=T)] <- NA #remove upper triangle of the output matrix
+      umi <- reshape2::melt(umi, varnames = c('row', 'col'), na.rm = TRUE) %>% dplyr::filter( value <= edit  ) #make a long data frame and filter according to cutoff
+      umi$n.1 <- uc[umi$row,]$n #add in observed freq
+      umi$n.2 <- uc[umi$col,]$n#add in observed freq
+      umi <- umi %>%dplyr::transmute( rem=if_else( n.1>=n.2, col, row )) %>%  unique() #discard the UMI with fewer reads
+      if(nrow(umi)>0){
+        uc <- uc[-umi$rem,] #discard all filtered UMIs
+      }
+    }
     n <- nrow(uc)
     return(n)
   }
@@ -284,42 +312,50 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
   }
   ## XC binning below
   if(XCbin != 0){
-    print(paste("I am binning cell barcodes within hamming distance ",XCbin,sep=""))
-    binmat <- stringdist::stringdistmatrix(bc$V1,unique(reads$XC),method="hamming",useNames = "strings",nthread=ncores)
-    tmp <- reshape2::melt(binmat) %>% dplyr::mutate_if(is.factor, as.character) %>% dplyr::filter(value>0 & value <=XCbin)
-    if(XCbin > 1){ #if there are conflicts we can choose the closer ones for dists >1
-      dups <- tmp$Var2[duplicated(tmp$Var2)]
-      for(i in dups){
-        tmpdists<-tmp[which(tmp$Var2==i),"value"]
-        if(min(tmpdists)==max(tmpdists)){ #if the dups are all with same dist
-          binnable <- tmp[-which(tmp$Var2==i),] #..remove them
-        }else{
-          binnable <- tmp[-which(tmp$Var2==i & tmp$value>min(tmpdists)),] #keep only the minimal distance
-          if(nrow(binnable[which(binnable$Var2==i),])>1){ #if still more than one possibility
-            binnable <- binnable[-which(binnable$Var2==i),] #...remove them
+    XC_obs<-unique(reads$XC)
+    if(length(XC_obs)*length(bc$V1)> 1e+10){
+      print("There are too many noisy barcodes, binning will be skipped")
+    }else{
+      print(paste("I am binning cell barcodes within hamming distance ",XCbin,sep=""))
+      paste("This may be slow, depending on the number of reads")
+      binmat <- ham_twomats(bc$V1,XC_obs)
+      tmp <- reshape2::melt(binmat) %>% dplyr::mutate_if(is.factor, as.character) %>% dplyr::filter(value>0 & value <=XCbin)
+      tmp$Var1<-bc$V1[tmp$Var1]
+      tmp$Var2<-XC_obs[tmp$Var2]
+      if(XCbin > 1){ #if there are conflicts we can choose the closer ones for dists >1
+        dups <- tmp$Var2[duplicated(tmp$Var2)]
+        for(i in dups){
+          tmpdists<-tmp[which(tmp$Var2==i),"value"]
+          if(min(tmpdists)==max(tmpdists)){ #if the dups are all with same dist
+            binnable <- tmp[-which(tmp$Var2==i),] #..remove them
+          }else{
+            binnable <- tmp[-which(tmp$Var2==i & tmp$value>min(tmpdists)),] #keep only the minimal distance
+            if(nrow(binnable[which(binnable$Var2==i),])>1){ #if still more than one possibility
+              binnable <- binnable[-which(binnable$Var2==i),] #...remove them
+            }
           }
         }
+      }else{
+        dups <- tmp$Var2[duplicated(tmp$Var2)]
+        binnable <- tmp$Var2[!(tmp$Var2 %in% dups)] #avoid conflicts
       }
-    }else{
-      dups <- tmp$Var2[duplicated(tmp$Var2)]
-      binnable <- tmp$Var2[!(tmp$Var2 %in% dups)] #avoid conflicts
-    }
-    print(paste(length(binnable)," adjacent barcodes will be binned",sep=""))
-    for(i in 1:nrow(binmat)){
-      tobin<-names(which(binmat[i,]>0 & binmat[i,]<=XCbin))
-      tobin<-tobin[which(tobin %in% binnable)]
-      if(length(tobin)>0){
-        reads[which(reads$XC %in% tobin),"XC"] <- row.names(binmat)[i]
+      print(paste(length(binnable)," adjacent barcodes will be binned",sep=""))
+      for(i in 1:nrow(binmat)){
+        tobin<-names(which(binmat[i,]>0 & binmat[i,]<=XCbin))
+        tobin<-tobin[which(tobin %in% binnable)]
+        if(length(tobin)>0){
+          reads[which(reads$XC %in% tobin),"XC"] <- row.names(binmat)[i]
+        }
       }
+      saveRDS(object = reads,file = paste(out,"/zUMIs_output/expression/",sn,".XCbinned.tbl.rds",sep=""))
     }
-    saveRDS(object = reads,file = paste(out,"/zUMIs_output/expression/",sn,".XCbinned.tbl.rds",sep=""))
   }
   ## end XC binning
 
   if(HamDist==0){
     umicounts <- reads %>% dplyr::filter((XC %in% bc$V1) & (!is.na(GE))) %>% dplyr::group_by(XC,GE) %>% dplyr::summarise(umicount=length(unique(XM)),readcount=length(XM))
   }else{
-    cluster <- create_cluster(ncores) # The clustering seems to have issue in partition when there is not enough data to spread on all the cores.
+    cluster <- create_cluster(ncores) # The clustering may have issues in partition when there is not enough data to spread on all the cores.
     set_default_cluster(cluster)
     cluster_copy(cluster, hammingFilter)
     cluster_copy(cluster, HamDist)

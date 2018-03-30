@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh &  Christoph Ziegenhain
 # Contact: parekh@bio.lmu.de or christoph.ziegenhain@ki.se or hellmann@bio.lmu.de
-vers=0.0.4
+vers=0.0.5
 function check_opts() {
     value=$1
     name=$2
