@@ -11,6 +11,9 @@ You can read more about zUMIs in our [biorxiv preprint](https://www.biorxiv.org/
 You can glance through zUMIs in [zUMIs poster](https://github.com/sdparekh/zUMIs/blob/master/zUMIs_GI2017_poster.pdf)!
 
 ## Releases/Changelog
+30 Mar 2018: [zUMIs.0.0.5 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.5).
+Rewrote hamming distance binning of UMIs and barcodes. In addition to faster running times, removed dependency on the stringdist package that may have led to issues with parallel computing in some systems. Furthermore removed a possible bug when resuming running with the -w switch in combination with plate barcode usage.
+
 23 Feb 2018: [zUMIs.0.0.4 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.4).
 Added support for plate barcodes with input of an additional barcode fastq file (eg. Illumina i7 index read). Addition of version number in zUMIs-master. Parameters are printed in a .zUMIs_run.txt file for each call.
 
