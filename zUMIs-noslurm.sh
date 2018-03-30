@@ -40,6 +40,28 @@ XCbin="${36}"
 pbcfastq="${37}"
 pbcrange="${38}"
 
+if [[ "$pbcfastq" != "NA" ]] ; then
+ tmpa=`echo $pbcrange | cut -f1 -d '-'`
+ tmpb=`echo $pbcrange | cut -f2 -d '-'`
+ pbcl=`expr $tmpa + $tmpb - 1`
+ tmpa=`echo $xc | cut -f1 -d '-'`
+ tmpb=`echo $xc | cut -f2 -d '-'`
+ bcl=`expr $tmpa + $tmpb - 1`
+ l=`expr $bcl + $pbcl`
+ xcst=1
+ xcend=$l
+ xmst=`expr $l + 1`
+ tmpa=`echo $xm | cut -f1 -d '-'`
+ tmpb=`echo $xm | cut -f2 -d '-'`
+ ml=`expr $tmpb - $tmpa`
+ xmend=`expr $xmst + $ml`
+ xmr="$xmst"-"$xmend"
+ xcr="$xcst"-"$xcend"
+else
+ xmr=$xm
+ xcr=$xc
+fi
+
 
 if [[ "$isstrt" == "no" ]] ; then
 	rl=`expr $r - 1`
@@ -49,10 +71,10 @@ else
 fi
 
 if [[ "$isstrt" == "no" ]] ; then
-	xcst=`echo $xc | cut -f1 -d '-'`
-	xcend=`echo $xc | cut -f2 -d '-'`
-	xmst=`echo $xm | cut -f1 -d '-'`
-	xmend=`echo $xm | cut -f2 -d '-'`
+	xcst=`echo $xcr | cut -f1 -d '-'`
+	xcend=`echo $xcr | cut -f2 -d '-'`
+	xmst=`echo $xmr | cut -f1 -d '-'`
+	xmend=`echo $xmr | cut -f2 -d '-'`
 else
 	xcst=1
 	a=`echo $xc2 | cut -f2 -d '-'`
@@ -62,6 +84,7 @@ else
 	c=`echo $xm | cut -f2 -d '-'`
 	xmend=`expr $c + $xmst`
 fi
+
 
 re='^[0-9]+$'
 
@@ -73,24 +96,6 @@ re='^[0-9]+$'
 				perl $zumisdir/fqfilter-inDrops.pl $f1 $f2 $libread $f3 $cq $cbq $mq $mbq $xm $t $sn $o $pigzexc
 			else
 				perl $zumisdir/fqfilter.pl $f2 $f1 $pbcfastq $cq $cbq $mq $mbq $xc $pbcrange $xm $t $sn $o $pigzexc
-				if [[ "$pbcfastq" != "NA" ]] ; then
-					tmpa=`echo $pbcrange | cut -f1 -d '-'`
-					tmpb=`echo $pbcrange | cut -f2 -d '-'`
-					pbcl=`expr $tmpa + $tmpb - 1`
-					tmpa=`echo $xc | cut -f1 -d '-'`
-					tmpb=`echo $xc | cut -f2 -d '-'`
-					bcl=`expr $tmpa + $tmpb - 1`
-					l=`expr $bcl + $pbcl`
-					xc=1-"$l"
-					xcst=1
-					xcend=$l
-					xmst=`expr $l + 1`
-					tmpa=`echo $xm | cut -f1 -d '-'`
-					tmpb=`echo $xm | cut -f2 -d '-'`
-					ml=`expr $tmpb - $tmpa`
-					xmend=`expr $xmst + $ml`
-					xm="$xmst"-"$xmend"
-				fi
 			fi
 
 			$starexc --genomeDir $g --runThreadN $t --readFilesCommand zcat --sjdbGTFfile $gtf --outFileNamePrefix $o/$sn. --outSAMtype BAM Unsorted --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --sjdbOverhang $rl --twopassMode Basic --readFilesIn $o/$sn.cdnaread.filtered.fastq.gz $x
