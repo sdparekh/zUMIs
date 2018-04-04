@@ -313,7 +313,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
   ## XC binning below
   if(XCbin != 0){
     XC_obs<-unique(reads$XC)
-    if(length(XC_obs)*length(bc$V1)> 1e+10){
+    if(as.numeric(length(XC_obs))*as.numeric(length(bc$V1)) > 1e+10){
       print("There are too many noisy barcodes, binning will be skipped")
     }else{
       print(paste("I am binning cell barcodes within hamming distance ",XCbin,sep=""))
