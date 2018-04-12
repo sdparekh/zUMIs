@@ -11,6 +11,9 @@ You can read more about zUMIs in our [biorxiv preprint](https://www.biorxiv.org/
 You can glance through zUMIs in [zUMIs poster](https://github.com/sdparekh/zUMIs/blob/master/zUMIs_GI2017_poster.pdf)!
 
 ## Releases/Changelog
+12 Apr 2018: [zUMIs.0.0.6 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.6).
+Improved support for combinatorial indexing methods.
+
 30 Mar 2018: [zUMIs.0.0.5 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.5).
 Rewrote hamming distance binning of UMIs and barcodes. In addition to faster running times, removed dependency on the stringdist package that may have led to issues with parallel computing in some systems. Furthermore removed a possible bug when resuming running with the -w switch in combination with plate barcode usage.
 
@@ -39,13 +42,16 @@ zUMIs is compatible with these single-cell UMI protocols:
 - SORT-seq (Muraro et al., 2016)
 - DroNc-seq (Habib et al., 2017)
 - Seq-Well (Gierahn et al., 2017)
-- SPLiT-seq (Rosenberg et al., 2017)
-- STRT-2i (Hochgerner et al., 2017)
+- SPLiT-seq (Rosenberg et al., 2018)
+- sci-RNA-seq (Cao et al., 2017)
+- STRT-2i (Hochgerner et al., 2018)
 - Quartz-seq2 (Sasagawa et al., 2017)
 - 10x Genomics Chromium (Zheng et al., 2017)
 - Wafergen ICELL8 (Gao et al., 2017)
 - Illumina ddSEQ SureCell
 - inDrops (Zilionis et al., 2017; Klein et al. 2015)
+
+For combinatorial indexing protocols, be sure to [check our wiki page](https://github.com/sdparekh/zUMIs/wiki/Combinatorial-Indexing).
 
 ## Getting help
 
