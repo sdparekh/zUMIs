@@ -53,9 +53,13 @@ zUMIs is compatible with these single-cell UMI protocols:
 
 For combinatorial indexing protocols, be sure to [check our wiki page](https://github.com/sdparekh/zUMIs/wiki/Combinatorial-Indexing).
 
+If you do not find your (favorite) scRNA-seq protocol on the list, get in touch with us!
+
 ## Getting help
 
 Refer to [zUMIs Github wiki](https://github.com/sdparekh/zUMIs/wiki) for help.
+
+Feel free to contact us on Twitter [@swatidparekh](https://twitter.com/swatidparekh) and [@chris_zie](https://twitter.com/chris_zie) with comments or questions!
 
 Please report bugs :beetle::bug: to the [zUMIs Github issue page](https://github.com/sdparekh/zUMIs/issues)
 
