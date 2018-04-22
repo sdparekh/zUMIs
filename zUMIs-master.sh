@@ -2,8 +2,8 @@
 # LMU Munich. AG Enard
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh &  Christoph Ziegenhain
-# Contact: parekh@bio.lmu.de or christoph.ziegenhain@ki.se or hellmann@bio.lmu.de
-vers=0.0.6
+# Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se or hellmann@bio.lmu.de
+vers=0.0.6b
 function check_opts() {
     value=$1
     name=$2
@@ -198,11 +198,50 @@ isstrt=`echo "$isstrt" | tr '[:upper:]' '[:lower:]'`  # convert to all lower cas
 isindrops=`echo "$isindrops" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
 whichStage=`echo "$whichStage" | tr '[:upper:]' '[:lower:]'`  # convert to all lower case
 
-memory=`du -sh $genomedir | cut -f1` #STAR genome index size
 
 if [[ ! "$outdir" =~ ^[/|~] ]] ; then
-  outdir=`pwd`/$outdir
+	outdir=`pwd`/$outdir
 fi
+
+if [[ ! "$gtf" =~ ^[/|~] ]] ; then
+	gtf=`pwd`/$gtf
+fi
+
+if [[ ! "$barcodes" =~ ^[/|~|NA|0|1|2|3|4|5|6|7|8|9] ]] ; then
+	barcodes=`pwd`/$barcodes
+fi
+
+if [[ ! "$genomedir" =~ ^[/|~] ]] ; then
+	genomedir=`pwd`/$genomedir
+fi
+
+if [[ ! "$pbcfastq" =~ ^[/|~|NA] ]] ; then
+	pbcfastq=`pwd`/$pbcfastq
+fi
+    
+if [[ ! "$bcread2" =~ ^[/|~|NA] ]] ; then
+	bcread2=`pwd`/$bcread2
+fi
+
+if [[ ! "$libread" =~ ^[/|~|NA] ]] ; then
+	libread=`pwd`/$libread
+fi
+
+if [[ ! "$cdnaread" =~ ^[/|~] ]] ; then
+	cdnaread=`pwd`/$cdnaread
+fi
+
+if [[ ! "$bcread" =~ ^[/|~] ]] ; then
+	bcread=`pwd`/$bcread
+fi
+
+if [[ ! "$CustomMappedBAM" =~ ^[/|~|NA] ]] ; then
+	CustomMappedBAM=`pwd`/$CustomMappedBAM
+fi
+
+
+
+memory=`du -sh $genomedir | cut -f1` #STAR genome index size
 
 if [[ "$isslurm" != "no" ]] ; then
 	if sinfo; then
@@ -258,8 +297,8 @@ echo -e "\n\n You provided these parameters:
  # bases below phred in UMI:	$molbcbase
  Hamming Distance (UMI):	$ham
  Hamming Distance (CellBC):	$XCbin
- Plate Barcode Read:    $pbcfastq
- Plate Barcode range:   $pbcrange
+ Plate Barcode Read:    	$pbcfastq
+ Plate Barcode range:   	$pbcrange
  Barcodes:			$barcodes
  zUMIs directory:		$zumisdir
  STAR executable		$starexc
