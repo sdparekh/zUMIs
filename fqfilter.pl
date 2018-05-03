@@ -160,5 +160,10 @@ if($pbcread ne "NA") {
 
 print "Raw reads: $total \nFiltered reads: $filtered \n\n";
 
+$RAM=11330+$filtered*0.000192;
+$RAM=int($RAM);
+
+print "Make sure you have approximately $RAM Mb RAM available";
+
 `$pigz -f -p $threads $cdnareadout`;
 `$pigz -f -p $threads $bcreadoutfull`;
