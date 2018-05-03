@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh &  Christoph Ziegenhain
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se or hellmann@bio.lmu.de
-vers=0.0.6b
+vers=0.0.6c
 function check_opts() {
     value=$1
     name=$2
@@ -57,7 +57,7 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 				   defined barcodes as a text file with a list of barcodes without headers (e.g. ATGCCAAT). Default: Adaptive cell barcode selection
 				   We highly reccomend to provide expected number of barcodes for Drop-seq protocol.
 	-N  <nReadsperCell>	 : Keep the cell barcodes with atleast "-N <int>" number of reads. Default: 100
-				   Cells with less than "-N <int>" number of total reads are removed.
+				   Cells with less than "-N <int>" number of total reads are removed. Only considered in automatic cell barcode selection.
 	-d  <downsampling>	 : Number of reads to downsample to. This value can be a fixed number of reads (e.g. 10000) or a desired range (e.g. 10000-20000).
 				   Barcodes with less than <d> will not be reported. 0 means adaptive downsampling. Default: 0.
 	-x  <STARparams>	 : Additional STAR mapping parameters. Optional. e.g. "--outFilterMismatchNoverLmax 0.2 --quantMode TranscriptomeSAM".
