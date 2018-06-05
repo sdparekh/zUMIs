@@ -200,12 +200,12 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     rcfilt <- fullstats[fullstats$nreads>=cut,]
     return(rcfilt)
   }
-  
+
   ham_twomats <- function(barcodes,XCstrings) {
     barcodes<-as.character(barcodes) #make sure this is a character, not a factor
     X<- matrix(unlist(strsplit(barcodes, "")),ncol = length(barcodes))
     Y<- matrix(unlist(strsplit(XCstrings, "")),ncol = length(XCstrings))
-    
+
     #function below thanks to Johann de Jong
     #https://goo.gl/u8RBBZ
     uniqs <- union(X, Y)
@@ -234,7 +234,7 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     # umiseq a vector of umis, one per read
     umiseq <- sort(umiseq)
     uc     <- data.frame(us = umiseq,stringsAsFactors = F) %>% dplyr::count(us) # normal UMI counts
-    
+
     if(length(uc$us)>1 && length(uc$us)<100000){ #prevent use of > 100Gb RAM
       Sys.time()
       umi <-  ham_mat(uc$us) #construct pairwise UMI distances
@@ -263,8 +263,10 @@ makeGEprofile <- function(abamfile,ubamfile,bcfile,safannot,ncores,stra,bcstart,
     saveRDS(object = reads,file = paste(out,"/zUMIs_output/expression/",sn,".tbl.rds",sep=""))
   } else{
 
-    fcts <-  Rsubread::featureCounts(files=abamfile[1],annot.ext=safannot[[1]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads="CORE",strandSpecific=stra)# do not use more than nthreads=1!
-    fcts <-  Rsubread::featureCounts(files=abamfile[2],annot.ext=safannot[[2]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads="CORE",strandSpecific=stra)# do not use more than nthreads=1!
+    fcts <-  Rsubread::featureCounts(files=substr(x=abamfile[1],start=1,stop=nchar(abamfile[1])-3),annot.ext=safannot[[1]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads="CORE",strandSpecific=stra)# do not use more than nthreads=1!
+    system(command=paste("mv ",substr(x=abamfile[1],start=1,stop=nchar(abamfile[1])-3),".featureCounts ",abamfile[1],".featureCounts",sep=""))
+    fcts <-  Rsubread::featureCounts(files=substr(x=abamfile[2],start=1,stop=nchar(abamfile[2])-3),annot.ext=safannot[[2]],isGTFAnnotationFile=F,primaryOnly=T,nthreads=1,reportReads="CORE",strandSpecific=stra)# do not use more than nthreads=1!
+    system(command=paste("mv ",substr(x=substr(x=abamfile[2],start=1,stop=nchar(abamfile[2])-3),start=1,stop=nchar(abamfile[2])-3),".featureCounts ",abamfile[2],".featureCounts",sep=""))
 
     fctsfile <- data.table::fread(paste("cut -f4 ",abamfile[2],".featureCounts",sep=""), sep="\t",quote='',header = F)
     reads <- data.table::fread(paste("cut -f10 ",ubamfile,sep=""), quote='',header = F,skip=1)
