@@ -1,0 +1,46 @@
+project: tiny
+sequence_files:
+  file1:
+    name: /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/barcoderead_HEK.1mio.fq.gz
+    base_definition:
+    - BC(1-6)
+    - UMI(7-16)
+  file2:
+    name: /data/share/common/scripts/UMI_pipeline/zUMIs/ExampleData/cDNAread_HEK.1mio.fq.gz
+    base_definition: cDNA(1-50)
+reference:
+  STAR_index: /data/ngs/genomes/Human/hg38/STAR5idx_noGTF
+  GTF_file: /data/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf
+  additional_files: /data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa
+  additional_STAR_params: ~
+  GTF_file_final: /data/share/htp/zUMIs2/onemillion/ref_and_additional_annot.gtf
+out_dir: /data/share/htp/zUMIs2/onemillion
+num_threads: 12
+mem_limit: 50
+filter_cutoffs:
+  BC_filter:
+    num_bases: 1
+    phred: 20
+  UMI_filter:
+    num_bases: 1
+    phred: 20
+barcodes:
+  barcode_num: ~
+  barcode_file: ~
+  BarcodeBinning: 0
+  nReadsperCell: 100
+counting_opts:
+  introns: yes
+  downsampling: 0
+  strand: 0
+  Ham_Dist: 0
+  velocyto: no
+  primaryHit: yes
+make_stats: yes
+use_SLURM: no
+which_Stage: Filtering
+samtools_exec: samtools
+pigz_exec: pigz
+STAR_exec: STAR
+zUMIs_directory: /data/share/htp/zUMIs2/zUMIs
+read_layout: SE

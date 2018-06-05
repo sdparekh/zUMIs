@@ -1,0 +1,1058 @@
+STAR version=STAR_2.5.3a_modified
+STAR compilation time,server,dir=Tue Jan 23 14:51:42 EST 2018 florence.cshl.edu:/sonas-hs/gingeras/nlsas_norepl/user/dobin/STAR/STAR.sandbox/source
+##### DEFAULT parameters:
+versionSTAR                       20201
+versionGenome                     20101   20200   
+parametersFiles                   -   
+sysShell                          -
+runMode                           alignReads
+runThreadN                        1
+runDirPerm                        User_RWX
+runRNGseed                        777
+genomeDir                         ./GenomeDir/
+genomeLoad                        NoSharedMemory
+genomeFastaFiles                  -   
+genomeChainFiles                  -   
+genomeSAindexNbases               14
+genomeChrBinNbits                 18
+genomeSAsparseD                   1
+genomeSuffixLengthMax             18446744073709551615
+genomeFileSizes                   0   
+genomeConsensusFile               -
+readFilesType                     Fastx   
+readFilesIn                       Read1   Read2   
+readFilesPrefix                   -
+readFilesCommand                  -   
+readMatesLengthsIn                NotEqual
+readMapNumber                     18446744073709551615
+readNameSeparator                 /   
+inputBAMfile                      -
+bamRemoveDuplicatesType           -
+bamRemoveDuplicatesMate2basesN    0
+limitGenomeGenerateRAM            31000000000
+limitIObufferSize                 150000000
+limitOutSAMoneReadBytes           100000
+limitOutSJcollapsed               1000000
+limitOutSJoneRead                 1000
+limitBAMsortRAM                   0
+limitSjdbInsertNsj                1000000
+outTmpDir                         -
+outTmpKeep                        None
+outStd                            Log
+outReadsUnmapped                  None
+outQSconversionAdd                0
+outMultimapperOrder               Old_2.4
+outSAMtype                        SAM   
+outSAMmode                        Full
+outSAMstrandField                 None
+outSAMattributes                  Standard   
+outSAMunmapped                    None   
+outSAMorder                       Paired
+outSAMprimaryFlag                 OneBestScore
+outSAMreadID                      Standard
+outSAMmapqUnique                  255
+outSAMflagOR                      0
+outSAMflagAND                     65535
+outSAMattrRGline                  -   
+outSAMheaderHD                    -   
+outSAMheaderPG                    -   
+outSAMheaderCommentFile           -
+outBAMcompression                 1
+outBAMsortingThreadN              0
+outSAMfilter                      None   
+outSAMmultNmax                    18446744073709551615
+outSAMattrIHstart                 1
+outSJfilterReads                  All
+outSJfilterCountUniqueMin         3   1   1   1   
+outSJfilterCountTotalMin          3   1   1   1   
+outSJfilterOverhangMin            30   12   12   12   
+outSJfilterDistToOtherSJmin       10   0   5   10   
+outSJfilterIntronMaxVsReadN       50000   100000   200000   
+outWigType                        None   
+outWigStrand                      Stranded   
+outWigReferencesPrefix            -
+outWigNorm                        RPM   
+outFilterType                     Normal
+outFilterMultimapNmax             10
+outFilterMultimapScoreRange       1
+outFilterScoreMin                 0
+outFilterScoreMinOverLread        0.66
+outFilterMatchNmin                0
+outFilterMatchNminOverLread       0.66
+outFilterMismatchNmax             10
+outFilterMismatchNoverLmax        0.3
+outFilterMismatchNoverReadLmax    1
+outFilterIntronMotifs             None
+outFilterIntronStrands            RemoveInconsistentStrands
+clip5pNbases                      0   
+clip3pNbases                      0   
+clip3pAfterAdapterNbases          0   
+clip3pAdapterSeq                  -   
+clip3pAdapterMMp                  0.1   
+winBinNbits                       16
+winAnchorDistNbins                9
+winFlankNbins                     4
+winAnchorMultimapNmax             50
+winReadCoverageRelativeMin        0.5
+winReadCoverageBasesMin           0
+scoreGap                          0
+scoreGapNoncan                    -8
+scoreGapGCAG                      -4
+scoreGapATAC                      -8
+scoreStitchSJshift                1
+scoreGenomicLengthLog2scale       -0.25
+scoreDelBase                      -2
+scoreDelOpen                      -2
+scoreInsOpen                      -2
+scoreInsBase                      -2
+seedSearchLmax                    0
+seedSearchStartLmax               50
+seedSearchStartLmaxOverLread      1
+seedPerReadNmax                   1000
+seedPerWindowNmax                 50
+seedNoneLociPerWindow             10
+seedMultimapNmax                  10000
+seedSplitMin                      12
+alignIntronMin                    21
+alignIntronMax                    0
+alignMatesGapMax                  0
+alignTranscriptsPerReadNmax       10000
+alignSJoverhangMin                5
+alignSJDBoverhangMin              3
+alignSJstitchMismatchNmax         0   -1   0   0   
+alignSplicedMateMapLmin           0
+alignSplicedMateMapLminOverLmate    0.66
+alignWindowsPerReadNmax           10000
+alignTranscriptsPerWindowNmax     100
+alignEndsType                     Local
+alignSoftClipAtReferenceEnds      Yes
+alignEndsProtrude                 0   ConcordantPair   
+chimSegmentMin                    0
+chimScoreMin                      0
+chimScoreDropMax                  20
+chimScoreSeparation               10
+chimScoreJunctionNonGTAG          -1
+chimMainSegmentMultNmax           10
+chimJunctionOverhangMin           20
+chimOutType                       SeparateSAMold   
+chimFilter                        banGenomicN   
+chimSegmentReadGapMax             0
+sjdbFileChrStartEnd               -   
+sjdbGTFfile                       -
+sjdbGTFchrPrefix                  -
+sjdbGTFfeatureExon                exon
+sjdbGTFtagExonParentTranscript    transcript_id
+sjdbGTFtagExonParentGene          gene_id
+sjdbOverhang                      100
+sjdbScore                         2
+sjdbInsertSave                    Basic
+quantMode                         -   
+quantTranscriptomeBAMcompression    1
+quantTranscriptomeBan             IndelSoftclipSingleend
+twopass1readsN                    18446744073709551615
+twopassMode                       None
+##### Command Line:
+STAR --readFilesCommand samtools view --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --outSAMtype BAM Unsorted --twopassMode Basic --genomeDir /data/ngs/genomes/Human/hg38/STAR5idx_noGTF --sjdbGTFfile /data/share/htp/zUMIs2/onemillion/ref_and_additional_annot.gtf --runThreadN 12 --readFilesIn /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam --outFileNamePrefix /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged. --sjdbOverhang 49 --readFilesType SAM SE --genomeFastaFiles /data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa
+##### Initial USER parameters from Command Line:
+outFileNamePrefix                 /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.
+###### All USER parameters from Command Line:
+readFilesCommand              samtools   view        ~RE-DEFINED
+outSAMmultNmax                1     ~RE-DEFINED
+outFilterMultimapNmax         50     ~RE-DEFINED
+outSAMunmapped                Within        ~RE-DEFINED
+outSAMtype                    BAM   Unsorted        ~RE-DEFINED
+twopassMode                   Basic     ~RE-DEFINED
+genomeDir                     /data/ngs/genomes/Human/hg38/STAR5idx_noGTF     ~RE-DEFINED
+sjdbGTFfile                   /data/share/htp/zUMIs2/onemillion/ref_and_additional_annot.gtf     ~RE-DEFINED
+runThreadN                    12     ~RE-DEFINED
+readFilesIn                   /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam        ~RE-DEFINED
+outFileNamePrefix             /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.     ~RE-DEFINED
+sjdbOverhang                  49     ~RE-DEFINED
+readFilesType                 SAM   SE        ~RE-DEFINED
+genomeFastaFiles              /data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa        ~RE-DEFINED
+##### Finished reading parameters from all sources
+
+##### Final user re-defined parameters-----------------:
+runThreadN                        12
+genomeDir                         /data/ngs/genomes/Human/hg38/STAR5idx_noGTF
+genomeFastaFiles                  /data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa   
+readFilesType                     SAM   SE   
+readFilesIn                       /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam   
+readFilesCommand                  samtools   view   
+outFileNamePrefix                 /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.
+outSAMtype                        BAM   Unsorted   
+outSAMunmapped                    Within   
+outSAMmultNmax                    1
+outFilterMultimapNmax             50
+sjdbGTFfile                       /data/share/htp/zUMIs2/onemillion/ref_and_additional_annot.gtf
+sjdbOverhang                      49
+twopassMode                       Basic
+
+-------------------------------
+##### Final effective command line:
+STAR   --runThreadN 12   --genomeDir /data/ngs/genomes/Human/hg38/STAR5idx_noGTF   --genomeFastaFiles /data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa      --readFilesType SAM   SE      --readFilesIn /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam      --readFilesCommand samtools   view      --outFileNamePrefix /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.   --outSAMtype BAM   Unsorted      --outSAMunmapped Within      --outSAMmultNmax 1   --outFilterMultimapNmax 50   --sjdbGTFfile /data/share/htp/zUMIs2/onemillion/ref_and_additional_annot.gtf   --sjdbOverhang 49   --twopassMode Basic
+
+##### Final parameters after user input--------------------------------:
+versionSTAR                       20201
+versionGenome                     20101   20200   
+parametersFiles                   -   
+sysShell                          -
+runMode                           alignReads
+runThreadN                        12
+runDirPerm                        User_RWX
+runRNGseed                        777
+genomeDir                         /data/ngs/genomes/Human/hg38/STAR5idx_noGTF
+genomeLoad                        NoSharedMemory
+genomeFastaFiles                  /data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa   
+genomeChainFiles                  -   
+genomeSAindexNbases               14
+genomeChrBinNbits                 18
+genomeSAsparseD                   1
+genomeSuffixLengthMax             18446744073709551615
+genomeFileSizes                   0   
+genomeConsensusFile               -
+readFilesType                     SAM   SE   
+readFilesIn                       /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam   
+readFilesPrefix                   -
+readFilesCommand                  samtools   view   
+readMatesLengthsIn                NotEqual
+readMapNumber                     18446744073709551615
+readNameSeparator                 /   
+inputBAMfile                      -
+bamRemoveDuplicatesType           -
+bamRemoveDuplicatesMate2basesN    0
+limitGenomeGenerateRAM            31000000000
+limitIObufferSize                 150000000
+limitOutSAMoneReadBytes           100000
+limitOutSJcollapsed               1000000
+limitOutSJoneRead                 1000
+limitBAMsortRAM                   0
+limitSjdbInsertNsj                1000000
+outFileNamePrefix                 /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.
+outTmpDir                         -
+outTmpKeep                        None
+outStd                            Log
+outReadsUnmapped                  None
+outQSconversionAdd                0
+outMultimapperOrder               Old_2.4
+outSAMtype                        BAM   Unsorted   
+outSAMmode                        Full
+outSAMstrandField                 None
+outSAMattributes                  Standard   
+outSAMunmapped                    Within   
+outSAMorder                       Paired
+outSAMprimaryFlag                 OneBestScore
+outSAMreadID                      Standard
+outSAMmapqUnique                  255
+outSAMflagOR                      0
+outSAMflagAND                     65535
+outSAMattrRGline                  -   
+outSAMheaderHD                    -   
+outSAMheaderPG                    -   
+outSAMheaderCommentFile           -
+outBAMcompression                 1
+outBAMsortingThreadN              0
+outSAMfilter                      None   
+outSAMmultNmax                    1
+outSAMattrIHstart                 1
+outSJfilterReads                  All
+outSJfilterCountUniqueMin         3   1   1   1   
+outSJfilterCountTotalMin          3   1   1   1   
+outSJfilterOverhangMin            30   12   12   12   
+outSJfilterDistToOtherSJmin       10   0   5   10   
+outSJfilterIntronMaxVsReadN       50000   100000   200000   
+outWigType                        None   
+outWigStrand                      Stranded   
+outWigReferencesPrefix            -
+outWigNorm                        RPM   
+outFilterType                     Normal
+outFilterMultimapNmax             50
+outFilterMultimapScoreRange       1
+outFilterScoreMin                 0
+outFilterScoreMinOverLread        0.66
+outFilterMatchNmin                0
+outFilterMatchNminOverLread       0.66
+outFilterMismatchNmax             10
+outFilterMismatchNoverLmax        0.3
+outFilterMismatchNoverReadLmax    1
+outFilterIntronMotifs             None
+outFilterIntronStrands            RemoveInconsistentStrands
+clip5pNbases                      0   
+clip3pNbases                      0   
+clip3pAfterAdapterNbases          0   
+clip3pAdapterSeq                  -   
+clip3pAdapterMMp                  0.1   
+winBinNbits                       16
+winAnchorDistNbins                9
+winFlankNbins                     4
+winAnchorMultimapNmax             50
+winReadCoverageRelativeMin        0.5
+winReadCoverageBasesMin           0
+scoreGap                          0
+scoreGapNoncan                    -8
+scoreGapGCAG                      -4
+scoreGapATAC                      -8
+scoreStitchSJshift                1
+scoreGenomicLengthLog2scale       -0.25
+scoreDelBase                      -2
+scoreDelOpen                      -2
+scoreInsOpen                      -2
+scoreInsBase                      -2
+seedSearchLmax                    0
+seedSearchStartLmax               50
+seedSearchStartLmaxOverLread      1
+seedPerReadNmax                   1000
+seedPerWindowNmax                 50
+seedNoneLociPerWindow             10
+seedMultimapNmax                  10000
+seedSplitMin                      12
+alignIntronMin                    21
+alignIntronMax                    0
+alignMatesGapMax                  0
+alignTranscriptsPerReadNmax       10000
+alignSJoverhangMin                5
+alignSJDBoverhangMin              3
+alignSJstitchMismatchNmax         0   -1   0   0   
+alignSplicedMateMapLmin           0
+alignSplicedMateMapLminOverLmate    0.66
+alignWindowsPerReadNmax           10000
+alignTranscriptsPerWindowNmax     100
+alignEndsType                     Local
+alignSoftClipAtReferenceEnds      Yes
+alignEndsProtrude                 0   ConcordantPair   
+chimSegmentMin                    0
+chimScoreMin                      0
+chimScoreDropMax                  20
+chimScoreSeparation               10
+chimScoreJunctionNonGTAG          -1
+chimMainSegmentMultNmax           10
+chimJunctionOverhangMin           20
+chimOutType                       SeparateSAMold   
+chimFilter                        banGenomicN   
+chimSegmentReadGapMax             0
+sjdbFileChrStartEnd               -   
+sjdbGTFfile                       /data/share/htp/zUMIs2/onemillion/ref_and_additional_annot.gtf
+sjdbGTFchrPrefix                  -
+sjdbGTFfeatureExon                exon
+sjdbGTFtagExonParentTranscript    transcript_id
+sjdbGTFtagExonParentGene          gene_id
+sjdbOverhang                      49
+sjdbScore                         2
+sjdbInsertSave                    Basic
+quantMode                         -   
+quantTranscriptomeBAMcompression    1
+quantTranscriptomeBan             IndelSoftclipSingleend
+twopass1readsN                    18446744073709551615
+twopassMode                       Basic
+----------------------------------------
+
+
+   Input read files for mate 1, from input string /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam
+-rw-r--r-- 1 ziegenhain ngs 48842928 Jun  5 14:42 /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam
+
+   readsCommandsFile:
+exec > "/data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged._STARtmp/tmp.fifo.read1"
+echo FILE 0
+samtools   view      "/data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam"
+
+Finished loading and checking parameters
+Reading genome generation parameters:
+versionGenome                 20201        ~RE-DEFINED
+genomeFastaFiles              /data/share/ngs/genomes/Human/hg38/hg38.fa        ~RE-DEFINED
+genomeSAindexNbases           14     ~RE-DEFINED
+genomeChrBinNbits             18     ~RE-DEFINED
+genomeSAsparseD               1     ~RE-DEFINED
+sjdbOverhang                  0     ~RE-DEFINED
+sjdbFileChrStartEnd           -        ~RE-DEFINED
+sjdbGTFfile                   -     ~RE-DEFINED
+sjdbGTFchrPrefix              -     ~RE-DEFINED
+sjdbGTFfeatureExon            exon     ~RE-DEFINED
+sjdbGTFtagExonParentTranscripttranscript_id     ~RE-DEFINED
+sjdbGTFtagExonParentGene      gene_id     ~RE-DEFINED
+sjdbInsertSave                Basic     ~RE-DEFINED
+Genome version is compatible with current STAR version
+Number of real (reference) chromosomes= 455
+1	chr1	248956422	0
+2	chr10	133797422	249036800
+3	chr11	135086622	382992384
+4	chr11_KI270721v1_random	100316	518258688
+5	chr12	133275309	518520832
+6	chr13	114364328	651952128
+7	chr14	107043718	766509056
+8	chr14_GL000009v2_random	201709	873725952
+9	chr14_GL000225v1_random	211173	873988096
+10	chr14_KI270722v1_random	194050	874250240
+11	chr14_GL000194v1_random	191469	874512384
+12	chr14_KI270723v1_random	38115	874774528
+13	chr14_KI270724v1_random	39555	875036672
+14	chr14_KI270725v1_random	172810	875298816
+15	chr14_KI270726v1_random	43739	875560960
+16	chr15	101991189	875823104
+17	chr15_KI270727v1_random	448248	978059264
+18	chr16	90338345	978583552
+19	chr16_KI270728v1_random	1872759	1069023232
+20	chr17	83257441	1071120384
+21	chr17_GL000205v2_random	185591	1154482176
+22	chr17_KI270729v1_random	280839	1154744320
+23	chr17_KI270730v1_random	112551	1155268608
+24	chr18	80373285	1155530752
+25	chr19	58617616	1236008960
+26	chr1_KI270706v1_random	175055	1294729216
+27	chr1_KI270707v1_random	32032	1294991360
+28	chr1_KI270708v1_random	127682	1295253504
+29	chr1_KI270709v1_random	66860	1295515648
+30	chr1_KI270710v1_random	40176	1295777792
+31	chr1_KI270711v1_random	42210	1296039936
+32	chr1_KI270712v1_random	176043	1296302080
+33	chr1_KI270713v1_random	40745	1296564224
+34	chr1_KI270714v1_random	41717	1296826368
+35	chr2	242193529	1297088512
+36	chr20	64444167	1539309568
+37	chr21	46709983	1603796992
+38	chr22	50818468	1650720768
+39	chr22_KI270731v1_random	150754	1701576704
+40	chr22_KI270732v1_random	41543	1701838848
+41	chr22_KI270733v1_random	179772	1702100992
+42	chr22_KI270734v1_random	165050	1702363136
+43	chr22_KI270735v1_random	42811	1702625280
+44	chr22_KI270736v1_random	181920	1702887424
+45	chr22_KI270737v1_random	103838	1703149568
+46	chr22_KI270738v1_random	99375	1703411712
+47	chr22_KI270739v1_random	73985	1703673856
+48	chr2_KI270715v1_random	161471	1703936000
+49	chr2_KI270716v1_random	153799	1704198144
+50	chr3	198295559	1704460288
+51	chr3_GL000221v1_random	155397	1902903296
+52	chr4	190214555	1903165440
+53	chr4_GL000008v2_random	209709	2093481984
+54	chr5	181538259	2093744128
+55	chr5_GL000208v1_random	92689	2275409920
+56	chr6	170805979	2275672064
+57	chr7	159345973	2446589952
+58	chr8	145138636	2605973504
+59	chr9	138394717	2751201280
+60	chr9_KI270717v1_random	40062	2889613312
+61	chr9_KI270718v1_random	38054	2889875456
+62	chr9_KI270719v1_random	176845	2890137600
+63	chr9_KI270720v1_random	39050	2890399744
+64	chr1_KI270762v1_alt	354444	2890661888
+65	chr1_KI270766v1_alt	256271	2891186176
+66	chr1_KI270760v1_alt	109528	2891448320
+67	chr1_KI270765v1_alt	185285	2891710464
+68	chr1_GL383518v1_alt	182439	2891972608
+69	chr1_GL383519v1_alt	110268	2892234752
+70	chr1_GL383520v2_alt	366580	2892496896
+71	chr1_KI270764v1_alt	50258	2893021184
+72	chr1_KI270763v1_alt	911658	2893283328
+73	chr1_KI270759v1_alt	425601	2894331904
+74	chr1_KI270761v1_alt	165834	2894856192
+75	chr2_KI270770v1_alt	136240	2895118336
+76	chr2_KI270773v1_alt	70887	2895380480
+77	chr2_KI270774v1_alt	223625	2895642624
+78	chr2_KI270769v1_alt	120616	2895904768
+79	chr2_GL383521v1_alt	143390	2896166912
+80	chr2_KI270772v1_alt	133041	2896429056
+81	chr2_KI270775v1_alt	138019	2896691200
+82	chr2_KI270771v1_alt	110395	2896953344
+83	chr2_KI270768v1_alt	110099	2897215488
+84	chr2_GL582966v2_alt	96131	2897477632
+85	chr2_GL383522v1_alt	123821	2897739776
+86	chr2_KI270776v1_alt	174166	2898001920
+87	chr2_KI270767v1_alt	161578	2898264064
+88	chr3_JH636055v2_alt	173151	2898526208
+89	chr3_KI270783v1_alt	109187	2898788352
+90	chr3_KI270780v1_alt	224108	2899050496
+91	chr3_GL383526v1_alt	180671	2899312640
+92	chr3_KI270777v1_alt	173649	2899574784
+93	chr3_KI270778v1_alt	248252	2899836928
+94	chr3_KI270781v1_alt	113034	2900099072
+95	chr3_KI270779v1_alt	205312	2900361216
+96	chr3_KI270782v1_alt	162429	2900623360
+97	chr3_KI270784v1_alt	184404	2900885504
+98	chr4_KI270790v1_alt	220246	2901147648
+99	chr4_GL383528v1_alt	376187	2901409792
+100	chr4_KI270787v1_alt	111943	2901934080
+101	chr4_GL000257v2_alt	586476	2902196224
+102	chr4_KI270788v1_alt	158965	2902982656
+103	chr4_GL383527v1_alt	164536	2903244800
+104	chr4_KI270785v1_alt	119912	2903506944
+105	chr4_KI270789v1_alt	205944	2903769088
+106	chr4_KI270786v1_alt	244096	2904031232
+107	chr5_KI270793v1_alt	126136	2904293376
+108	chr5_KI270792v1_alt	179043	2904555520
+109	chr5_KI270791v1_alt	195710	2904817664
+110	chr5_GL383532v1_alt	82728	2905079808
+111	chr5_GL949742v1_alt	226852	2905341952
+112	chr5_KI270794v1_alt	164558	2905604096
+113	chr5_GL339449v2_alt	1612928	2905866240
+114	chr5_GL383530v1_alt	101241	2907701248
+115	chr5_KI270796v1_alt	172708	2907963392
+116	chr5_GL383531v1_alt	173459	2908225536
+117	chr5_KI270795v1_alt	131892	2908487680
+118	chr6_GL000250v2_alt	4672374	2908749824
+119	chr6_KI270800v1_alt	175808	2913468416
+120	chr6_KI270799v1_alt	152148	2913730560
+121	chr6_GL383533v1_alt	124736	2913992704
+122	chr6_KI270801v1_alt	870480	2914254848
+123	chr6_KI270802v1_alt	75005	2915303424
+124	chr6_KB021644v2_alt	185823	2915565568
+125	chr6_KI270797v1_alt	197536	2915827712
+126	chr6_KI270798v1_alt	271782	2916089856
+127	chr7_KI270804v1_alt	157952	2916614144
+128	chr7_KI270809v1_alt	209586	2916876288
+129	chr7_KI270806v1_alt	158166	2917138432
+130	chr7_GL383534v2_alt	119183	2917400576
+131	chr7_KI270803v1_alt	1111570	2917662720
+132	chr7_KI270808v1_alt	271455	2918973440
+133	chr7_KI270807v1_alt	126434	2919497728
+134	chr7_KI270805v1_alt	209988	2919759872
+135	chr8_KI270818v1_alt	145606	2920022016
+136	chr8_KI270812v1_alt	282736	2920284160
+137	chr8_KI270811v1_alt	292436	2920808448
+138	chr8_KI270821v1_alt	985506	2921332736
+139	chr8_KI270813v1_alt	300230	2922381312
+140	chr8_KI270822v1_alt	624492	2922905600
+141	chr8_KI270814v1_alt	141812	2923692032
+142	chr8_KI270810v1_alt	374415	2923954176
+143	chr8_KI270819v1_alt	133535	2924478464
+144	chr8_KI270820v1_alt	36640	2924740608
+145	chr8_KI270817v1_alt	158983	2925002752
+146	chr8_KI270816v1_alt	305841	2925264896
+147	chr8_KI270815v1_alt	132244	2925789184
+148	chr9_GL383539v1_alt	162988	2926051328
+149	chr9_GL383540v1_alt	71551	2926313472
+150	chr9_GL383541v1_alt	171286	2926575616
+151	chr9_GL383542v1_alt	60032	2926837760
+152	chr9_KI270823v1_alt	439082	2927099904
+153	chr10_GL383545v1_alt	179254	2927624192
+154	chr10_KI270824v1_alt	181496	2927886336
+155	chr10_GL383546v1_alt	309802	2928148480
+156	chr10_KI270825v1_alt	188315	2928672768
+157	chr11_KI270832v1_alt	210133	2928934912
+158	chr11_KI270830v1_alt	177092	2929197056
+159	chr11_KI270831v1_alt	296895	2929459200
+160	chr11_KI270829v1_alt	204059	2929983488
+161	chr11_GL383547v1_alt	154407	2930245632
+162	chr11_JH159136v1_alt	200998	2930507776
+163	chr11_JH159137v1_alt	191409	2930769920
+164	chr11_KI270827v1_alt	67707	2931032064
+165	chr11_KI270826v1_alt	186169	2931294208
+166	chr12_GL877875v1_alt	167313	2931556352
+167	chr12_GL877876v1_alt	408271	2931818496
+168	chr12_KI270837v1_alt	40090	2932342784
+169	chr12_GL383549v1_alt	120804	2932604928
+170	chr12_KI270835v1_alt	238139	2932867072
+171	chr12_GL383550v2_alt	169178	2933129216
+172	chr12_GL383552v1_alt	138655	2933391360
+173	chr12_GL383553v2_alt	152874	2933653504
+174	chr12_KI270834v1_alt	119498	2933915648
+175	chr12_GL383551v1_alt	184319	2934177792
+176	chr12_KI270833v1_alt	76061	2934439936
+177	chr12_KI270836v1_alt	56134	2934702080
+178	chr13_KI270840v1_alt	191684	2934964224
+179	chr13_KI270839v1_alt	180306	2935226368
+180	chr13_KI270843v1_alt	103832	2935488512
+181	chr13_KI270841v1_alt	169134	2935750656
+182	chr13_KI270838v1_alt	306913	2936012800
+183	chr13_KI270842v1_alt	37287	2936537088
+184	chr14_KI270844v1_alt	322166	2936799232
+185	chr14_KI270847v1_alt	1511111	2937323520
+186	chr14_KI270845v1_alt	180703	2938896384
+187	chr14_KI270846v1_alt	1351393	2939158528
+188	chr15_KI270852v1_alt	478999	2940731392
+189	chr15_KI270851v1_alt	263054	2941255680
+190	chr15_KI270848v1_alt	327382	2941779968
+191	chr15_GL383554v1_alt	296527	2942304256
+192	chr15_KI270849v1_alt	244917	2942828544
+193	chr15_GL383555v2_alt	388773	2943090688
+194	chr15_KI270850v1_alt	430880	2943614976
+195	chr16_KI270854v1_alt	134193	2944139264
+196	chr16_KI270856v1_alt	63982	2944401408
+197	chr16_KI270855v1_alt	232857	2944663552
+198	chr16_KI270853v1_alt	2659700	2944925696
+199	chr16_GL383556v1_alt	192462	2947809280
+200	chr16_GL383557v1_alt	89672	2948071424
+201	chr17_GL383563v3_alt	375691	2948333568
+202	chr17_KI270862v1_alt	391357	2948857856
+203	chr17_KI270861v1_alt	196688	2949382144
+204	chr17_KI270857v1_alt	2877074	2949644288
+205	chr17_JH159146v1_alt	278131	2952527872
+206	chr17_JH159147v1_alt	70345	2953052160
+207	chr17_GL383564v2_alt	133151	2953314304
+208	chr17_GL000258v2_alt	1821992	2953576448
+209	chr17_GL383565v1_alt	223995	2955411456
+210	chr17_KI270858v1_alt	235827	2955673600
+211	chr17_KI270859v1_alt	108763	2955935744
+212	chr17_GL383566v1_alt	90219	2956197888
+213	chr17_KI270860v1_alt	178921	2956460032
+214	chr18_KI270864v1_alt	111737	2956722176
+215	chr18_GL383567v1_alt	289831	2956984320
+216	chr18_GL383570v1_alt	164789	2957508608
+217	chr18_GL383571v1_alt	198278	2957770752
+218	chr18_GL383568v1_alt	104552	2958032896
+219	chr18_GL383569v1_alt	167950	2958295040
+220	chr18_GL383572v1_alt	159547	2958557184
+221	chr18_KI270863v1_alt	167999	2958819328
+222	chr19_KI270868v1_alt	61734	2959081472
+223	chr19_KI270865v1_alt	52969	2959343616
+224	chr19_GL383573v1_alt	385657	2959605760
+225	chr19_GL383575v2_alt	170222	2960130048
+226	chr19_GL383576v1_alt	188024	2960392192
+227	chr19_GL383574v1_alt	155864	2960654336
+228	chr19_KI270866v1_alt	43156	2960916480
+229	chr19_KI270867v1_alt	233762	2961178624
+230	chr19_GL949746v1_alt	987716	2961440768
+231	chr20_GL383577v2_alt	128386	2962489344
+232	chr20_KI270869v1_alt	118774	2962751488
+233	chr20_KI270871v1_alt	58661	2963013632
+234	chr20_KI270870v1_alt	183433	2963275776
+235	chr21_GL383578v2_alt	63917	2963537920
+236	chr21_KI270874v1_alt	166743	2963800064
+237	chr21_KI270873v1_alt	143900	2964062208
+238	chr21_GL383579v2_alt	201197	2964324352
+239	chr21_GL383580v2_alt	74653	2964586496
+240	chr21_GL383581v2_alt	116689	2964848640
+241	chr21_KI270872v1_alt	82692	2965110784
+242	chr22_KI270875v1_alt	259914	2965372928
+243	chr22_KI270878v1_alt	186262	2965635072
+244	chr22_KI270879v1_alt	304135	2965897216
+245	chr22_KI270876v1_alt	263666	2966421504
+246	chr22_KI270877v1_alt	101331	2966945792
+247	chr22_GL383583v2_alt	96924	2967207936
+248	chr22_GL383582v2_alt	162811	2967470080
+249	chrX_KI270880v1_alt	284869	2967732224
+250	chrX_KI270881v1_alt	144206	2968256512
+251	chr19_KI270882v1_alt	248807	2968518656
+252	chr19_KI270883v1_alt	170399	2968780800
+253	chr19_KI270884v1_alt	157053	2969042944
+254	chr19_KI270885v1_alt	171027	2969305088
+255	chr19_KI270886v1_alt	204239	2969567232
+256	chr19_KI270887v1_alt	209512	2969829376
+257	chr19_KI270888v1_alt	155532	2970091520
+258	chr19_KI270889v1_alt	170698	2970353664
+259	chr19_KI270890v1_alt	184499	2970615808
+260	chr19_KI270891v1_alt	170680	2970877952
+261	chr1_KI270892v1_alt	162212	2971140096
+262	chr2_KI270894v1_alt	214158	2971402240
+263	chr2_KI270893v1_alt	161218	2971664384
+264	chr3_KI270895v1_alt	162896	2971926528
+265	chr4_KI270896v1_alt	378547	2972188672
+266	chr5_KI270897v1_alt	1144418	2972712960
+267	chr5_KI270898v1_alt	130957	2974023680
+268	chr6_GL000251v2_alt	4795265	2974285824
+269	chr7_KI270899v1_alt	190869	2979266560
+270	chr8_KI270901v1_alt	136959	2979528704
+271	chr8_KI270900v1_alt	318687	2979790848
+272	chr11_KI270902v1_alt	106711	2980315136
+273	chr11_KI270903v1_alt	214625	2980577280
+274	chr12_KI270904v1_alt	572349	2980839424
+275	chr15_KI270906v1_alt	196384	2981625856
+276	chr15_KI270905v1_alt	5161414	2981888000
+277	chr17_KI270907v1_alt	137721	2987130880
+278	chr17_KI270910v1_alt	157099	2987393024
+279	chr17_KI270909v1_alt	325800	2987655168
+280	chr17_JH159148v1_alt	88070	2988179456
+281	chr17_KI270908v1_alt	1423190	2988441600
+282	chr18_KI270912v1_alt	174061	2990014464
+283	chr18_KI270911v1_alt	157710	2990276608
+284	chr19_GL949747v2_alt	729520	2990538752
+285	chr22_KB663609v1_alt	74013	2991325184
+286	chrX_KI270913v1_alt	274009	2991587328
+287	chr19_KI270914v1_alt	205194	2992111616
+288	chr19_KI270915v1_alt	170665	2992373760
+289	chr19_KI270916v1_alt	184516	2992635904
+290	chr19_KI270917v1_alt	190932	2992898048
+291	chr19_KI270918v1_alt	123111	2993160192
+292	chr19_KI270919v1_alt	170701	2993422336
+293	chr19_KI270920v1_alt	198005	2993684480
+294	chr19_KI270921v1_alt	282224	2993946624
+295	chr19_KI270922v1_alt	187935	2994470912
+296	chr19_KI270923v1_alt	189352	2994733056
+297	chr3_KI270924v1_alt	166540	2994995200
+298	chr4_KI270925v1_alt	555799	2995257344
+299	chr6_GL000252v2_alt	4604811	2996043776
+300	chr8_KI270926v1_alt	229282	3000762368
+301	chr11_KI270927v1_alt	218612	3001024512
+302	chr19_GL949748v2_alt	1064304	3001286656
+303	chr22_KI270928v1_alt	176103	3002597376
+304	chr19_KI270929v1_alt	186203	3002859520
+305	chr19_KI270930v1_alt	200773	3003121664
+306	chr19_KI270931v1_alt	170148	3003383808
+307	chr19_KI270932v1_alt	215732	3003645952
+308	chr19_KI270933v1_alt	170537	3003908096
+309	chr19_GL000209v2_alt	177381	3004170240
+310	chr3_KI270934v1_alt	163458	3004432384
+311	chr6_GL000253v2_alt	4677643	3004694528
+312	chr19_GL949749v2_alt	1091841	3009413120
+313	chr3_KI270935v1_alt	197351	3010723840
+314	chr6_GL000254v2_alt	4827813	3010985984
+315	chr19_GL949750v2_alt	1066390	3015966720
+316	chr3_KI270936v1_alt	164170	3017277440
+317	chr6_GL000255v2_alt	4606388	3017539584
+318	chr19_GL949751v2_alt	1002683	3022258176
+319	chr3_KI270937v1_alt	165607	3023306752
+320	chr6_GL000256v2_alt	4929269	3023568896
+321	chr19_GL949752v1_alt	987100	3028549632
+322	chr6_KI270758v1_alt	76752	3029598208
+323	chr19_GL949753v2_alt	796479	3029860352
+324	chr19_KI270938v1_alt	1066800	3030908928
+325	chrM	16569	3032219648
+326	chrUn_KI270302v1	2274	3032481792
+327	chrUn_KI270304v1	2165	3032743936
+328	chrUn_KI270303v1	1942	3033006080
+329	chrUn_KI270305v1	1472	3033268224
+330	chrUn_KI270322v1	21476	3033530368
+331	chrUn_KI270320v1	4416	3033792512
+332	chrUn_KI270310v1	1201	3034054656
+333	chrUn_KI270316v1	1444	3034316800
+334	chrUn_KI270315v1	2276	3034578944
+335	chrUn_KI270312v1	998	3034841088
+336	chrUn_KI270311v1	12399	3035103232
+337	chrUn_KI270317v1	37690	3035365376
+338	chrUn_KI270412v1	1179	3035627520
+339	chrUn_KI270411v1	2646	3035889664
+340	chrUn_KI270414v1	2489	3036151808
+341	chrUn_KI270419v1	1029	3036413952
+342	chrUn_KI270418v1	2145	3036676096
+343	chrUn_KI270420v1	2321	3036938240
+344	chrUn_KI270424v1	2140	3037200384
+345	chrUn_KI270417v1	2043	3037462528
+346	chrUn_KI270422v1	1445	3037724672
+347	chrUn_KI270423v1	981	3037986816
+348	chrUn_KI270425v1	1884	3038248960
+349	chrUn_KI270429v1	1361	3038511104
+350	chrUn_KI270442v1	392061	3038773248
+351	chrUn_KI270466v1	1233	3039297536
+352	chrUn_KI270465v1	1774	3039559680
+353	chrUn_KI270467v1	3920	3039821824
+354	chrUn_KI270435v1	92983	3040083968
+355	chrUn_KI270438v1	112505	3040346112
+356	chrUn_KI270468v1	4055	3040608256
+357	chrUn_KI270510v1	2415	3040870400
+358	chrUn_KI270509v1	2318	3041132544
+359	chrUn_KI270518v1	2186	3041394688
+360	chrUn_KI270508v1	1951	3041656832
+361	chrUn_KI270516v1	1300	3041918976
+362	chrUn_KI270512v1	22689	3042181120
+363	chrUn_KI270519v1	138126	3042443264
+364	chrUn_KI270522v1	5674	3042705408
+365	chrUn_KI270511v1	8127	3042967552
+366	chrUn_KI270515v1	6361	3043229696
+367	chrUn_KI270507v1	5353	3043491840
+368	chrUn_KI270517v1	3253	3043753984
+369	chrUn_KI270529v1	1899	3044016128
+370	chrUn_KI270528v1	2983	3044278272
+371	chrUn_KI270530v1	2168	3044540416
+372	chrUn_KI270539v1	993	3044802560
+373	chrUn_KI270538v1	91309	3045064704
+374	chrUn_KI270544v1	1202	3045326848
+375	chrUn_KI270548v1	1599	3045588992
+376	chrUn_KI270583v1	1400	3045851136
+377	chrUn_KI270587v1	2969	3046113280
+378	chrUn_KI270580v1	1553	3046375424
+379	chrUn_KI270581v1	7046	3046637568
+380	chrUn_KI270579v1	31033	3046899712
+381	chrUn_KI270589v1	44474	3047161856
+382	chrUn_KI270590v1	4685	3047424000
+383	chrUn_KI270584v1	4513	3047686144
+384	chrUn_KI270582v1	6504	3047948288
+385	chrUn_KI270588v1	6158	3048210432
+386	chrUn_KI270593v1	3041	3048472576
+387	chrUn_KI270591v1	5796	3048734720
+388	chrUn_KI270330v1	1652	3048996864
+389	chrUn_KI270329v1	1040	3049259008
+390	chrUn_KI270334v1	1368	3049521152
+391	chrUn_KI270333v1	2699	3049783296
+392	chrUn_KI270335v1	1048	3050045440
+393	chrUn_KI270338v1	1428	3050307584
+394	chrUn_KI270340v1	1428	3050569728
+395	chrUn_KI270336v1	1026	3050831872
+396	chrUn_KI270337v1	1121	3051094016
+397	chrUn_KI270363v1	1803	3051356160
+398	chrUn_KI270364v1	2855	3051618304
+399	chrUn_KI270362v1	3530	3051880448
+400	chrUn_KI270366v1	8320	3052142592
+401	chrUn_KI270378v1	1048	3052404736
+402	chrUn_KI270379v1	1045	3052666880
+403	chrUn_KI270389v1	1298	3052929024
+404	chrUn_KI270390v1	2387	3053191168
+405	chrUn_KI270387v1	1537	3053453312
+406	chrUn_KI270395v1	1143	3053715456
+407	chrUn_KI270396v1	1880	3053977600
+408	chrUn_KI270388v1	1216	3054239744
+409	chrUn_KI270394v1	970	3054501888
+410	chrUn_KI270386v1	1788	3054764032
+411	chrUn_KI270391v1	1484	3055026176
+412	chrUn_KI270383v1	1750	3055288320
+413	chrUn_KI270393v1	1308	3055550464
+414	chrUn_KI270384v1	1658	3055812608
+415	chrUn_KI270392v1	971	3056074752
+416	chrUn_KI270381v1	1930	3056336896
+417	chrUn_KI270385v1	990	3056599040
+418	chrUn_KI270382v1	4215	3056861184
+419	chrUn_KI270376v1	1136	3057123328
+420	chrUn_KI270374v1	2656	3057385472
+421	chrUn_KI270372v1	1650	3057647616
+422	chrUn_KI270373v1	1451	3057909760
+423	chrUn_KI270375v1	2378	3058171904
+424	chrUn_KI270371v1	2805	3058434048
+425	chrUn_KI270448v1	7992	3058696192
+426	chrUn_KI270521v1	7642	3058958336
+427	chrUn_GL000195v1	182896	3059220480
+428	chrUn_GL000219v1	179198	3059482624
+429	chrUn_GL000220v1	161802	3059744768
+430	chrUn_GL000224v1	179693	3060006912
+431	chrUn_KI270741v1	157432	3060269056
+432	chrUn_GL000226v1	15008	3060531200
+433	chrUn_GL000213v1	164239	3060793344
+434	chrUn_KI270743v1	210658	3061055488
+435	chrUn_KI270744v1	168472	3061317632
+436	chrUn_KI270745v1	41891	3061579776
+437	chrUn_KI270746v1	66486	3061841920
+438	chrUn_KI270747v1	198735	3062104064
+439	chrUn_KI270748v1	93321	3062366208
+440	chrUn_KI270749v1	158759	3062628352
+441	chrUn_KI270750v1	148850	3062890496
+442	chrUn_KI270751v1	150742	3063152640
+443	chrUn_KI270752v1	27745	3063414784
+444	chrUn_KI270753v1	62944	3063676928
+445	chrUn_KI270754v1	40191	3063939072
+446	chrUn_KI270755v1	36723	3064201216
+447	chrUn_KI270756v1	79590	3064463360
+448	chrUn_KI270757v1	71251	3064725504
+449	chrUn_GL000214v1	137718	3064987648
+450	chrUn_KI270742v1	186739	3065249792
+451	chrUn_GL000216v2	176608	3065511936
+452	chrUn_GL000218v1	161147	3065774080
+453	chrX	156040895	3066036224
+454	chrY	57227415	3222274048
+455	chrY_KI270740v1_random	37240	3279683584
+Started loading the genome: Tue Jun  5 14:42:14 2018
+
+Checking Genome sizefile size: 3279945728 bytes; state: good=1 eof=0 fail=0 bad=0
+Checking SA sizefile size: 25156855213 bytes; state: good=1 eof=0 fail=0 bad=0
+/SAindex: size given as a parameter = 1
+Read from SAindex: genomeSAindexNbases=14  nSAi=357913940
+nGenome=3279945728;  nSAbyte=25156855213
+GstrandBit=32   SA number of indices=6098631566
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 455  "ERCC-00002" chrStart: 3279945728
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 456  "ERCC-00003" chrStart: 3280207872
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 457  "ERCC-00004" chrStart: 3280470016
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 458  "ERCC-00009" chrStart: 3280732160
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 459  "ERCC-00012" chrStart: 3280994304
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 460  "ERCC-00013" chrStart: 3281256448
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 461  "ERCC-00014" chrStart: 3281518592
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 462  "ERCC-00016" chrStart: 3281780736
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 463  "ERCC-00017" chrStart: 3282042880
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 464  "ERCC-00019" chrStart: 3282305024
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 465  "ERCC-00022" chrStart: 3282567168
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 466  "ERCC-00024" chrStart: 3282829312
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 467  "ERCC-00025" chrStart: 3283091456
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 468  "ERCC-00028" chrStart: 3283353600
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 469  "ERCC-00031" chrStart: 3283615744
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 470  "ERCC-00033" chrStart: 3283877888
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 471  "ERCC-00034" chrStart: 3284140032
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 472  "ERCC-00035" chrStart: 3284402176
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 473  "ERCC-00039" chrStart: 3284664320
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 474  "ERCC-00040" chrStart: 3284926464
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 475  "ERCC-00041" chrStart: 3285188608
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 476  "ERCC-00042" chrStart: 3285450752
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 477  "ERCC-00043" chrStart: 3285712896
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 478  "ERCC-00044" chrStart: 3285975040
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 479  "ERCC-00046" chrStart: 3286237184
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 480  "ERCC-00048" chrStart: 3286499328
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 481  "ERCC-00051" chrStart: 3286761472
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 482  "ERCC-00053" chrStart: 3287023616
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 483  "ERCC-00054" chrStart: 3287285760
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 484  "ERCC-00057" chrStart: 3287547904
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 485  "ERCC-00058" chrStart: 3287810048
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 486  "ERCC-00059" chrStart: 3288072192
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 487  "ERCC-00060" chrStart: 3288334336
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 488  "ERCC-00061" chrStart: 3288596480
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 489  "ERCC-00062" chrStart: 3288858624
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 490  "ERCC-00067" chrStart: 3289120768
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 491  "ERCC-00069" chrStart: 3289382912
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 492  "ERCC-00071" chrStart: 3289645056
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 493  "ERCC-00073" chrStart: 3289907200
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 494  "ERCC-00074" chrStart: 3290169344
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 495  "ERCC-00075" chrStart: 3290431488
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 496  "ERCC-00076" chrStart: 3290693632
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 497  "ERCC-00077" chrStart: 3290955776
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 498  "ERCC-00078" chrStart: 3291217920
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 499  "ERCC-00079" chrStart: 3291480064
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 500  "ERCC-00081" chrStart: 3291742208
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 501  "ERCC-00083" chrStart: 3292004352
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 502  "ERCC-00084" chrStart: 3292266496
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 503  "ERCC-00085" chrStart: 3292528640
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 504  "ERCC-00086" chrStart: 3292790784
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 505  "ERCC-00092" chrStart: 3293052928
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 506  "ERCC-00095" chrStart: 3293315072
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 507  "ERCC-00096" chrStart: 3293577216
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 508  "ERCC-00097" chrStart: 3293839360
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 509  "ERCC-00098" chrStart: 3294101504
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 510  "ERCC-00099" chrStart: 3294363648
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 511  "ERCC-00104" chrStart: 3294625792
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 512  "ERCC-00108" chrStart: 3294887936
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 513  "ERCC-00109" chrStart: 3295150080
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 514  "ERCC-00111" chrStart: 3295412224
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 515  "ERCC-00112" chrStart: 3295674368
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 516  "ERCC-00113" chrStart: 3295936512
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 517  "ERCC-00116" chrStart: 3296198656
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 518  "ERCC-00117" chrStart: 3296460800
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 519  "ERCC-00120" chrStart: 3296722944
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 520  "ERCC-00123" chrStart: 3296985088
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 521  "ERCC-00126" chrStart: 3297247232
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 522  "ERCC-00130" chrStart: 3297509376
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 523  "ERCC-00131" chrStart: 3297771520
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 524  "ERCC-00134" chrStart: 3298033664
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 525  "ERCC-00136" chrStart: 3298295808
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 526  "ERCC-00137" chrStart: 3298557952
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 527  "ERCC-00138" chrStart: 3298820096
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 528  "ERCC-00142" chrStart: 3299082240
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 529  "ERCC-00143" chrStart: 3299344384
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 530  "ERCC-00144" chrStart: 3299606528
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 531  "ERCC-00145" chrStart: 3299868672
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 532  "ERCC-00147" chrStart: 3300130816
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 533  "ERCC-00148" chrStart: 3300392960
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 534  "ERCC-00150" chrStart: 3300655104
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 535  "ERCC-00154" chrStart: 3300917248
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 536  "ERCC-00156" chrStart: 3301179392
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 537  "ERCC-00157" chrStart: 3301441536
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 538  "ERCC-00158" chrStart: 3301703680
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 539  "ERCC-00160" chrStart: 3301965824
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 540  "ERCC-00162" chrStart: 3302227968
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 541  "ERCC-00163" chrStart: 3302490112
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 542  "ERCC-00164" chrStart: 3302752256
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 543  "ERCC-00165" chrStart: 3303014400
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 544  "ERCC-00168" chrStart: 3303276544
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 545  "ERCC-00170" chrStart: 3303538688
+/data/ngs/genomes/artificial_sequences/spikes/ERCC92.fa : chr # 546  "ERCC-00171" chrStart: 3303800832
+Shared memory is not used for genomes. Allocated a private copy of the genome.
+Genome file size: 3279945728 bytes; state: good=1 eof=0 fail=0 bad=0
+Loading Genome ... done! state: good=1 eof=0 fail=0 bad=0; loaded 3279945728 bytes
+SA file size: 25156855213 bytes; state: good=1 eof=0 fail=0 bad=0
+Loading SA ... done! state: good=1 eof=0 fail=0 bad=0; loaded 25156855213 bytes
+Loading SAindex ... done: 1565873619 bytes
+Finished loading the genome: Tue Jun  5 14:43:46 2018
+
+Jun 05 14:43:46 ..... inserting extra sequences into genome indexes
+Jun 05 14:45:39   Finished SA search, number of new SA indices = 165510
+Jun 05 14:45:40   Finished qsort
+Jun 05 14:45:40   Finished sorting SA indices
+Jun 05 14:46:51   Finished inserting SA indices
+Jun 05 14:46:51 ... generating Suffix Array index
+Jun 05 14:54:38 ... completed Suffix Array index
+Jun 05 14:54:38   Finished SAi
+alignIntronMax=alignMatesGapMax=0, the max intron size will be approximately determined by (2^winBinNbits)*winAnchorDistNbins=589824
+Jun 05 14:54:38 ..... processing annotations GTF
+Processing sjdbGTFfile=/data/share/htp/zUMIs2/onemillion/ref_and_additional_annot.gtf, found:
+		199276 transcripts
+		1176900 exons (non-collapsed)
+		348697 collapsed junctions
+Jun 05 14:55:15 ..... finished GTF processing
+Jun 05 14:55:15   Loaded database junctions from the GTF file: /data/share/htp/zUMIs2/onemillion/ref_and_additional_annot.gtf: 348697 total junctions
+
+WARNING: long repeat for junction # 115413 : chr15 88855522 88855578; left shift = 14; right shift = 255
+WARNING: long repeat for junction # 157788 : chr18 46969610 47029116; left shift = 183; right shift = 255
+Jun 05 14:55:16   Finished preparing junctions
+Jun 05 14:55:16 ..... inserting junctions into the genome indices
+Jun 05 14:56:08   Finished SA search: number of new junctions=348621, old junctions=0
+Jun 05 14:56:44   Finished sorting SA indicesL nInd=68329716
+Jun 05 14:59:09   Finished inserting junction indices
+Jun 05 14:59:38   Finished SAi
+Jun 05 14:59:38 ..... finished inserting junctions into genome
+Created thread # 1
+Created thread # 2
+Created thread # 3
+Created thread # 4
+Starting to map file # 0
+mate 1:   /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam
+Created thread # 5
+Created thread # 6
+Created thread # 7
+Created thread # 8
+Created thread # 9
+Created thread # 10
+Created thread # 11
+Thread #6 end of input stream, nextChar=-1
+Completed: thread #7
+Completed: thread #8
+Completed: thread #9
+Completed: thread #0
+Completed: thread #11
+Completed: thread #10
+Completed: thread #6
+Completed: thread #1
+Joined thread # 1
+Completed: thread #2
+Joined thread # 2
+Completed: thread #3
+Joined thread # 3
+Completed: thread #4
+Joined thread # 4
+Completed: thread #5
+Joined thread # 5
+Joined thread # 6
+Joined thread # 7
+Joined thread # 8
+Joined thread # 9
+Joined thread # 10
+Joined thread # 11
+Jun 05 14:59:54   Loaded database junctions from the 1st pass file: /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged._STARpass1//SJ.out.tab: 368091 total junctions
+
+WARNING: long repeat for junction # 115413 : chr15 88855522 88855578; left shift = 14; right shift = 255
+WARNING: long repeat for junction # 157788 : chr18 46969610 47029116; left shift = 183; right shift = 255
+Jun 05 14:59:55   Finished preparing junctions
+Jun 05 14:59:55 ..... inserting junctions into the genome indices
+Jun 05 14:59:56   Finished SA search: number of new junctions=719, old junctions=348621
+Jun 05 14:59:57   Finished sorting SA indicesL nInd=140890
+Jun 05 15:02:29   Finished inserting junction indices
+Jun 05 15:02:38   Finished SAi
+Jun 05 15:02:38 ..... finished inserting junctions into genome
+
+   Input read files for mate 1, from input string /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam
+-rw-r--r-- 1 ziegenhain ngs 48842928 Jun  5 14:42 /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam
+
+   readsCommandsFile:
+exec > "/data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged._STARtmp/tmp.fifo.read1"
+echo FILE 0
+samtools   view      "/data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam"
+
+Created thread # 1
+Created thread # 2
+Created thread # 3
+Created thread # 4
+Starting to map file # 0
+mate 1:   /data/share/htp/zUMIs2/onemillion/tiny.filtered.tagged.bam
+Created thread # 5
+Created thread # 6
+Created thread # 7
+Created thread # 8
+Created thread # 9
+Created thread # 10
+Created thread # 11
+Thread #6 end of input stream, nextChar=-1
+Completed: thread #7
+Completed: thread #8
+Completed: thread #9
+Completed: thread #10
+Completed: thread #0
+Completed: thread #11
+Completed: thread #6
+Completed: thread #2
+Completed: thread #1
+Joined thread # 1
+Joined thread # 2
+Completed: thread #3
+Joined thread # 3
+Completed: thread #4
+Joined thread # 4
+Completed: thread #5
+Joined thread # 5
+Joined thread # 6
+Joined thread # 7
+Joined thread # 8
+Joined thread # 9
+Joined thread # 10
+Joined thread # 11
+ALL DONE!
