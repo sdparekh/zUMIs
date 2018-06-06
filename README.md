@@ -18,8 +18,8 @@ Please install:
 - [pigz >= 2.3 :pig:](http://zlib.net/pigz/) [tested: 2.3.4]
 
 ### R packages:
-- [Rsubread >= 1.28.1]()
-- [data.table == 1.11.5 (dev)]()
+- [Rsubread >= 1.28.1](https://github.com/sdparekh/zUMIs/raw/zUMIs-dev/dependencies_source/Rsubread_1.30.3.tar.gz)
+- [data.table == 1.11.5 (dev)](https://github.com/sdparekh/zUMIs/raw/zUMIs-dev/dependencies_source/data.table_1.11.5.tar.gz)
 - yaml (CRAN)
 - ggplot2 (CRAN)
 - GenomicRanges (Bioconductor)
