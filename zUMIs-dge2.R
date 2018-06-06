@@ -59,7 +59,12 @@ subS<-setDownSamplingOption( opt$counting_opts$downsampling,
                              bccount= bccount,
                              filename=paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,
                                             ".downsampling_thresholds.pdf",sep=""))
-
+print("Here are the detected subsampling options:")
+if(is.null(row.names(subS))){
+  print("Automatic downsampling")
+}else{
+  print(row.names(subS))
+}
 if( opt$counting_opts$introns ){
   mapList<-list("exon"="exon",
                 "inex"=c("intron","exon"),

@@ -14,6 +14,11 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
       subn=as.numeric(down)
       subsample.splits <- matrix( c(subn,subn),1,2 )
     }
+    if(any(subsample.splits[,1] > max(bccount$n))){
+      print("Warning! None of the barcodes had enough reads for the following requested downsampling:")
+      print(row.names(subsample.splits)[which(subsample.splits[,1] > max(bccount$n))])
+      subsample.splits <- subsample.splits[which(subsample.splits[,1] <= max(bccount$n)),]
+    }
   }else{
     mads<-calcMADS(bccount)
     plotReadCountSelection(bccount,mads,  filename=filename)
