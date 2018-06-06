@@ -8,7 +8,7 @@ library(ggplot2)
 myYaml<-commandArgs(trailingOnly = T)
 opt   <-read_yaml(myYaml)
 setwd(opt$out_dir)
-
+#unixtools::set.tempdir(opt$out_dir)
 source(paste0(opt$zUMIs_directory,"/runfeatureCountFUN.R"))
 source(paste0(opt$zUMIs_directory,"/UMIstuffFUN.R"))
 source(paste0(opt$zUMIs_directory,"/barcodeIDFUN.R"))
@@ -25,9 +25,9 @@ checkRsubreadVersion()
 
 #read file with barcodecounts
 # bc is the vector of barcodes to keep
-bccount<-cellBC(bcfile      = opt$barcodes$barcode_file, 
-           bcnum       = opt$barcodes$barcode_num, 
-           bccount_file= paste0(opt$out_dir,"/", opt$project, ".BCstats.txt"), 
+bccount<-cellBC(bcfile      = opt$barcodes$barcode_file,
+           bcnum       = opt$barcodes$barcode_num,
+           bccount_file= paste0(opt$out_dir,"/", opt$project, ".BCstats.txt"),
            outfilename = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".detected_cells.pdf"))
 bccount<-splitRG(bccount=bccount, mem= opt$mem_limit)
 
@@ -37,16 +37,16 @@ bccount<-splitRG(bccount=bccount, mem= opt$mem_limit)
 saf<-.makeSAF(opt$reference$GTF_file_final)
 abamfile<-paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam")
 fnex<-.runFeatureCount(abamfile,
-                       saf=saf$exons,  
-                       strand=opt$counting_opts$strand, 
+                       saf=saf$exons,
+                       strand=opt$counting_opts$strand,
                        type="ex",
                        primaryOnly = opt$counting_opts$primaryHit)
 ffiles<-fnex
 
 if(opt$counting_opts$introns){
-  fnin  <-.runFeatureCount(abamfile, 
+  fnin  <-.runFeatureCount(abamfile,
                            saf=saf$introns,
-                           strand=opt$counting_opts$strand, 
+                           strand=opt$counting_opts$strand,
                            type="in",
                            primaryOnly = opt$counting_opts$primaryHit)
   ffiles<-c(ffiles,fnin)
@@ -55,8 +55,8 @@ if(opt$counting_opts$introns){
 ##########################################
 #set Downsampling ranges
 
-subS<-setDownSamplingOption( opt$counting_opts$downsampling, 
-                             bccount= bccount, 
+subS<-setDownSamplingOption( opt$counting_opts$downsampling,
+                             bccount= bccount,
                              filename=paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,
                                             ".downsampling_thresholds.pdf",sep=""))
 
@@ -71,13 +71,13 @@ if( opt$counting_opts$introns ){
 ########################## assign reads to UB & GENE
 
 for(i in unique(bccount$chunkID)){
-     print(i)
-     print( paste( bccount[chunkID==i]$XC ))
+     print( paste( "Working on barcode chunk", i, "out of",length(unique(bccount$chunkID)) ))
+     print( paste( "Processing",length(bccount[chunkID==i]$XC), "barcodes in this chunk..." ))
      reads<-reads2genes( featfiles = ffiles,
                              chunks    = bccount[chunkID==i]$XC,
                              rgfile    = paste0(opt$out_dir,"/zUMIs_output/.currentRGgroup.txt"),
                              cores     = opt$num_threads  )
-   
+
      tmp<-collectCounts(  reads =reads,
                           bccount=bccount[chunkID==i],
                           subsample.splits=subS,
