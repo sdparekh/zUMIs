@@ -13,7 +13,7 @@ splitRG<-function(bccount,mem){
   for(i in 1:nc){
     cs=cs+bccount[i]$n
     if(bccount[i]$n>maxR){
-      print(paste("Warning: Barcode",bccount[i]$XC,"has more reads than allowed for the memory limit! 
+      print(paste("Warning: Barcode",bccount[i]$XC,"has more reads than allowed for the memory limit!
                   Proceeding anyway..."))
     }
     if(cs>=maxR){
@@ -29,7 +29,7 @@ splitRG<-function(bccount,mem){
 .rmUB<-function(b){ gsub("UB:Z:","",b)}
 .rmXT<-function(b){ gsub("XT:Z:","",b)}
 
-.ham_mat <- function(umistrings) {
+ham_mat <- function(umistrings) {
   X<- matrix(unlist(strsplit(umistrings, "")),ncol = length(umistrings))
   #function below thanks to Johann de Jong
   #https://goo.gl/u8RBBZ
@@ -44,14 +44,14 @@ splitRG<-function(bccount,mem){
 }
 
 reads2genes <- function(featfiles,chunks,rgfile,cores){
-  
+
   ## minifunction for string operations
   nfiles=length(featfiles)
-  write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)  
+  write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
   headerXX<-paste( c(paste0("V",1:14)) ,collapse="\t")
   write(headerXX,"freadHeader")
   samcommand<-paste("cat freadHeader; samtools view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -R",rgfile,"-@",cores)
-  
+
    if(length(featfiles)==1){
           reads<-data.table::fread(paste(samcommand,featfiles), na.strings=c(""),
                              select=c(12,13,14),header=T,fill=T,colClasses = "character")[
@@ -63,7 +63,7 @@ reads2genes <- function(featfiles,chunks,rgfile,cores){
                                , c("RG","UB","GE"):=list(.rmRG(V12),.rmUB(V13),.rmXT(V14))
                                ][,c("V12","V13","V14"):=NULL][
                                  ,"tmp":=fread(paste(samcommand,featfiles[2]),select=14,header=T,fill=T,na.strings=c(""),colClasses = "character")
-                               ][ ,"GEin":=.rmXT(tmp) ][ ,tmp:=NULL 
+                               ][ ,"GEin":=.rmXT(tmp) ][ ,tmp:=NULL
                                   ][ ,"ftype":="NA"
                                   ][is.na(GEin)==F,ftype:="intron"
                                   ][is.na(GE)==F,  ftype:="exon"
@@ -80,7 +80,7 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL ){
   # umiseq a vector of umis, one per read
   umiseq <- sort(umiseq)
   uc     <- data.frame(us = umiseq,stringsAsFactors = F) %>% dplyr::count(us) # normal UMI counts
-  
+
   if(length(uc$us)>1){
     if(length(uc$us)<100000){ #prevent use of > 100Gb RAM
       Sys.time()
@@ -105,8 +105,8 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL ){
   #filter reads by ftype and get bc-wise exon counts
   #join bc-wise total counts
   rcl<-reads[ftype %in% ft][bccount ,nomatch=0][  n>=nmin ] #
-  if(nrow(rcl)>0)  { 
-    return( rcl[ rcl[ ,exn:=.N,by=RG 
+  if(nrow(rcl)>0)  {
+    return( rcl[ rcl[ ,exn:=.N,by=RG
                       ][         , targetN:=exn  # use binomial to break down to exon sampling
                         ][ n> nmax, targetN:=rbinom(1,nmax,mean(exn)/mean(n) ), by=RG
                           ][targetN>exn, targetN:=exn
@@ -114,12 +114,12 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL ){
   }else{ return(NULL) }
 }
 .makewide <- function(longdf,type){
-  print("I am making a sparseMatrix!!")
+  #print("I am making a sparseMatrix!!")
   ge<-as.factor(longdf$GE)
   xc<-as.factor(longdf$RG)
-  widedf <- Matrix::sparseMatrix(i=as.integer(ge), 
-                                 j=as.integer(xc), 
-                                 x=as.numeric(unlist(longdf[,type,with=F])), 
+  widedf <- Matrix::sparseMatrix(i=as.integer(ge),
+                                 j=as.integer(xc),
+                                 x=as.numeric(unlist(longdf[,type,with=F])),
                                  dimnames=list(levels(ge), levels(xc)))
   return(widedf)
 }
@@ -132,16 +132,16 @@ umiCollapseID<-function(reads,bccount,nmin=0,nmax=Inf,ftype=c("intron","exon"),.
                 by=c("RG","GE") ]
 #    ret<-lapply(c("umicount","readcount"),function(type){.makewide(nret,type) })
 #    names(ret)<-c("umicount","readcount")
-#    return(ret) 
+#    return(ret)
     return(nret)
   }
 }
 umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon"),HamDist=1){
-  df<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)[ 
+  df<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)[
     ,list(umicount =hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),
           readcount =.N),
     by=c("RG","GE")]
- 
+
   return(df)
 }
 umiFUNs<-list(umiCollapseID=umiCollapseID,  umiCollapseHam=umiCollapseHam)
@@ -149,7 +149,7 @@ umiFUNs<-list(umiCollapseID=umiCollapseID,  umiCollapseHam=umiCollapseHam)
 collectCounts<-function(reads,bccount,subsample.splits, mapList,HamDist, ...){
   subNames<-paste("downsampled",rownames(subsample.splits),sep="_")
   umiFUN<-ifelse(HamDist==0,"umiCollapseID","umiCollapseHam")
-  lapply(mapList,function(tt){ 
+  lapply(mapList,function(tt){
     ll<-list( all=umiFUNs[[umiFUN]](reads=reads,
                                 bccount=bccount,
                                 ftype=tt,
@@ -164,7 +164,7 @@ collectCounts<-function(reads,bccount,subsample.splits, mapList,HamDist, ...){
     names(ll$downsampling)<-subNames
     ll
   })
-  
+
 }
 
 bindList<-function(alldt,newdt){
@@ -187,5 +187,3 @@ convert2countM<-function(alldt,what){
   }
   return(fmat)
 }
-  
-  
