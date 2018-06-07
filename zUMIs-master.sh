@@ -120,7 +120,7 @@ if
 [[ "$whichStage" == "Filtering" ]] ||
 [[ "$whichStage" == "Mapping" ]]
 then
-  echo "IStarting Mapping..."
+  echo "Starting Mapping..."
   if [[ "$isslurm" == "yes" ]]; then
     memory=`du -sh $genomedir | cut -f1` #STAR genome index size
     j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' '`
