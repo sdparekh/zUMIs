@@ -101,7 +101,19 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
 }
 .cellBarcode_known   <- function( bccount, bcfile  ){
   bc<-read.table(bcfile,header = F,stringsAsFactors = F)$V1
-  bccount[XC %in% bc,keep:=TRUE]
+  if( any( bc %in% bccount$XC ) ){
+    bccount[XC %in% bc,keep:=TRUE]
+  }else{
+    print("Warning! None of the annotated barcodes were detected.")
+    if(nrow(bccount)<100){
+      print("Less than 100 barcodes present, will continue with all barcodes...")
+      bccount[1:nrow(bccount),keep:=TRUE]
+    }else{
+      print("Continuing with top 100 barcodes instead...")
+      bccount[1:100,keep:=TRUE]
+    }
+  }
+  
   return(bccount[keep==TRUE,XC])
 }
 
