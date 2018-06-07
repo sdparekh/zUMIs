@@ -156,6 +156,7 @@ if
 [[ "$whichStage" == "Counting" ]] ||
 [[ "$whichStage" == "Summarising" ]]
 then
+  yamlnew=$outdir/$project.postmap.yaml  #note! mapping creates a temporary new yaml because of custom GTF!
   if [[ "$isstats" == "yes" ]]; then
     echo "Starting descriptive statistics..."
     if [[ "$isslurm" == "yes" ]]; then

@@ -7,7 +7,8 @@ library(methods)
 library(data.table)
 library(yaml)
 library(ggplot2)
-
+library(Matrix)
+library(dplyr)
 ##########################
 myYaml<-commandArgs(trailingOnly = T)
 opt   <-read_yaml(myYaml)
@@ -53,7 +54,7 @@ write.table(umicounts,file = paste(opt$out_dir,"/zUMIs_output/stats/",opt$projec
 ## Total number of reads per cell
 cellTotal <- reads %>% dplyr::filter(XC %in% bc) %>% dplyr::group_by(XC) %>% dplyr::summarise(Total=length(GE))
 p <- ggplot(cellTotal, aes(x=reorder(XC,Total), y=Total))
-p<-p+geom_bar(stat = "identity",alpha=0.9,width=0.7) + 
+p<-p+geom_bar(stat = "identity",alpha=0.9,width=0.7) +
   scale_fill_brewer(labels = c("Exon Mapped","Intron Mapped","Ambiguity", "Intergenic", "Unmapped"), palette="Set2") + xlab("") + ylab("log10(Number of reads)") + scale_y_log10() + theme_bw() + theme(axis.text.x = element_text(size=4,angle = 90),axis.text.y = element_text(size=13), axis.title.y = element_text(size=20))
 
 ggsave(p,filename = paste(opt$out,"/zUMIs_output/stats/",opt$sn,".readspercell.pdf",sep=""),width = 10,height = 7)
