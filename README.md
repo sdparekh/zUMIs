@@ -3,8 +3,8 @@
 zUMIs is a fast and flexible pipeline to process RNA-seq data with UMIs.
 You can read more about zUMIs in our [paper](https://doi.org/10.1093/gigascience/giy059)!
 
-## Note: this is the development branch of zUMIs! 
-We are working hard on an exciting new release of zUMIs that will bring a lot of great new features. 
+## Note: this is the development branch of zUMIs!
+We are working hard on an exciting new release of zUMIs that will bring a lot of great new features.
 This means that not all functionality is tested and validated. If you want to help us with testing, or have further suggestions, please do get in touch with us! [@swatidparekh](https://twitter.com/swatidparekh) and [@chris_zie](https://twitter.com/chris_zie)
 
 
@@ -33,5 +33,4 @@ Please install:
 - More convenient & flexible handling of barcodes that will eliminate protocol-specific settings or preprocessing scripts.
 - Increased processing speed
 - Compatibility with paired-end cDNA reads in combination with cell barcodes and UMIs
-- [Velocyto](http://velocyto.org/)-compatible output to estimate [RNA velocity](https://www.biorxiv.org/content/early/2017/10/19/206052)
 - Possibility to integrate transgenes or external references like ERCC spike ins on the fly and produce summary stats separately from endogenous mRNA for these
