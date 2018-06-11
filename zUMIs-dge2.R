@@ -1,8 +1,8 @@
 #!/usr/bin/env Rscript
-suppressMessages(require(methods))
-suppressMessages(require(data.table))
-suppressMessages(require(yaml))
-suppressMessages(require(ggplot2))
+library(methods)
+library(data.table)
+library(yaml)
+library(ggplot2)
 
 ##########################
 myYaml<-commandArgs(trailingOnly = T)
@@ -29,6 +29,9 @@ bccount<-cellBC(bcfile      = opt$barcodes$barcode_file,
            bcnum       = opt$barcodes$barcode_num,
            bccount_file= paste0(opt$out_dir,"/", opt$project, ".BCstats.txt"),
            outfilename = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".detected_cells.pdf"))
+
+fwrite(bccount,file=paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt"))
+
 bccount<-splitRG(bccount=bccount, mem= opt$mem_limit)
 
 ##############################################################
@@ -74,7 +77,7 @@ if( opt$counting_opts$introns ){
 }
 
 ########################## assign reads to UB & GENE
-print("Crunching reads to generate expression tables...")
+
 for(i in unique(bccount$chunkID)){
      print( paste( "Working on barcode chunk", i, "out of",length(unique(bccount$chunkID)) ))
      print( paste( "Processing",length(bccount[chunkID==i]$XC), "barcodes in this chunk..." ))
@@ -96,7 +99,7 @@ for(i in unique(bccount$chunkID)){
        allC<-bindList(alldt=allC,newdt=tmp)
     }
 }
-print("Converting expression tables into sparseMatrix format...")
+
 final<-list( umicount  = convert2countM(alldt=allC,what="umicount"),
              readcount = convert2countM(allC,"readcount"))
 

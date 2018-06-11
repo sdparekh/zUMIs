@@ -82,6 +82,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
     ggplot2::ggsave(bcplot,filename=outfilename,
                     width = 10,height = 4)
   }
+  bccount[,cs:=NULL]
   return( bccount[keep==TRUE,XC] )
 }
 .cellBarcode_number  <- function( bccount, bcNumber){
@@ -133,7 +134,7 @@ cellBC<-function(bcfile, bcnum, bccount_file, outfilename=NULL){
   bc[is.na(bc)==F]
   noReads<-bccount[,list(sum(n)),by=keep][keep==FALSE,V1]
   print(paste(noReads, "reads were assigned to barcodes that do not correspond to intact cells." ))
-  return(bccount[XC %in% bc][order(-n)])
+  return(bccount[XC %in% bc][,keep:=NULL][order(-n)])
 }
 
 calcMADS<-function(bccount){

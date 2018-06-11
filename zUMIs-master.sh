@@ -110,7 +110,7 @@ then
   echo "STAR_exec: $starexc" >> $yaml
   echo "zUMIs_directory: $zumisdir" >> $yaml
   if [[ "$isslurm" == "yes" ]]; then
-    sbatch --cpus-per-task=$num_threads --wrap=="perl $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir" > $outdir/$project.slurmjobid.txt
+    sbatch --cpus-per-task=$num_threads --wrap="perl $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir" > $outdir/$project.slurmjobid.txt
   else
     perl $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir
   fi
@@ -124,7 +124,7 @@ then
   if [[ "$isslurm" == "yes" ]]; then
     memory=`du -sh $genomedir | cut -f1` #STAR genome index size
     j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' '`
-    sbatch --dependency=afterok:'$j' --mem=$memory --cpus-per-task=$num_threads --wrap=="$Rexc $zumisdir/zUMIs-mapping.R $yaml" > $outdir/$project.slurmjobid.txt
+    sbatch --dependency=afterok:'$j' --mem=$memory --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-mapping.R $yaml" > $outdir/$project.slurmjobid.txt
   else
     $Rexc $zumisdir/zUMIs-mapping.R $yaml
   fi
@@ -144,7 +144,7 @@ then
       mem_limit=`expr $mem_limit \* 1000`
     fi
     j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' '`
-    sbatch --dependency=afterok:'$j' --mem=$mem_limit --cpus-per-task=$num_threads --wrap=="$Rexc $zumisdir/zUMIs-dge2.R $yamlnew" > $outdir/$project.slurmjobid.txt
+    sbatch --dependency=afterok:'$j' --mem=$mem_limit --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-dge2.R $yamlnew" > $outdir/$project.slurmjobid.txt
    else
      $Rexc $zumisdir/zUMIs-dge2.R $yamlnew
    fi
@@ -161,7 +161,7 @@ then
     echo "Starting descriptive statistics..."
     if [[ "$isslurm" == "yes" ]]; then
       j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' '`
-      sbatch --dependency=afterok:'$j' --mem=5000 --cpus-per-task=$num_threads --wrap=="$Rexc $zumisdir/zUMIs-stats2.R $yamlnew" > $outdir/$project.slurmjobid.txt
+      sbatch --dependency=afterok:'$j' --mem=5000 --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-stats2.R $yamlnew" > $outdir/$project.slurmjobid.txt
     else
       $Rexc $zumisdir/zUMIs-stats2.R $yamlnew
     fi

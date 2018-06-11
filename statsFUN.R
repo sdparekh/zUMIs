@@ -1,14 +1,16 @@
-sumstatBAM <- function(featfiles,cores,outdir,user_seq){
+.rmRG<-function(b){ gsub("RG:Z:","",b)}
+.rmXS<-function(b){ gsub("XS:Z:","",b)}
+.rmXT<-function(b){ gsub("XT:Z:","",b)}
+.rmUnassigned<-function(b){ gsub("Unassigned_","",b)}
+
+sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile){
   require(data.table)
   # check for user defined sequences
   ## minifunction for string operations
   headerXX<-paste( c(paste0("V",1:14)) ,collapse="\t")
   write(headerXX,paste(outdir,"freadHeader",sep="/"))
   samcommand<-paste("cat freadHeader; samtools view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB -@",cores)
-  .rmRG<-function(b){ gsub("RG:Z:","",b)  }
-  .rmXS<-function(b){ gsub("XS:Z:","",b)}
-  .rmXT<-function(b){ gsub("XT:Z:","",b)}
-  
+  #issue with BC matching
   mapCount<-data.table::fread(paste(samcommand,featfiles[1]), na.strings=c(""),
                              select=c(12,13,14),header=T,fill=T,colClasses = "character" )[
                                , c("RG","XS","GE"):=list(.rmRG(V12),.rmXS(V13),.rmXT(V14))
@@ -17,14 +19,19 @@ sumstatBAM <- function(featfiles,cores,outdir,user_seq){
                                ][ ,"GEin":=.rmXT(tmp) 
                                ][ ,tmp:=NULL 
                                ][ ,"ftype":="NA"
-                               ][is.na(GEin)==F,ftype:="intron"
-                               ][is.na(GE)==F  ,ftype:="exon"
+                               ][is.na(GEin)==F,ftype:="Intron"
+                               ][is.na(GE)==F  ,ftype:="Exon"
                                ][is.na(GE)     ,GE:=GEin
                                ][ftype!="NA",   XS:=ftype
-                               ][GE %in% user_seq, XS:="User"
+                               ][GE %in% user_seq[,V1], XS:="User"
+                               ][,RG:=as.character(RG)
+                               ][!(RG %in% bc[,XC]), RG:="bad"
                                ][ ,c("GEin","GE","ftype"):=NULL 
-                               ][,list(.N),by=c("RG","XS")]
-  
+                               ][,list(.N),by=c("RG","XS")
+                               ][,type:=.rmUnassigned(XS)
+                               ][type=="NoFeatures",type:="Intergenic"
+                               ][,XS:=NULL]
+    saveRDS(mapCount,file=outfile)                           
   return( mapCount )
 }
 
@@ -37,31 +44,31 @@ getUserSeq <-function(gtf ) {
   return(user_seq)
 }
 
-countGenes <- function(counttable,threshold=1,user_seq){
-  tmp <- counttable
-  
+countGenes <- function(cnt,threshold=1,user_seq){
+
   #tmp[tmp<threshold]<-0
-  tmp[tmp>=threshold]<-1
+  cnt[cnt>=threshold]<-1
   
-  samples<-as.data.frame(Matrix::colSums(tmp))
+  samples<-as.data.frame(Matrix::colSums(cnt[!(rownames(cnt) %in% user_seq),]))
   colnames(samples) <- c("Count")
   samples[,"SampleID"] <- as.factor(row.names(samples))
   row.names(samples) <- NULL
   return(samples)
 }
-countUMIs <- function(counttable, user_seq){
-  tmp <- counttable
+countUMIs <- function(cnt, user_seq){
   
-  samples<-as.data.frame(Matrix::colSums(tmp))
+  samples<-as.data.frame(Matrix::colSums(cnt[!(rownames(cnt) %in% user_seq),]))
   colnames(samples) <- c("Count")
   samples[,"SampleID"] <- as.factor(row.names(samples))
   row.names(samples) <- NULL
+  
   return(samples)
 }
+
 countBoxplot<-function(cnt, ylab,fillcol,lab){
-  ggplot(genecounts, aes(x=featureType, y=Count, fill=featureType))+
+  ggplot(cnt, aes(x=type, y=Count, fill=type))+
     geom_boxplot(notch = T) + 
-    geom_text(data=lab,aes(x=featureType,y=n,label=n),size=5,vjust=-1,col="white") + 
+    geom_text(data=lab,aes(x=type,y=n,label=n),size=5,vjust=-0.5,col="white") + 
     scale_fill_manual(values = fillcol) + 
     xlab("") + ylab(ylab) + 
     theme_bw() +
@@ -70,4 +77,56 @@ countBoxplot<-function(cnt, ylab,fillcol,lab){
            legend.position = "none")
 }
 
+totReadCountBarplot<-function(typeCount,fillcol){
+  
+  sumBar<-data.frame(typeCount) %>%
+    dplyr::filter(RG!="bad") %>%
+    dplyr::group_by(type) %>% 
+    summarise(tot=sum(N)) %>%
+    bind_rows(data.frame( type="Unused BC", tot=typeCount[RG=="bad",sum(N)])) %>%
+    mutate(perc=100*tot/sum(tot))
+  
+  sumBar$type<-factor(sumBar$type,
+                      levels=rev(c("Exon","Intron","Intergenic","Ambiguity",
+                                   "Unmapped","User","Unused BC")))
+  
+  bar <- ggplot(sumBar, aes(x=1, y=perc, fill=type))+
+    geom_bar(stat="identity") +
+    ylab("% of total reads") +
+    coord_flip()+
+    scale_fill_manual(values =fillcol[levels(sumBar$type)],guide=guide_legend(nrow=1) )+
+    theme_classic() +
+    theme( axis.text.x = element_text(size=18),
+           axis.title.x = element_text(size=18), 
+           axis.text.y = element_blank(),
+           axis.title.y = element_blank(),
+           axis.ticks.y = element_blank(),
+           axis.line.y = element_blank(),
+           legend.text = element_text(size=18),
+           legend.position = "bottom",
+           legend.title = element_blank())
+         
+  return(bar)
+}
+totReadBoxplot<-function(typeCount,fillcol){
+  
+  dpf<-data.frame(typeCount) %>% 
+         filter(RG!="bad") %>%
+         group_by(RG) %>%
+         mutate( perc = 100*N/sum(N)) 
+  
+  dpf$type<-factor(dpf$type,
+              levels = c("Exon","Intron" ,"Intergenic" ,"Ambiguity","Unmapped","User"))
+  
+  box<-ggplot(dpf, aes(x=type, y=perc , fill=type))  +
+        geom_boxplot()+
+        ylab("% reads/cell") +
+        scale_fill_manual(values = fillcol[levels(dpf$type)] )+
+        theme_bw()+
+        theme(legend.position = "None",
+              axis.text = element_text(size=18), 
+              axis.title.y = element_text(size=16),
+              axis.title.x=element_blank())
+  return(box)
+}
   
