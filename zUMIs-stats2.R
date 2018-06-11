@@ -9,6 +9,8 @@ library(yaml)
 library(ggplot2)
 library(Matrix)
 library(dplyr)
+library(cowplot)
+
 ##########################
 myYaml<-commandArgs(trailingOnly = T)
 opt   <-read_yaml(myYaml)
@@ -51,7 +53,7 @@ bg <- countBoxplot(cnt = umicounts,
                    lab = medUMI)
 cp<-cowplot::plot_grid(ag,bg,ncol = 2)
 
-ggsave(c,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".geneUMIcounts.pdf",sep=""),width = 10,height = 5)
+ggsave(cp,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".geneUMIcounts.pdf",sep=""),width = 10,height = 5)
 write.table(genecounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".genecounts.txt"),sep="\t",row.names = F,col.names = T)
 write.table(umicounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".UMIcounts.txt"),sep="\t",row.names = F,col.names = T)
 
@@ -66,6 +68,7 @@ typeCount <- sumstatBAM(featfiles=c(paste0(opt$out_dir,"/",opt$project,".filtere
                          outfile = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".bc.READcounts.rds"))
  
 #only print per BC mapping stats if there are fewer than 200 BCs
+
 if(length( unique(typeCount$RG))<=200  ){
   tc<-data.frame(typeCount)
   tc$type<-factor(tc$type, levels=rev(c("Exon","Intron","Intergenic","Ambiguity","Unmapped","User")))
@@ -82,7 +85,7 @@ if(length( unique(typeCount$RG))<=200  ){
            legend.title = element_blank())
 
   ggsave(p,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".readspercell.pdf",sep=""),width = 10,height = 7)
-  write.table(cellTotal,file = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".readspercell.txt",sep=""),sep="\t",row.names = F,col.names = T)
+  write.table(tc,file = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".readspercell.txt",sep=""),sep="\t",row.names = F,col.names = T)
 }
 
 ##### Reads per cell based on their assignment type ###3
@@ -100,3 +103,4 @@ d<-plot_grid(cp,bar,box,ncol = 1,rel_heights  = c(0.3,0.2,0.5))
 
 ggsave(d,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".features.pdf",sep=""),width = 12,height = 9)
 
+gc()
