@@ -53,17 +53,12 @@ reads2genes <- function(featfiles,chunks,rgfile,cores){
   samcommand<-paste("cat freadHeader; samtools view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -R",rgfile,"-@",cores)
 
    if(length(featfiles)==1){
-          reads<-data.table::fread(paste(samcommand,featfiles), na.strings=c(""),
-                             select=c(12,13,14),header=T,fill=T,colClasses = "character")[
-                            , c("RG","UB","GE"):=list(.rmRG(V12),.rmUB(V13),.rmXT(V14))
-                          ][,c("V12","V13","V14"):=NULL]
+          reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/RG:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' "), na.strings=c(""),
+                                   select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","UB","GE") )
   }else{
-    reads<-data.table::fread(paste(samcommand,featfiles[1]), na.strings=c(""),
-                             select=c(12,13,14),header=T,fill=T,colClasses = "character" )[
-                               , c("RG","UB","GE"):=list(.rmRG(V12),.rmUB(V13),.rmXT(V14))
-                               ][,c("V12","V13","V14"):=NULL][
-                                 ,"tmp":=fread(paste(samcommand,featfiles[2]),select=14,header=T,fill=T,na.strings=c(""),colClasses = "character")
-                               ][ ,"GEin":=.rmXT(tmp) ][ ,tmp:=NULL
+    reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/RG:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' "), na.strings=c(""),
+                             select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","UB","GE") )[
+                                 ,"GEin":=fread(paste(samcommand,featfiles[2],"| cut -f13,14 | sed 's/XT:Z://'"),select=2,header=T,fill=T,na.strings=c(""),colClasses = "character")
                                   ][ ,"ftype":="NA"
                                   ][is.na(GEin)==F,ftype:="intron"
                                   ][is.na(GE)==F,  ftype:="exon"
