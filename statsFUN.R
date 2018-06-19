@@ -7,12 +7,12 @@ sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile){
   require(data.table)
   # check for user defined sequences
   ## minifunction for string operations
-  headerXX<-paste( c(paste0("V",1:14)) ,collapse="\t")
+  headerXX<-paste( c(paste0("V",1:3)) ,collapse="\t")
   write(headerXX,paste(outdir,"freadHeader",sep="/"))
   samcommand<-paste("cat freadHeader; samtools view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB -@",cores)
   #issue with BC matching
-  mapCount<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/RG:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' "), na.strings=c(""),
-                             select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","UB","GE") )[
+  mapCount<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/RG:Z://' | sed 's/XS:Z://' | sed 's/XT:Z://' "), na.strings=c(""),
+                             select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","XS","GE") )[
                               ,"GEin":=fread(paste(samcommand,featfiles[2],"| cut -f13,14 | sed 's/XT:Z://'"),select=2,header=T,fill=T,na.strings=c(""),colClasses = "character")
                                ][ ,"ftype":="NA"
                                ][is.na(GEin)==F,ftype:="Intron"

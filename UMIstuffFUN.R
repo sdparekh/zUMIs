@@ -48,7 +48,7 @@ reads2genes <- function(featfiles,chunks,rgfile,cores){
   ## minifunction for string operations
   nfiles=length(featfiles)
   write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
-  headerXX<-paste( c(paste0("V",1:14)) ,collapse="\t")
+  headerXX<-paste( c(paste0("V",1:3)) ,collapse="\t")
   write(headerXX,"freadHeader")
   samcommand<-paste("cat freadHeader; samtools view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -R",rgfile,"-@",cores)
 
