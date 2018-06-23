@@ -28,6 +28,7 @@ sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile){
                                ][type=="NoFeatures",type:="Intergenic"
                                ][,XS:=NULL]
     saveRDS(mapCount,file=outfile)
+    system(paste0("rm ",outdir,"/freadHeader"))
   return( mapCount )
 }
 

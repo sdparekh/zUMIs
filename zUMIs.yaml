@@ -70,6 +70,7 @@ counting_opts:
   Ham_Dist: 0 #Hamming distance collapsing of UMI sequences.
   velocyto: no #Would you like velocyto-compatible counting of intron-exon spanning reads
   primaryHit: yes #Do you want to count the primary Hits of multimapping reads towards gene expression levels?
+  twoPass: yes #perform basic STAR twoPass mapping
 
 #produce stats files and plots?
 make_stats: yes
@@ -81,4 +82,3 @@ use_SLURM: no
 which_Stage: Filtering
 
 #below, the fqfilter will add a read_layout flag defining SE or PE
-

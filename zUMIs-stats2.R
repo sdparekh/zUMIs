@@ -68,10 +68,11 @@ typeCount <- sumstatBAM(featfiles=c(paste0(opt$out_dir,"/",opt$project,".filtere
                          outfile = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".bc.READcounts.rds"))
  
 #only print per BC mapping stats if there are fewer than 200 BCs
+tc<-data.frame(typeCount)
+tc$type<-factor(tc$type, levels=rev(c("Exon","Intron","Intergenic","Ambiguity","Unmapped","User")))
+write.table(tc,file = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".readspercell.txt",sep=""),sep="\t",row.names = F,col.names = T)
 
 if(length( unique(typeCount$RG))<=200  ){
-  tc<-data.frame(typeCount)
-  tc$type<-factor(tc$type, levels=rev(c("Exon","Intron","Intergenic","Ambiguity","Unmapped","User")))
   p <- ggplot( tc, aes(x=reorder(RG,N), y=N,fill=type))+
         geom_bar(stat = "identity",alpha=0.9,width=0.7) +
         xlab("") + 
@@ -85,7 +86,6 @@ if(length( unique(typeCount$RG))<=200  ){
            legend.title = element_blank())
 
   ggsave(p,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".readspercell.pdf",sep=""),width = 10,height = 7)
-  write.table(tc,file = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".readspercell.txt",sep=""),sep="\t",row.names = F,col.names = T)
 }
 
 ##### Reads per cell based on their assignment type ###3
