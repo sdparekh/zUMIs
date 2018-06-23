@@ -140,8 +140,8 @@ $total++;
 
 		if(($btmp < $bnbases) && ($mtmp < $mnbases)){
 		$filtered++;
-
-		print BCOUT $b1[0],"\t4\t*\t0\t0\t*\t*\t0\t0\t$bseq$mseq\t$bqual$mqual\n";
+		$b1[0] =~ m/^@(.*)\s/;
+		print BCOUT $1,"\t4\t*\t0\t0\t*\t*\t0\t0\t$bseq$mseq\t$bqual$mqual\n";
 		print BCOUTFULL $b1[0],"\n",$bseq,$mseq,"\n+\n",$bqual,$mqual,"\n";
 		print CDOUT $c[0],"\n",$crseq,"\n",$cqid,"\n",$cqseq,"\n";
 		}
