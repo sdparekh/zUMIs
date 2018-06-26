@@ -73,7 +73,7 @@ param_misc <- paste("--genomeDir",inp$reference$STAR_index,
                     "--readFilesType SAM",inp$read_layout)
 
 STAR_command <- paste(STAR_exec,param_defaults,param_misc,inp$reference$additional_STAR_params,param_additional_fa)
-if(inp$reference$twoPass=T){
+if(inp$counting_opts$twoPass==T){
   STAR_command <- paste(STAR_command,"--twopassMode Basic")
 }
 
