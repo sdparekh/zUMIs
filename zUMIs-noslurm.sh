@@ -93,7 +93,7 @@ re='^[0-9]+$'
 			if [[ "$isstrt" == "yes" ]] ; then
 				perl $zumisdir/fqfilter-strt.pl $f1 $f2 $f3 $cq $cbq $mq $mbq $xm $bt $t $sn $o $pigzexc
 			elif [[ "$isindrops" == "yes" ]] ; then
-				perl $zumisdir/fqfilter-inDrops.pl $f1 $f2 $libread $f3 $cq $cbq $mq $mbq $xm $t $sn $o $pigzexc
+				perl $zumisdir/fqfilter-inDrops.pl $f1 $f2 $libread $f3 $cq $cbq $mq $mbq $xm $t $sn $o $pigzexc $xc
 			else
 				perl $zumisdir/fqfilter.pl $f2 $f1 $pbcfastq $cq $cbq $mq $mbq $xc $pbcrange $xm $t $sn $o $pigzexc
 			fi

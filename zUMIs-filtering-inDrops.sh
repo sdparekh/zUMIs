@@ -14,6 +14,7 @@ cq="${11}"
 t="${12}"
 d="${13}"
 pigz="${14}"
+xc="${15}"
 
 # MAKING THE HEADER
 echo '#!/bin/bash' >$o/$sn.prep.sh
@@ -24,6 +25,6 @@ echo '#SBATCH --cpus-per-task='$t >>$o/$sn.prep.sh
 echo '#SBATCH --workdir='$o >>$o/$sn.prep.sh
 echo '#SBATCH --mem=1000' >>$o/$sn.prep.sh
 
-echo "srun perl $d/fqfilter-inDrops.pl $f1 $f2 $f3 $f4 $cq $cbq $mq $mbq $xm $t $sn $o $pigz" >>$o/$sn.prep.sh
+echo "srun perl $d/fqfilter-inDrops.pl $f1 $f2 $f3 $f4 $cq $cbq $mq $mbq $xm $t $sn $o $pigz $xc" >>$o/$sn.prep.sh
 
 sbatch $o/$sn.prep.sh > $o/$sn.preparejobid.txt

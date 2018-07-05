@@ -8,7 +8,7 @@ if(@ARGV != 13)
 {
 print
 "\n#####################################################################################
-Usage: perl $0 <cDNA-read.fq.gz> <cellbarcode1-Read.fq.gz> <librarybarcode-Read.fq.gz> <cellbarcode2-Read.fq.gz> <nBase_BC_threshold> <BC_Qual_threshold> <nBase_umi_threshold> <UMI_Qual_threshold> <UMI_range> <Threads> <StudyName> <Outdir> <pigz-executable> \n
+Usage: perl $0 <cDNA-read.fq.gz> <cellbarcode1-Read.fq.gz> <librarybarcode-Read.fq.gz> <cellbarcode2-Read.fq.gz> <nBase_BC_threshold> <BC_Qual_threshold> <nBase_umi_threshold> <UMI_Qual_threshold> <UMI_range> <Threads> <StudyName> <Outdir> <pigz-executable> <BC_range>\n
 Explanation of parameter:
 
 cDNA-Read.fq.gz		- Input fastq file with cDNA reads.
@@ -20,7 +20,8 @@ nBase_BC_threshold	- Cell barcodes with number of bases under the base quality i
 BC_Qual_threshold	- Minimum base quality required for the cell barcode to be accepted.(e.g. 20)
 nBase_umi_threshold	- Molecular(UMI) barcodes with number of bases under the base quality is filtered out. (e.g. 1)
 UMI_Qual_threshold	- Minimum base quality required for the molecule(umi) barcode to be accepted.(e.g. 20)
-UMI_range		- Base range for UMI barcode in -f Barcode read (e.g. 1-6).
+UMI_range		- Base range for UMI barcode (e.g. 1-6).
+BC_range		- Base range for cell barcode (e.g. 1-22).
 
 Threads			- Number of threads to use for zipping.
 Study      		- Study name.
@@ -43,11 +44,19 @@ $bqualthreshold=$ARGV[5];
 $mnbases=$ARGV[6];
 $mqualthreshold=$ARGV[7];
 $mcrange=$ARGV[8];
+$bcrange=$ARGV[13];
 
 $threads=$ARGV[9];
 $study=$ARGV[10];
 $outdir=$ARGV[11];
 $pigz=$ARGV[12];
+
+@b = split("-",$bcrange);
+@m = split("-",$mcrange);
+$bs = $b[0] - 1;
+$ms = $m[0] - 1;
+$bl = $b[1]-$b[0]+1;
+$ml = $m[1]-$m[0]+1;
 
 $bcreadout = $outdir."/".$study.".barcodelist.filtered.sam";
 $bcreadoutfull = $outdir."/".$study.".barcoderead.filtered.fastq";
@@ -122,10 +131,10 @@ $total++;
 		if(grep {$_ > 74} @quals){$offset=64;}else{$offset=33;}
 	}
 
-	$bseq = substr($seq,0,22);
-	$mseq = substr($seq,22,6);
-	$bqual = substr($qseq,0,22);
-	$mqual = substr($qseq,22,6);
+	$bseq = substr($seq,$bs,$bl);
+	$mseq = substr($seq,$bl,$ml);
+	$bqual = substr($qseq,$bs,$bl);
+	$mqual = substr($qseq,$bl,$ml);
 
 	@c = split(/\/|\s/,$crid);
 	@b1 = split(/\/|\s/,$brid1);

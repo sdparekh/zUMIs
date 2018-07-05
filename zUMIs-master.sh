@@ -40,7 +40,7 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 	-a  <GTF annotation>     : Path to GTF file. Required.
 	-c  <XC baserange>       : Base range for cell/sample barcode in -f Barcode read(e.g. 1-6).  Required.
 				   For STRT-seq give this as 1-n where n is your first cell barcode(-f) length.
-				   For InDrops give this as 1-n where n is the total length of cell barcode(e.g. 1-22).
+				   For InDrops give this as 1-n where n is the total length of cell barcode (8bp BC part1 + 6bp library barcode + 8bp BC part2) (e.g. 1-22).
 	-m  <XM baserange>       : Base range for UMI barcode in -f Barcode read(e.g. 7-16).  Required.
 				   For STRT-seq/InDrops give this as 1-n where n is your UMI length.
 	-l  <readlength>         : Read length of -r cDNA reads (e.g. 50).  Required.
@@ -218,7 +218,7 @@ fi
 if [[ ! "$pbcfastq" =~ ^[/|~|NA] ]] ; then
 	pbcfastq=`pwd`/$pbcfastq
 fi
-    
+
 if [[ ! "$bcread2" =~ ^[/|~|NA] ]] ; then
 	bcread2=`pwd`/$bcread2
 fi
@@ -357,7 +357,7 @@ if [[ "$isslurm" == "yes" ]] ; then
 		if [[ "$isstrt" == "yes" ]] ; then
 			bash $zumisdir/zUMIs-filtering-strt.sh $cdnaread $bcread $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $bcread2 $BaseTrim $pigzexc
 		elif [[ "$isindrops" == "yes" ]] ; then
-			bash $zumisdir/zUMIs-filtering-inDrops.sh $cdnaread $bcread $libread $bcread2 $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $pigzexc
+			bash $zumisdir/zUMIs-filtering-inDrops.sh $cdnaread $bcread $libread $bcread2 $sname $outdir $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $pigzexc $xcrange
 		else
 			bash $zumisdir/zUMIs-filtering.sh $bcread $cdnaread $sname $outdir $xcrange $xmrange $cbasequal $mbasequal $molbcbase $cellbcbase $threads $zumisdir $pigzexc $pbcfastq $pbcrange
 		fi
