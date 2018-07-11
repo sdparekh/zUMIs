@@ -4,7 +4,7 @@
 # Author: Swati Parekh
 # Contact: parekh@bio.lmu.de or ziegenhain@bio.lmu.de or hellmann@bio.lmu.de
 
-if(@ARGV != 13)
+if(@ARGV != 14)
 {
 print
 "\n#####################################################################################
