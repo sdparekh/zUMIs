@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh &  Christoph Ziegenhain
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se or hellmann@bio.lmu.de
-vers=0.0.6c
+vers=0.0.6d
 function check_opts() {
     value=$1
     name=$2
@@ -42,7 +42,7 @@ Make sure you have 3-4 times more disk space to your input fastq files.
 				   For STRT-seq give this as 1-n where n is your first cell barcode(-f) length.
 				   For InDrops give this as 1-n where n is the total length of cell barcode (8bp BC part1 + 6bp library barcode + 8bp BC part2) (e.g. 1-22).
 	-m  <XM baserange>       : Base range for UMI barcode in -f Barcode read(e.g. 7-16).  Required.
-				   For STRT-seq/InDrops give this as 1-n where n is your UMI length.
+				   For STRT-seq give this as 1-n where n is your UMI length. For InDrops, set UMI range to start after the cell barcode (eg. -m 23-28).
 	-l  <readlength>         : Read length of -r cDNA reads (e.g. 50).  Required.
 				   For STRT-seq give this as a total length of your umicdna read.
 
