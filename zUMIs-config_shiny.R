@@ -25,10 +25,10 @@ ui <- fluidPage(
                             textInput(inputId="outDir", label="Full path to the output directory", placeholder="eg: /path/to/output")
                           ))
                         ),
-
+                        
                         #STAR options
-
-
+                        
+                        
                         # slider input for number of fastq reads
                         fluidRow(
                           h4("Input options:",style = "padding-left: 20px;"),
@@ -39,10 +39,10 @@ ui <- fluidPage(
                             uiOutput("fqUI")
                           ))
                         ),
-
-
+                        
+                        
                         fluidRow(
-
+                          
                           column(3,wellPanel(
                             uiOutput("fqBCui")
                           ),offset = 1),
@@ -53,7 +53,7 @@ ui <- fluidPage(
                             uiOutput("fqCDNAui")
                           ))
                         ),
-
+                        
                         fluidRow(
                           h4("Mapping/Reference options:",style = "padding-left: 20px;"),
                           column(6,wellPanel(
@@ -67,8 +67,8 @@ ui <- fluidPage(
                             uiOutput("refUI")
                           ))
                         )
-
-
+                        
+                        
                ),
                tabPanel("Optional Parameters",
                         fluidRow(
@@ -80,8 +80,8 @@ ui <- fluidPage(
                             checkboxInput("useSLURM",label="Use SLURM workload manager",value = F),
                             selectInput("whichStage",label = "Start zUMIs from following stage:",choices = c("Filtering", "Mapping", "Counting", "Summarising"),selected = "Filtering",multiple = F)
                           )),
-
-
+                          
+                          
                           column(6,wellPanel(
                             h4("Barcode & UMI filtering options:"),
                             numericInput("BCbases","Number of barcode bases below quality:",value=1,min=1,step=1),
@@ -107,7 +107,7 @@ ui <- fluidPage(
                             uiOutput("barcodeUI"),
                             numericInput("HamBC","Hamming distance collapsing of close cell barcode sequences. ATTENTION! This option is currently not implemented!",value=0,min=0,max=5,step=1),
                             numericInput("nReadsBC","Keep only the cell barcodes with atleast n number of reads",value=100,min=1,max=5,step=1)
-
+                            
                           ))
                         )
                ),
@@ -126,7 +126,7 @@ ui <- fluidPage(
 
 # Define server logic
 server <- function(input, output, session) {
-
+  
   output$barcodeUI <- renderUI({
     switch(input$barcodeChoice,
            "Automatic" = p(em("Intact barcodes will be detected automatically.")),
@@ -134,7 +134,7 @@ server <- function(input, output, session) {
            "Barcod whitelist" = textInput(inputId = "BCfile",label = "File to barcode whitelist to use:", value = "/fullpath/to/file.txt")
     )
   })
-
+  
   output$refUI <- renderUI({
     if(input$NUMadditionalFA>0){
       lapply(1:input$NUMadditionalFA, function(i) {
@@ -142,7 +142,7 @@ server <- function(input, output, session) {
       })
     }
   })
-
+  
   output$fqUI <- renderUI({
     if(input$nfiles>0){
       lapply(1:input$nfiles, function(i) {
@@ -150,7 +150,7 @@ server <- function(input, output, session) {
       })
     }
   })
-
+  
   output$fqBCui <- renderUI({
     # if(input$nfiles>0){
     #   lapply(1:input$nfiles, function(i) {
@@ -160,26 +160,30 @@ server <- function(input, output, session) {
     lapply(1:input$nfiles, function(i) {
       textInput(inputId = paste0("BC_",i),label = paste("Read",i,"BC"),placeholder = "eg: 1-6")
     })
-
+    
   })
-
+  
   output$fqUMIui <- renderUI({
     lapply(1:input$nfiles, function(i) {
       textInput(inputId = paste0("UMI_",i),label = paste("Read",i,"UMI"),placeholder = "eg: 7-16")
     })
   })
-
+  
   output$fqCDNAui <- renderUI({
     lapply(1:input$nfiles, function(i) {
       textInput(inputId = paste0("cDNA_",i),label = paste("Read",i,"cDNA"),placeholder = "eg: 1-50")
     })
   })
-
-
+  
+  
   output$saveUI <- renderUI({
     textInput(inputId = "savePath",label = "Save YAML file in this path:",value = paste0(input$outDir,"/",input$runID,".yaml"))
   })
-
+  
+  output$layoutUI <- renderUI({
+    selectInput(inputId = "layout", label="cDNA Read Layout", choices = c("SE","PE"),selected = "SE")
+  })
+  
   # output$basedefui <- renderUI({
   #   strong(paste("found"))
   #   lapply(1:input$nfiles, function(i){
@@ -190,16 +194,16 @@ server <- function(input, output, session) {
   #     #})
   #   })
   # })
-
-
+  
+  
   observeEvent(input$SaveYAML, {
     write_yaml(
       x = makeYAML(input),
       file = input$savePath
     )
-
+    
   })
-
+  
   makeYAML<-function(input){
     #collect fastq file information
     seqf<-list()
@@ -207,14 +211,14 @@ server <- function(input, output, session) {
       bc_struc<-c(input[[paste0("cDNA_",i)]],input[[paste0("BC_",i)]],input[[paste0("UMI_",i)]])
       names(bc_struc)<-c("cDNA","BC","UMI")
       bc_struc<-bc_struc[which( bc_struc != "" )]
-
+      
       seqf[[i]] <- list(
         "name" = input[[paste0("fqpath_",i)]],
         "base_definition" = paste0(names(bc_struc),"(",bc_struc,")")
       )
     }
     names(seqf) <- paste0("file",1:input$nfiles)
-
+    
     #collect potential additional fasta files
     if(input$NUMadditionalFA>0){
       fa_list <- c()
@@ -224,10 +228,10 @@ server <- function(input, output, session) {
     }else{
       fa_list<-NULL
     }
-
+    
     #decide on barcode param
     #if(input$barcodeChoice)
-
+    
     #make yaml list
     y <- list(
       "project" = input$runID,
@@ -272,9 +276,9 @@ server <- function(input, output, session) {
     )
     return(y)
   }
-
+  
   observeEvent(input$LoadYAML, {
-
+    
     if(file.exists(input$inYAML)){
       print(paste("Loading",input$inYAML))
       loading_func(input$inYAML)
@@ -282,11 +286,11 @@ server <- function(input, output, session) {
       }else{
         print("File doesn't exist!")
       }
-
+      
   })
-
+  
   loading_func <- function(myYAML){
-
+    
       ya <- read_yaml(file = myYAML)
       updateTextInput(session = session,inputId = "runID",value = ya$project)
       updateTextInput(session = session,inputId = "outDir",value = ya$out_dir)
@@ -302,7 +306,7 @@ server <- function(input, output, session) {
       updateSliderInput(session = session, inputId = "nfiles", value = length(ya$sequence_files))
       for(i in 1:length(ya$sequence_files)){
         updateTextInput(session = session,inputId = paste0("fqpath_",i), value = ya$sequence_files[[i]]$name)
-
+        
         if(any(grepl("BC",ya$sequence_files[[i]]$base_definition))){
           bc_string <- grep("BC",ya$sequence_files[[i]]$base_definition,value = T)
           bc_string <- substr(bc_string,start = 4, stop = nchar(bc_string)-1)
@@ -318,9 +322,9 @@ server <- function(input, output, session) {
           cdna_string <- substr(cdna_string,start = 6, stop = nchar(cdna_string)-1)
           updateTextInput(session = session,inputId = paste0("cDNA_",i), value = cdna_string)
         }
-
+        
       }
-
+      
       updateNumericInput(session = session, inputId = "BCbases", value = ya$filter_cutoffs$BC_filter$num_bases)
       updateNumericInput(session = session, inputId = "BCphred", value = ya$filter_cutoffs$BC_filter$phred)
       updateNumericInput(session = session, inputId = "UMIbases", value = ya$filter_cutoffs$UMI_filter$num_bases)
@@ -337,7 +341,7 @@ server <- function(input, output, session) {
       updateCheckboxInput(session = session, inputId = "doVelocity", value = ya$counting_opts$velocyto)
       updateCheckboxInput(session = session, inputId = "countPrimary", value = ya$counting_opts$primaryHit)
       updateCheckboxInput(session = session, inputId = "twoPass", value = ya$counting_opts$twoPass)
-      if (is.null(ya$barcodes$barcode_num & ya$barcodes$barcode_file)) {
+      if (is.null(ya$barcodes$barcode_num) & is.null(ya$barcodes$barcode_file)) {
         updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Automatic")
       }
       if (!is.null(ya$barcodes$barcode_file)){
@@ -348,13 +352,16 @@ server <- function(input, output, session) {
         updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Number of top Barcodes")
         updateNumericInput(session = session, inputId = "BCnum", value = ya$barcodes$barcode_num)
       }
-
+      
       updateNumericInput(session = session, inputId = "HamBC", value = ya$barcodes$BarcodeBinning)
       updateNumericInput(session = session, inputId = "nReadsBC", value = ya$barcodes$nReadsperCell)
-
-
+      
+      if(!is.null(ya$read_layout)){
+        updateSelectInput(session = session, inputId = "layout", selected = ya$read_layout)
+      }
+      
   }
-
+  
 }
 
 # Run the application
