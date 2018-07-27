@@ -11,7 +11,7 @@ Please drop your suggestions and clarifications to <sparekh\@age.mpg.de>\n
 ######################################################################################\n\n";
 exit;
 }
-
+BEGIN{
 $yml=$ARGV[0];
 $samtoolsexc=$ARGV[1];
 $rscriptexc=$ARGV[2];
@@ -25,12 +25,8 @@ print $samtoolsexc;
 print $pigz;
 print $rscriptexc;
 =cut
-BEGIN{
-#	print $zumisdir;
-	#print "@INC";
-	unshift @INC, '/data/share/htp/zUMIs2/zUMIs';
-#	print "@INC";
 }
+use lib "$zumisdir";
 use distilReads;
 
 open(YL,"Rscript $zumisdir/readYaml4fqfilter.R $yml |");
