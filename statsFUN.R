@@ -1,4 +1,4 @@
-.rmRG<-function(b){ gsub("RG:Z:","",b)}
+.rmRG<-function(b){ gsub("BC:Z:","",b)}
 .rmXS<-function(b){ gsub("XS:Z:","",b)}
 .rmXT<-function(b){ gsub("XT:Z:","",b)}
 .rmUnassigned<-function(b){ gsub("Unassigned_","",b)}
@@ -11,7 +11,7 @@ sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile){
   write(headerXX,paste(outdir,"freadHeader",sep="/"))
   samcommand<-paste("cat freadHeader; samtools view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB -@",cores)
   #issue with BC matching
-  mapCount<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/RG:Z://' | sed 's/XS:Z://' | sed 's/XT:Z://' "), na.strings=c(""),
+  mapCount<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/XS:Z://' | sed 's/XT:Z://' "), na.strings=c(""),
                              select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","XS","GE") )[
                               ,"GEin":=fread(paste(samcommand,featfiles[2],"| cut -f13,14 | sed 's/XT:Z://'"),select=2,header=T,fill=T,na.strings=c(""),colClasses = "character")
                                ][ ,"ftype":="NA"
