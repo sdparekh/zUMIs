@@ -101,6 +101,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   return(bccount[keep==TRUE,XC])
 }
 .cellBarcode_known   <- function( bccount, bcfile  ){
+
   bc<-read.table(bcfile,header = F,stringsAsFactors = F)$V1
   if( any( bc %in% bccount$XC ) ){
     bccount[XC %in% bc,keep:=TRUE]
@@ -114,7 +115,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
       bccount[1:100,keep:=TRUE]
     }
   }
-  
+
   return(bccount[keep==TRUE,XC])
 }
 
@@ -122,6 +123,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
 cellBC<-function(bcfile, bcnum, bccount_file, outfilename=NULL){
   bccount<-data.table::fread( bccount_file )
   names(bccount)<-c("XC","n")
+  bccount <- bccount[,list(n=sum(n)),by=XC]
   bccount<-bccount[n>=opt$barcodes$nReadsperCell][order(-n)][,cellindex:=1:(.N)][,keep:=FALSE]
 
   if(is.null(bcfile)==FALSE){

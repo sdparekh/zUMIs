@@ -83,6 +83,7 @@ isslurm=`grep 'use_SLURM:' $yaml | awk '{print $2}'`
 genomedir=`grep 'STAR_index:' $yaml | awk '{print $2}'`
 mem_limit=`grep 'mem_limit:' $yaml | awk '{print $2}'`
 isstats=`grep 'make_stats:' $yaml | awk '{print $2}'`
+fqfiles=`grep 'name:' $yaml | awk '{print $2}'`
 
 echo -e "\n\n You provided these parameters:
  YAML file:	$yaml
@@ -99,20 +100,91 @@ outdir=`grep 'out_dir' $yaml | awk '{print $2}'`
 [ -d $outdir/zUMIs_output/ ] || mkdir $outdir/zUMIs_output/
 [ -d $outdir/zUMIs_output/expression ] || mkdir $outdir/zUMIs_output/expression
 [ -d $outdir/zUMIs_output/stats ] || mkdir $outdir/zUMIs_output/stats
+[ -d $outdir/zUMIs_output/.tmpMerge ] || mkdir $outdir/zUMIs_output/.tmpMerge
+
+if grep -q 'samtools_exec:' $yaml
+  then
+    sed -i "s|samtools_exec:.*|samtools_exec: $samtoolsexc|" $yaml
+  else
+    echo "samtools_exec: $samtoolsexc" >> $yaml
+  fi
+
+  if grep -q 'pigz_exec:' $yaml
+  then
+    sed -i "s|pigz_exec:.*|pigz_exec: $pigzexc|" $yaml
+  else
+    echo "pigz_exec: $pigzexc" >> $yaml
+  fi
+
+  if grep -q 'STAR_exec:' $yaml
+  then
+    sed -i "s|STAR_exec:.*|STAR_exec: $starexc|" $yaml
+  else
+    echo "STAR_exec: $starexc" >> $yaml
+  fi
+
+  if grep -q 'zUMIs_directory:' $yaml
+  then
+    sed -i "s|zUMIs_directory:.*|zUMIs_directory: $zumisdir|" $yaml
+  else
+    echo "zUMIs_directory: $zumisdir" >> $yaml
+  fi
 
 
 if
 [[ "$whichStage" == "Filtering" ]]
 then
   echo "Starting Filtering..."
-  echo "samtools_exec: $samtoolsexc" >> $yaml
-  echo "pigz_exec: $pigzexc" >> $yaml
-  echo "STAR_exec: $starexc" >> $yaml
-  echo "zUMIs_directory: $zumisdir" >> $yaml
+  #echo "samtools_exec: $samtoolsexc" >> $yaml
+  #echo "pigz_exec: $pigzexc" >> $yaml
+  #echo "STAR_exec: $starexc" >> $yaml
+  #echo "zUMIs_directory: $zumisdir" >> $yaml
+
+  f=`cut -d' ' -f1 <(echo $fqfiles)` # the first fastq file to determine gzip status
+
+  tmpMerge=$outdir/zUMIs_output/.tmpMerge/
+
   if [[ "$isslurm" == "yes" ]]; then
-    sbatch --cpus-per-task=$num_threads --wrap="perl $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir" > $outdir/$project.slurmjobid.txt
+
+    if [[ $f =~ \.gz$ ]]; then
+      nlines=`pigz -p $num_threads -d -c $f | wc -l`
+      for i in $fqfiles;do sbatch --cpus-per-task=1 --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfqgz $project" > $outdir/$project.splitfq.slurmjobid.txt;done
+    else
+      nlines=`wc -l $f | awk '{print $1}'`
+      for i in $fqfiles;do sbatch --cpus-per-task=1 --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfq $project" > $outdir/$project.splitfq.slurmjobid.txt;done
+    fi
+
+    j=`cat $outdir/$project.splitfq.slurmjobid.txt | cut -f4 -d' '`
+
+    sbatch --cpus-per-task=1 --dependency=afterok:'$j' --mem=1M --wrap="bash $zumisdir/listPrefix.sh $zumisdir $tmpMerge $f $project" > $outdir/$project.listPrefix.slurmjobid.txt
+
+    j=`cat $outdir/$project.listPrefix.slurmjobid.txt | cut -f4 -d' '`
+
+    for x in `cat $tmpMerge/$project.listPrefix.txt`;do sbatch --cpus-per-task=$num_threads --dependency=afterok:'$j' --mem=10M --wrap="bash $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir $x" > $outdir/$project.fqfilter_v2.slurmjobid.txt;done
+
+    j=`cat $outdir/$project.fqfilter_v2.slurmjobid.txt | cut -f4 -d' '`
+
+    sbatch --cpus-per-task=1 --dependency=afterok:'$j' --mem=1M --wrap="bash $zumisdir/mergeBAM.sh $zumisdir $tmpMerge $num_threads $project $outdir $yaml" > $outdir/$project.mergeBAM.slurmjobid.txt
+
+    j=`cat $outdir/$project.mergeBAM.slurmjobid.txt | cut -f4 -d' '`
+
   else
-    perl $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir
+
+    if [[ $f =~ \.gz$ ]]; then
+      nlines=`pigz -p $num_threads -d -c $f | wc -l`
+      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfqgz $project;done
+      pref=`basename $f .gz`
+      l=`ls $tmpMerge$pref* | sed "s|$tmpMerge$pref||" | sed 's/.gz//'`
+    else
+      nlines=`wc -l $f | awk '{print $1}'`
+      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfq $project;done
+      pref=`basename $f`
+      l=`ls $tmpMerge$pref* | sed "s|$tmpMerge$pref||"`
+    fi
+
+    for x in $l; do perl $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir $x & done
+    wait
+    bash $zumisdir/mergeBAM.sh $zumisdir $tmpMerge $num_threads $project $outdir $yaml
   fi
 fi
 
@@ -123,8 +195,8 @@ then
   echo "Starting Mapping..."
   if [[ "$isslurm" == "yes" ]]; then
     memory=`du -sh $genomedir | cut -f1` #STAR genome index size
-    j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' '`
-    sbatch --dependency=afterok:'$j' --mem=$memory --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-mapping.R $yaml" > $outdir/$project.slurmjobid.txt
+    j=`cat $outdir/$project.mergeBAM.slurmjobid.txt | cut -f4 -d' '`
+    sbatch --dependency=afterok:'$j' --mem=$memory --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-mapping.R $yaml" > $outdir/$project.mapping.slurmjobid.txt
   else
     $Rexc $zumisdir/zUMIs-mapping.R $yaml
   fi
@@ -143,8 +215,8 @@ then
     else
       mem_limit=`expr $mem_limit \* 1000`
     fi
-    j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' '`
-    sbatch --dependency=afterok:'$j' --mem=$mem_limit --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-dge2.R $yamlnew" > $outdir/$project.slurmjobid.txt
+    j=`cat $outdir/$project.mapping.slurmjobid.txt | cut -f4 -d' '`
+    sbatch --dependency=afterok:'$j' --mem=$mem_limit --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-dge2.R $yamlnew" > $outdir/$project.dge.slurmjobid.txt
    else
      $Rexc $zumisdir/zUMIs-dge2.R $yamlnew
    fi
@@ -160,8 +232,8 @@ then
   if [[ "$isstats" == "yes" ]]; then
     echo "Starting descriptive statistics..."
     if [[ "$isslurm" == "yes" ]]; then
-      j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' '`
-      sbatch --dependency=afterok:'$j' --mem=5000 --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-stats2.R $yamlnew" > $outdir/$project.slurmjobid.txt
+      j=`cat $outdir/$project.dge.slurmjobid.txt | cut -f4 -d' '`
+      sbatch --dependency=afterok:'$j' --mem=5000 --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-stats2.R $yamlnew" > $outdir/$project.stats.slurmjobid.txt
     else
       $Rexc $zumisdir/zUMIs-stats2.R $yamlnew
     fi

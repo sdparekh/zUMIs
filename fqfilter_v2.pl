@@ -2,35 +2,24 @@
 # LMU Munich. AG Enard
 # A script to filter reads based on Barcode base quality.
 
-if(@ARGV != 5)
+if(@ARGV != 6)
 {
 print
 "\n#####################################################################################
-Usage: perl $0 <yaml> <samtools-executable> <rscript-executable> <pigz-executable> <zUMIs-dir>\n
+Usage: perl $0 <yaml> <samtools-executable> <rscript-executable> <pigz-executable> <zUMIs-dir> <tmpPrefix>\n
 Please drop your suggestions and clarifications to <sparekh\@age.mpg.de>\n
 ######################################################################################\n\n";
 exit;
 }
-
+BEGIN{
 $yml=$ARGV[0];
 $samtoolsexc=$ARGV[1];
 $rscriptexc=$ARGV[2];
 $pigz=$ARGV[3];
 $zumisdir=$ARGV[4];
-=begin
-chomp($zumisdir);
-print $zumisdir;
-print $yml;
-print $samtoolsexc;
-print $pigz;
-print $rscriptexc;
-=cut
-BEGIN{
-#	print $zumisdir;
-	#print "@INC";
-	unshift @INC, '/data/share/htp/zUMIs2/zUMIs';
-#	print "@INC";
+$tmpPrefix=$ARGV[5];
 }
+use lib "$zumisdir";
 use distilReads;
 
 open(YL,"Rscript $zumisdir/readYaml4fqfilter.R $yml |");
@@ -61,8 +50,8 @@ chomp($num_threads);
 chomp($BCfilter);
 chomp($UMIfilter);
 
-$outbcstats = "$outdir/$StudyName.BCstats.txt";
-$outbam = "$outdir/$StudyName.filtered.tagged.bam";
+$outbcstats = "$outdir/zUMIs_output/.tmpMerge/$StudyName.$tmpPrefix.BCstats.txt";
+$outbam = "$outdir/zUMIs_output/.tmpMerge/$StudyName.$tmpPrefix.filtered.tagged.bam";
 
 # Make and open all the file handles
 %file_handles = distilReads::makeFileHandles($f,$st);
@@ -77,9 +66,21 @@ for($i=0;$i<=$#keys;$i++){
   @fp = split(":",$file_handles{$fh});
 
   if ($fp[0] =~ /\.gz$/) {
-    open $fh, '-|', $pigz, '-dc', $fp[0] || die "Couldn't open file ".$fp[0].". Check permissions!\n Check if it is differently zipped then .gz\n\n";
+		$oriF = $fp[0];
+		$oriBase = `basename $oriF .gz`;
+    chomp($oriBase);
+
+		#change the file name to temporary prefix for its chunk
+		$chunk = "$outdir/zUMIs_output/.tmpMerge/$oriBase$tmpPrefix.gz";
+    open $fh, '-|', $pigz, '-dc', $chunk || die "Couldn't open file ".$chunk.". Check permissions!\n Check if it is differently zipped then .gz\n\n";
   }else {
-    open $fh, "<", $fp[0] || die "Couldn't open file ".$fp[0].". Check permissions!\n Check if it is differently zipped then .gz\n\n";
+
+		$oriF = $fp[0];
+		$oriBase = `basename $oriF'`;
+		#change the file name to temporary prefix for its chunk
+		$chunk = "$outdir/zUMIs_output/.tmpMerge/$oriBase$tmpPrefix.gz";
+
+    open $fh, "<", $chunk || die "Couldn't open file ".$chunk.". Check permissions!\n Check if it is differently zipped then .gz\n\n";
   }
 }
 
@@ -149,10 +150,10 @@ while(<$fh1>){
       $bclist{$bcseq}++;
       #print $lay,"\n";
       if($lay eq "SE"){
-        print BCBAM $1,"\t4\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tRG:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
+        print BCBAM $1,"\t4\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
       }else{
-        print BCBAM $1,"\t77\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tRG:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
-        print BCBAM $1,"\t141\t*\t0\t0\t*\t*\t0\t0\t",$cseqr2,"\t",$cqseqr2,"\tRG:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
+        print BCBAM $1,"\t77\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
+        print BCBAM $1,"\t141\t*\t0\t0\t*\t*\t0\t0\t",$cseqr2,"\t",$cqseqr2,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
       }
     }
 }
@@ -167,7 +168,6 @@ close BCOUT;
 
 print "Raw reads: $total \nFiltered reads: $filtered \n\n";
 
-open YAML, '>>', $yml || die "Couldn't open file ".$yml.". Check permissions!\n";
-print YAML "read_layout: ",$lay,"\n";
-close YAML;
-=cut
+#open YAML, '>>', $yml || die "Couldn't open file ".$yml.". Check permissions!\n";
+#print YAML "read_layout: ",$lay,"\n";
+#close YAML;
