@@ -13,6 +13,7 @@ function splitfq() {
 	project=$6
 
   n=`expr $nreads / $nthreads`
+	n=`expr $n + 1`
 	nl=`expr $n \* 4`
   pref=`basename $fqfile`
   d=`dirname $fqfile`
