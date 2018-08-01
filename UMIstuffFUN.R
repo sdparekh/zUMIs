@@ -50,15 +50,15 @@ reads2genes <- function(featfiles,chunks,rgfile,cores){
   write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
   headerXX<-paste( c(paste0("V",1:3)) ,collapse="\t")
   write(headerXX,"freadHeader")
-  samcommand<-paste("cat freadHeader; samtools view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -R",rgfile,"-@",cores)
+  samcommand<-paste("cat freadHeader; samtools view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@",cores)
 
    if(length(featfiles)==1){
-          reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' "), na.strings=c(""),
+          reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
                                    select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","UB","GE") )
   }else{
-    reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' "), na.strings=c(""),
+    reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
                              select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","UB","GE") )[
-                                 ,"GEin":=fread(paste(samcommand,featfiles[2],"| cut -f13,14 | sed 's/XT:Z://'"),select=2,header=T,fill=T,na.strings=c(""),colClasses = "character")
+                                 ,"GEin":=fread(paste(samcommand,featfiles[2],"| cut -f12,13,14  | grep -F -f ",rgfile," | sed 's/XT:Z://'"),select=3,header=T,fill=T,na.strings=c(""),colClasses = "character")
                                   ][ ,"ftype":="NA"
                                   ][is.na(GEin)==F,ftype:="intron"
                                   ][is.na(GE)==F,  ftype:="exon"
