@@ -8,8 +8,8 @@ library(data.table)
 library(yaml)
 library(ggplot2)
 library(Matrix)
-library(dplyr)
-library(cowplot)
+suppressMessages(library(dplyr))
+suppressMessages(library(cowplot))
 
 ##########################
 myYaml<-commandArgs(trailingOnly = T)

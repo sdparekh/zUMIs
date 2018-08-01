@@ -1,5 +1,5 @@
 #!/usr/bin/env Rscript
-require(yaml)
+suppressMessages(require(yaml))
 y<-commandArgs(trailingOnly = T)
 
 inp<-read_yaml(y)

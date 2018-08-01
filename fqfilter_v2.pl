@@ -166,7 +166,7 @@ foreach $bc (keys %bclist){
 }
 close BCOUT;
 
-print "Raw reads: $total \nFiltered reads: $filtered \n\n";
+#print "Raw reads: $total \nFiltered reads: $filtered \n\n";
 
 #open YAML, '>>', $yml || die "Couldn't open file ".$yml.". Check permissions!\n";
 #print YAML "read_layout: ",$lay,"\n";
