@@ -17,18 +17,7 @@ $samtoolsexc=$ARGV[1];
 $rscriptexc=$ARGV[2];
 $pigz=$ARGV[3];
 $zumisdir=$ARGV[4];
-<<<<<<< HEAD
 $tmpPrefix=$ARGV[5];
-=======
-=begin
-chomp($zumisdir);
-print $zumisdir;
-print $yml;
-print $samtoolsexc;
-print $pigz;
-print $rscriptexc;
-=cut
->>>>>>> 261c7b5e34f7f6fc33a3c1cb03c0dfb09eb3bd28
 }
 use lib "$zumisdir";
 use distilReads;
