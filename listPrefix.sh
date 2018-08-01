@@ -16,3 +16,9 @@ else
 	pref=`basename $f`
 	ls $tmpMerge$pref* | sed "s|$tmpMerge$pref||" > $tmpMerge/$project.listPrefix.txt
 fi
+
+ $zumisdir $tmpMerge $f $project $yaml $samtoolsexc $Rexc $pigzexc $zumisdir
+
+
+for x in `cat $tmpMerge/$project.listPrefix.txt`; do bash $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir $x & done
+wait

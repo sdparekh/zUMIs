@@ -151,13 +151,13 @@ then
 
     j=`cat $outdir/$project.splitfq.slurmjobid.txt | cut -f4 -d' '`
 
-    sbatch --cpus-per-task=1 --dependency=afterok:'$j' --mem=1M --wrap="bash $zumisdir/listPrefix.sh $zumisdir $tmpMerge $f $project" > $outdir/$project.listPrefix.slurmjobid.txt
+    sbatch --cpus-per-task=1 --dependency=afterok:'$j' --mem=1M --wrap="bash $zumisdir/listPrefix.sh $zumisdir $tmpMerge $f $project $yaml $samtoolsexc $Rexc $pigzexc $zumisdir" > $outdir/$project.listPrefix.slurmjobid.txt
 
     j=`cat $outdir/$project.listPrefix.slurmjobid.txt | cut -f4 -d' '`
 
-    for x in `cat $tmpMerge/$project.listPrefix.txt`;do sbatch --cpus-per-task=$num_threads --dependency=afterok:'$j' --mem=10M --wrap="bash $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir $x" > $outdir/$project.fqfilter_v2.slurmjobid.txt;done
+  #  for x in `cat $tmpMerge/$project.listPrefix.txt`;do sbatch --cpus-per-task=$num_threads --dependency=afterok:'$j' --mem=10M --wrap="bash $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir $x" > $outdir/$project.fqfilter_v2.slurmjobid.txt;done
 
-    j=`cat $outdir/$project.fqfilter_v2.slurmjobid.txt | cut -f4 -d' '`
+  #  j=`cat $outdir/$project.fqfilter_v2.slurmjobid.txt | cut -f4 -d' '`
 
     sbatch --cpus-per-task=1 --dependency=afterok:'$j' --mem=1M --wrap="bash $zumisdir/mergeBAM.sh $zumisdir $tmpMerge $num_threads $project $outdir $yaml" > $outdir/$project.mergeBAM.slurmjobid.txt
 
