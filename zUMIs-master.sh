@@ -143,9 +143,10 @@ then
   if [[ "$isslurm" == "yes" ]]; then
 
     if [[ $f =~ \.gz$ ]]; then
-      for i in $fqfiles;do sbatch --cpus-per-task=1 --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfqgz $project $f" > $outdir/$project.splitfq.slurmjobid.txt;done
+      echo "splitfq"
+      for i in $fqfiles;do sbatch --cpus-per-task=1 --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfqgz $project $f" > $outdir/$project.splitfq.slurmjobid.txt;done
     else
-      for i in $fqfiles;do sbatch --cpus-per-task=1 --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfq $project $f" > $outdir/$project.splitfq.slurmjobid.txt;done
+      for i in $fqfiles;do sbatch --cpus-per-task=1 --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfq $project $f" > $outdir/$project.splitfq.slurmjobid.txt;done
     fi
 
     j=`cat $outdir/$project.splitfq.slurmjobid.txt | cut -f4 -d' '`
@@ -165,11 +166,11 @@ then
   else
 
     if [[ $f =~ \.gz$ ]]; then
-      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfqgz $project $f;done
+      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfqgz $project $f;done
       pref=`basename $f .gz`
       l=`ls $tmpMerge$pref* | sed "s|$tmpMerge$pref||" | sed 's/.gz//'`
     else
-      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfq $project $f;done
+      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfq $project $f;done
       pref=`basename $f`
       l=`ls $tmpMerge$pref* | sed "s|$tmpMerge$pref||"`
     fi
