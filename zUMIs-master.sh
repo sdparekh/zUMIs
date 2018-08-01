@@ -135,10 +135,6 @@ if
 [[ "$whichStage" == "Filtering" ]]
 then
   echo "Starting Filtering..."
-  #echo "samtools_exec: $samtoolsexc" >> $yaml
-  #echo "pigz_exec: $pigzexc" >> $yaml
-  #echo "STAR_exec: $starexc" >> $yaml
-  #echo "zUMIs_directory: $zumisdir" >> $yaml
 
   f=`cut -d' ' -f1 <(echo $fqfiles)` # the first fastq file to determine gzip status
 
@@ -147,11 +143,9 @@ then
   if [[ "$isslurm" == "yes" ]]; then
 
     if [[ $f =~ \.gz$ ]]; then
-      nlines=`pigz -p $num_threads -d -c $f | wc -l`
-      for i in $fqfiles;do sbatch --cpus-per-task=1 --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfqgz $project" > $outdir/$project.splitfq.slurmjobid.txt;done
+      for i in $fqfiles;do sbatch --cpus-per-task=1 --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfqgz $project $f" > $outdir/$project.splitfq.slurmjobid.txt;done
     else
-      nlines=`wc -l $f | awk '{print $1}'`
-      for i in $fqfiles;do sbatch --cpus-per-task=1 --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfq $project" > $outdir/$project.splitfq.slurmjobid.txt;done
+      for i in $fqfiles;do sbatch --cpus-per-task=1 --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfq $project $f" > $outdir/$project.splitfq.slurmjobid.txt;done
     fi
 
     j=`cat $outdir/$project.splitfq.slurmjobid.txt | cut -f4 -d' '`
@@ -171,13 +165,11 @@ then
   else
 
     if [[ $f =~ \.gz$ ]]; then
-      nlines=`pigz -p $num_threads -d -c $f | wc -l`
-      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfqgz $project;done
+      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfqgz $project $f;done
       pref=`basename $f .gz`
       l=`ls $tmpMerge$pref* | sed "s|$tmpMerge$pref||" | sed 's/.gz//'`
     else
-      nlines=`wc -l $f | awk '{print $1}'`
-      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfq $project;done
+      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $nlines $tmpMerge splitfq $project $f;done
       pref=`basename $f`
       l=`ls $tmpMerge$pref* | sed "s|$tmpMerge$pref||"`
     fi
