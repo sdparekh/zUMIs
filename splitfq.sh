@@ -45,8 +45,16 @@ function splitfqgz() {
 i=$1
 pigzexc=$2
 num_threads=$3
-nlines=$4
-tmpMerge=$5
-fun=$6
-project=$7
+tmpMerge=$4
+fun=$5
+project=$6
+f=$7
+
+
+if [[ $f =~ \.gz$ ]]; then
+	nlines=`pigz -p $num_threads -d -c $f | wc -l`
+else
+	nlines=`wc -l $f | awk '{print $1}'`
+fi
+
 $fun "$i" "$pigzexc" "$num_threads" "$nlines" "$tmpMerge" "$project"
