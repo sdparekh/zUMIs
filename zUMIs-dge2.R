@@ -43,7 +43,9 @@ fnex<-.runFeatureCount(abamfile,
                        saf=saf$exons,
                        strand=opt$counting_opts$strand,
                        type="ex",
-                       primaryOnly = opt$counting_opts$primaryHit)
+                       primaryOnly = opt$counting_opts$primaryHit,
+                       cpu = opt$num_threads,
+                       mem = opt$mem_limit)
 ffiles<-fnex
 
 if(opt$counting_opts$introns){
@@ -51,7 +53,9 @@ if(opt$counting_opts$introns){
                            saf=saf$introns,
                            strand=opt$counting_opts$strand,
                            type="in",
-                           primaryOnly = opt$counting_opts$primaryHit)
+                           primaryOnly = opt$counting_opts$primaryHit,
+                           cpu = opt$num_threads,
+                           mem = opt$mem_limit)
   ffiles<-c(ffiles,fnin)
 }
 

@@ -70,20 +70,28 @@ checkRsubreadVersion<- function(){
   rm(se,gr.gene,intron,exon,intron.exon.red,intron.exon.dis,intron.only,ol.ex,ol.in,intron.saf,exon.saf)
   return(saf)
 }
-.runFeatureCount<-function(abamfile,RG,saf,strand,type,primaryOnly){
+.runFeatureCount<-function(abamfile,RG,saf,strand,type,primaryOnly,cpu,mem){
   print(paste0("Assigning reads to features (",type,")"))
   fc.stat<-Rsubread::featureCounts(files=abamfile,
                                    annot.ext=saf,
                                    isGTFAnnotationFile=F,
                                    primaryOnly=primaryOnly,
-                                   nthreads=1,
+                                   nthreads=cpu,
                                    reportReads="BAM",
                                    strandSpecific=strand,
                                    isPairedEnd=T,
                                    countChimericFragments=F)$stat
   fn<-paste0(abamfile,".featureCounts.bam")
   nfn<-paste0(abamfile,".",type,".featureCounts.bam")
-  system(paste("mv",fn,nfn))
+  
+  if(is.null(mem)){
+    mempercpu <- round(100/cpu,0)
+  }else{
+    mempercpu <- round(mem/cpu,0)
+  }
+
+  system(paste("samtools sort -n -O 'BAM' -@",cpu,paste0("-m ",mempercpu,"G"),"-o",nfn,fn))
+  system(paste("rm",fn))
   invisible(suppressWarnings(suppressMessages(gc(verbose=F))))
   return(nfn)
 }
