@@ -15,8 +15,8 @@ suppressMessages(library(cowplot))
 myYaml<-commandArgs(trailingOnly = T)
 opt   <-read_yaml(myYaml)
 setwd(opt$out_dir)
-featColors<-c("#1A5084", "#914614" ,"#118730","grey33","tan1","gold1","grey73","firebrick3")
-names(featColors)<-c("Exon","Intron+Exon","Intron","Unmapped","Ambiguity","Intergenic","Unused BC","User")
+featColors<-c("#1A5084", "#914614" ,"#118730","grey33","tan1","#631879FF","gold1","grey73","firebrick3")
+names(featColors)<-c("Exon","Intron+Exon","Intron","Unmapped","Ambiguity","MultiMapping","Intergenic","Unused BC","User")
 #####################################
 
 source(paste0(opt$zUMIs_directory,"/statsFUN.R"))

@@ -84,7 +84,7 @@ totReadCountBarplot<-function(typeCount,fillcol){
     mutate(perc=100*tot/sum(tot))
 
   sumBar$type<-factor(sumBar$type,
-                      levels=rev(c("Exon","Intron","Intergenic","Ambiguity",
+                      levels=rev(c("Exon","Intron","Intergenic","Ambiguity","MultiMapping",
                                    "Unmapped","User","Unused BC")))
 
   bar <- ggplot(sumBar, aes(x=1, y=perc, fill=type))+
@@ -113,7 +113,7 @@ totReadBoxplot<-function(typeCount,fillcol){
          mutate( perc = 100*N/sum(N))
 
   dpf$type<-factor(dpf$type,
-              levels = c("Exon","Intron" ,"Intergenic" ,"Ambiguity","Unmapped","User"))
+              levels = c("Exon","Intron" ,"Intergenic" ,"Ambiguity","MultiMapping","Unmapped","User"))
 
   box<-ggplot(dpf, aes(x=type, y=perc , fill=type))  +
         geom_boxplot()+
