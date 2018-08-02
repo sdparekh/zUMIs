@@ -32,7 +32,8 @@ function splitfqgz() {
 	project=$6
 
   n=`expr $nreads / $nthreads`
-	nl=`expr $n \* 4`
+  n=`expr $n + 1`
+  nl=`expr $n \* 4`
   pref=`basename $fqfile .gz`
   d=`dirname $fqfile`
   $pexc -dc -p $nthreads $d/$pref.gz | split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' - $t$pref
