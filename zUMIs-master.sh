@@ -134,7 +134,7 @@ if grep -q 'samtools_exec:' $yaml
 if
 [[ "$whichStage" == "Filtering" ]]
 then
-  echo "Starting Filtering..."
+  echo "Filtering..."
 
   f=`cut -d' ' -f1 <(echo $fqfiles)` # the first fastq file to determine gzip status
 
@@ -143,22 +143,18 @@ then
   if [[ "$isslurm" == "yes" ]]; then
 
     if [[ $f =~ \.gz$ ]]; then
-      echo "splitfq"
+      
       for i in $fqfiles;do sbatch --cpus-per-task=1 --job-name=splitfq --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfqgz $project $f" >> $outdir/$project.slurmjobid.txt;done
     else
       for i in $fqfiles;do sbatch --cpus-per-task=1 --job-name=splitfq --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfq $project $f" >> $outdir/$project.slurmjobid.txt;done
     fi
 
     j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
-	echo $j
+
     sbatch --cpus-per-task=1 --job-name=listPrefix --dependency=afterok:$j --mem=1M --wrap="bash $zumisdir/listPrefix.sh $zumisdir $tmpMerge $f $project $yaml $samtoolsexc $Rexc $pigzexc" >> $outdir/$project.slurmjobid.txt
-	echo "listPrefix"
+
     j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
-	echo $j
-  #  for x in `cat $tmpMerge/$project.listPrefix.txt`;do sbatch --cpus-per-task=$num_threads --dependency=afterok:$j --mem=10M --wrap="bash $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir $x" > $outdir/$project.slurmjobid.txt;done
-
-  #  j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
-
+	
     sbatch --cpus-per-task=1 --job-name=mergeBAM --dependency=afterok:$j --mem=1M --wrap="bash $zumisdir/mergeBAM.sh $zumisdir $tmpMerge $num_threads $project $outdir $yaml" >> $outdir/$project.slurmjobid.txt
 
     j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
@@ -187,7 +183,7 @@ if
 [[ "$whichStage" == "Filtering" ]] ||
 [[ "$whichStage" == "Mapping" ]]
 then
-  echo "Starting Mapping..."
+  echo "Mapping..."
   if [[ "$isslurm" == "yes" ]]; then
     memory=`du -sh $genomedir | cut -f1` #STAR genome index size
     j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
@@ -202,7 +198,7 @@ if
 [[ "$whichStage" == "Mapping" ]] ||
 [[ "$whichStage" == "Counting" ]]
 then
-  echo "Starting Counting..."
+  echo "Counting..."
   yamlnew=$outdir/$project.postmap.yaml  #note! mapping creates a temporary new yaml because of custom GTF!
   if [[ "$isslurm" == "yes" ]]; then
     if [[ $mem_limit == "null" ]]; then
@@ -225,7 +221,7 @@ if
 then
   yamlnew=$outdir/$project.postmap.yaml  #note! mapping creates a temporary new yaml because of custom GTF!
   if [[ "$isstats" == "yes" ]]; then
-    echo "Starting descriptive statistics..."
+    echo "Descriptive statistics..."
     if [[ "$isslurm" == "yes" ]]; then
       j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
       sbatch --dependency=afterok:$j --mem=5000 --job-name=stats --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-stats2.R $yamlnew" >> $outdir/$project.slurmjobid.txt
