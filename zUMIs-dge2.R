@@ -104,8 +104,13 @@ for(i in unique(bccount$chunkID)){
     }
 }
 
-final<-list( umicount  = convert2countM(alldt=allC,what="umicount"),
-             readcount = convert2countM(allC,"readcount"))
+if(any(unlist(lapply(opt$sequence_files, function(x){grepl("UMI",x$base_definition)} ))) ){
+  final<-list( umicount  = convert2countM(alldt=allC,what="umicount"),
+               readcount = convert2countM(allC,"readcount"))
+}else{
+  final<-list(readcount = convert2countM(allC,"readcount"))
+}
+
 
 saveRDS(final,file=paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".dgecounts.rds",sep=""))
 
