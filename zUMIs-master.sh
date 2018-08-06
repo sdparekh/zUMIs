@@ -79,7 +79,6 @@ num_threads=`grep 'num_threads' $yaml | awk '{print $2}'`
 project=`grep 'project:' $yaml | awk '{print $2}'`
 whichStage=`grep 'which_Stage:' $yaml | awk '{print $2}'`
 outdir=`grep 'out_dir' $yaml | awk '{print $2}'`
-isslurm=`grep 'use_SLURM:' $yaml | awk '{print $2}'`
 genomedir=`grep 'STAR_index:' $yaml | awk '{print $2}'`
 mem_limit=`grep 'mem_limit:' $yaml | awk '{print $2}'`
 isstats=`grep 'make_stats:' $yaml | awk '{print $2}'`
@@ -140,27 +139,6 @@ then
 
   tmpMerge=$outdir/zUMIs_output/.tmpMerge/
 
-  if [[ "$isslurm" == "yes" ]]; then
-
-    if [[ $f =~ \.gz$ ]]; then
-      
-      for i in $fqfiles;do sbatch --cpus-per-task=1 --job-name=splitfq --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfqgz $project $f" >> $outdir/$project.slurmjobid.txt;done
-    else
-      for i in $fqfiles;do sbatch --cpus-per-task=1 --job-name=splitfq --mem=10M --wrap="bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfq $project $f" >> $outdir/$project.slurmjobid.txt;done
-    fi
-
-    j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
-
-    sbatch --cpus-per-task=1 --job-name=listPrefix --dependency=afterok:$j --mem=1M --wrap="bash $zumisdir/listPrefix.sh $zumisdir $tmpMerge $f $project $yaml $samtoolsexc $Rexc $pigzexc" >> $outdir/$project.slurmjobid.txt
-
-    j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
-	
-    sbatch --cpus-per-task=1 --job-name=mergeBAM --dependency=afterok:$j --mem=1M --wrap="bash $zumisdir/mergeBAM.sh $zumisdir $tmpMerge $num_threads $project $outdir $yaml" >> $outdir/$project.slurmjobid.txt
-
-    j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
-
-  else
-
     if [[ $f =~ \.gz$ ]]; then
       for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfqgz $project $f & done
       wait
@@ -176,7 +154,6 @@ then
     for x in $l; do perl $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir $x & done
     wait
     bash $zumisdir/mergeBAM.sh $zumisdir $tmpMerge $num_threads $project $outdir $yaml
-  fi
 fi
 
 if
@@ -184,13 +161,7 @@ if
 [[ "$whichStage" == "Mapping" ]]
 then
   echo "Mapping..."
-  if [[ "$isslurm" == "yes" ]]; then
-    memory=`du -sh $genomedir | cut -f1` #STAR genome index size
-    j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
-    sbatch --dependency=afterok:$j --job-name=mapping --mem=$memory --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-mapping.R $yaml" >> $outdir/$project.slurmjobid.txt
-  else
     $Rexc $zumisdir/zUMIs-mapping.R $yaml
-  fi
 fi
 
 if
@@ -200,17 +171,7 @@ if
 then
   echo "Counting..."
   yamlnew=$outdir/$project.postmap.yaml  #note! mapping creates a temporary new yaml because of custom GTF!
-  if [[ "$isslurm" == "yes" ]]; then
-    if [[ $mem_limit == "null" ]]; then
-      mem_limit=`du -sh $genomedir | cut -f1`
-    else
-      mem_limit=`expr $mem_limit \* 1000`
-    fi
-    j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
-    sbatch --dependency=afterok:$j --mem=$mem_limit --job-name=dge --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-dge2.R $yamlnew" >> $outdir/$project.slurmjobid.txt
-   else
-     $Rexc $zumisdir/zUMIs-dge2.R $yamlnew
-   fi
+  $Rexc $zumisdir/zUMIs-dge2.R $yamlnew
 fi
 
 if
@@ -222,11 +183,6 @@ then
   yamlnew=$outdir/$project.postmap.yaml  #note! mapping creates a temporary new yaml because of custom GTF!
   if [[ "$isstats" == "yes" ]]; then
     echo "Descriptive statistics..."
-    if [[ "$isslurm" == "yes" ]]; then
-      j=`cat $outdir/$project.slurmjobid.txt | cut -f4 -d' ' | tr '\n' ':' | sed 's/.$//'`
-      sbatch --dependency=afterok:$j --mem=5000 --job-name=stats --cpus-per-task=$num_threads --wrap="$Rexc $zumisdir/zUMIs-stats2.R $yamlnew" >> $outdir/$project.slurmjobid.txt
-    else
       $Rexc $zumisdir/zUMIs-stats2.R $yamlnew
-    fi
   fi
 fi

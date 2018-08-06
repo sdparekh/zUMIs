@@ -75,8 +75,6 @@ counting_opts:
 #produce stats files and plots?
 make_stats: yes
 
-#use SLURM workload manger?
-use_SLURM: no
 
 #Start zUMIs from stage. Possible TEXT(Filtering, Mapping, Counting, Summarising). Default: Filtering.
 which_Stage: Filtering
