@@ -380,6 +380,12 @@ if [[ "$isslurm" == "yes" ]] ; then
 			fi
 			bash $zumisdir/zUMIs-prep.sh $outdir/$sname.barcoderead.filtered.fastq.gz $outdir/$sname.cdnaread.filtered.fastq.gz $sname $outdir $zumisdir
 		fi
+
+        if [ ! -f $outdir/$sname.cdnaread.filtered.fastq.gz ] && [ -f $outdir/zUMIs_output/filtered_fastq/$sname.cdnaread.filtered.fastq.gz ]; then
+          ln -s $outdir/zUMIs_output/filtered_fastq/$sname.cdnaread.filtered.fastq.gz $outdir/$sname.cdnaread.filtered.fastq.gz
+        else
+          echo "I do not find reads fastq file..."
+        fi
 			bash $zumisdir/zUMIs-mapping.sh $sname $outdir $genomedir $gtf $threads $readlen "$starparams" $starexc $samtoolsexc $xmrange $BaseTrim $isstrt
 			bash $zumisdir/zUMIs-prepCounting.sh $sname $outdir $threads $samtoolsexc
 			bash $zumisdir/zUMIs-counting.sh $sname $outdir $barcodes $threads $gtf $strandedness $xcr $xmr $subsampling $zumisdir $isStats $whichStage $isstrt $bcread2 $xcrange2 $nreads $Rexc $ham $XCbin

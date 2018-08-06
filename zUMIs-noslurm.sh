@@ -130,7 +130,11 @@ re='^[0-9]+$'
 			fi
 			perl $zumisdir/fqcheck.pl $o/$sn.barcoderead.filtered.fastq.gz $o/$sn.cdnaread.filtered.fastq.gz $sn $o
 		fi
-
+    if [ ! -f $o/$sn.cdnaread.filtered.fastq.gz ] && [ -f $o/zUMIs_output/filtered_fastq/$sn.cdnaread.filtered.fastq.gz ]; then
+      ln -s $o/zUMIs_output/filtered_fastq/$sn.cdnaread.filtered.fastq.gz $o/$sn.cdnaread.filtered.fastq.gz
+    else
+      echo "I do not find reads fastq file..."
+    fi
 			$starexc --genomeDir $g --runThreadN $t --readFilesCommand zcat --sjdbGTFfile $gtf --outFileNamePrefix $o/$sn. --outSAMtype BAM Unsorted --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --sjdbOverhang $rl --twopassMode Basic --readFilesIn $o/$sn.cdnaread.filtered.fastq.gz $x
 
 			$samtoolsexc sort -n -O bam -T temp.$sn -@ $t -m 2G -o $o/$sn.aligned.sorted.bam $o/$sn.Aligned.out.bam
