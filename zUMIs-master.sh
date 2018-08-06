@@ -154,6 +154,7 @@ then
     for x in $l; do perl $zumisdir/fqfilter_v2.pl $yaml $samtoolsexc $Rexc $pigzexc $zumisdir $x & done
     wait
     bash $zumisdir/mergeBAM.sh $zumisdir $tmpMerge $num_threads $project $outdir $yaml
+    rm -rf $tmpMerge
 fi
 
 if
