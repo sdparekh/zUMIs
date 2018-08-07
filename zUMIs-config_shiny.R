@@ -9,62 +9,89 @@
 
 library(shiny)
 library(yaml)
+library(shinyBS)
 
 # Define UI for application
 ui <- fluidPage(
   # Application title
+  theme = shinythemes::shinytheme("simplex"),
   titlePanel("zUMIs-config: Generate yaml file"),
   navlistPanel(id = "mainNav",widths = c(2, 10),
                tabPanel("Mandatory Parameters",
                         #set basic things
                         fluidRow(
                           column(6,wellPanel(
-                            textInput(inputId="runID", label="Name of the run/project", placeholder="eg: my_zUMIs_run")
+                            textInput(inputId="runID", label="Name of the run/project:", placeholder="eg: my_zUMIs_run")
                           )),
+                          shinyBS::bsTooltip(id="runID", title="This name will be used to label output files produced by zUMIs.", 
+                                             placement = "bottom", trigger = "hover",options = list(container = "body")),
                           column(6,wellPanel(
-                            textInput(inputId="outDir", label="Full path to the output directory", placeholder="eg: /path/to/output")
+                            textInput(inputId="outDir", label="Path to the output directory:", placeholder="eg: /path/to/output"),
+                            shinyBS::bsTooltip(id="outDir", title="Please remember to give the full path, as relative paths may not work.", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body"))
                           ))
                         ),
 
-                        #STAR options
 
 
                         # slider input for number of fastq reads
                         fluidRow(
                           h4("Input options:",style = "padding-left: 20px;"),
                           column(4,wellPanel(
-                            sliderInput("nfiles", "Number of Input fastq files:", min = 1, max = 4,value = 2)
+                            sliderInput("nfiles", "Number of input fastq files:", min = 1, max = 4,value = 2),
+                            shinyBS::bsTooltip(id="nfiles", title="How many reads (including index reads) were obtained by your sequencing layout?", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body")),
+                            checkboxInput("patternsearch", "Search for sequence pattern in reads?", value = F),
+                            uiOutput("patternUI"), uiOutput("patternReadUI")
                           )),
                           column(8,wellPanel(
-                            uiOutput("fqUI")
+                            uiOutput("fqUI"),
+                            shinyBS::bsTooltip(id="fqUI", title="Please remember to give full paths, as relative paths may not work.", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body"))
                           ))
                         ),
 
 
                         fluidRow(
-
+                          h4("In this section, fill only those fields that fit your input files:"),
                           column(3,wellPanel(
-                            uiOutput("fqBCui")
+                            uiOutput("fqBCui"),
+                            shinyBS::bsTooltip(id="fqBCui", title="List any barcode (BC) ranges to be extracted from the reads. You can also extract several barcode ranges from the same read using comma-separation: 1-6,11-16 ", 
+                                               placement = "left", trigger = "hover",options = list(container = "body"))
                           ),offset = 1),
                           column(3,wellPanel(
-                            uiOutput("fqUMIui")
+                            uiOutput("fqUMIui"),
+                            shinyBS::bsTooltip(id="fqUMIui", title="List any unique molecular identifier (UMI) ranges to be extracted from the reads.", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body"))
                           )),
                           column(3,wellPanel(
-                            uiOutput("fqCDNAui")
+                            uiOutput("fqCDNAui"),
+                            shinyBS::bsTooltip(id="fqCDNAui", title="List the cDNA range(s) in the reads to be mapped to the genome. May be one range (single-end) or two ranges (paired-end)", 
+                                               placement = "right", trigger = "hover",options = list(container = "body"))
                           ))
                         ),
 
                         fluidRow(
                           h4("Mapping/Reference options:",style = "padding-left: 20px;"),
                           column(6,wellPanel(
-                            textInput(inputId="STARpath", label="Full path to the STAR index directory", placeholder="eg: /path/to/output"),
-                            textInput(inputId="GTFpath", label="Full path to the annotation GTF file", placeholder="eg: /path/to/output"),
-                            textInput(inputId="STARparams", label="Optional: Additional mapping parameters for STAR", value=""),
-                            numericInput(inputId = "NUMadditionalFA",label = "Optional: Number of additional reference sequences (eg. ERCC.fa)",value = 0,min = 0,step = 1)
+                            textInput(inputId="STARpath", label="Full path to the STAR index directory:", placeholder="eg: /path/to/output"),
+                            shinyBS::bsTooltip(id="STARpath", title="The STAR index should be generated without splice junction database. Please remember to give the full path, as relative paths may not work.", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body")),
+                            textInput(inputId="GTFpath", label="Full path to the annotation GTF file:", placeholder="eg: /path/to/output"),
+                            shinyBS::bsTooltip(id="GTFpath", title="Make sure the gene annotation matches the genome. Please remember to give the full path, as relative paths may not work.", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body")),
+                            textInput(inputId="STARparams", label="Optional: Additional mapping parameters for STAR:", value=""),
+                            shinyBS::bsTooltip(id="STARparams", title="You may list additional STAR mapping parameters. For instance, try trimming adapter sequenes using --clip3pAdapterSeq", 
+                                               placement = "top", trigger = "hover",options = list(container = "body")),
+                            numericInput(inputId = "NUMadditionalFA",label = "Optional: Number of additional reference sequences:",value = 0,min = 0,step = 1),
+                            shinyBS::bsTooltip(id="NUMadditionalFA", title="Here you can give additional reference sequences zUMIs should map to but are not integrated in the STAR index. For instance, you could add the ERCC spike-in reference on the fly (eg. ERCC.fa).", 
+                                               placement = "top", trigger = "hover",options = list(container = "body"))
                           )),
                           column(6,wellPanel(
                             p(strong("Additional references:")),
-                            uiOutput("refUI")
+                            uiOutput("refUI"),
+                            shinyBS::bsTooltip(id="refUI", title="Please remember to give the full paths, as relative paths may not work.", 
+                                               placement = "top", trigger = "hover",options = list(container = "body"))
                           ))
                         )
 
@@ -75,9 +102,17 @@ ui <- fluidPage(
                           column(6,wellPanel(
                             h4("General options:"),
                             numericInput("numThreads","Number of CPU Threads:",value=8,min=1,step=1),
+                            shinyBS::bsTooltip(id="numThreads", title="More CPU Threads increase processing speeds, but speed usually becomes I/O limited above 32 Threads.", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body")),
                             numericInput("memLimit","Memory limit (Gb) 0 = no limit:",value=0,step=1),
+                            shinyBS::bsTooltip(id="memLimit", title="More memory usually speeds up processing. Note that this setting cannot prevent STAR from using as much RAM as necessary for the specified reference genome.", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body")),
                             checkboxInput("makeStats",label="Produce summary statistics",value = T),
-                            selectInput("whichStage",label = "Start zUMIs from following stage:",choices = c("Filtering", "Mapping", "Counting", "Summarising"),selected = "Filtering",multiple = F)
+                            shinyBS::bsTooltip(id="makeStats", title="Plots and statistics files can be found in zUMIs_output/stats/.", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body")),
+                            selectInput("whichStage",label = "Start zUMIs from following stage:",choices = c("Filtering", "Mapping", "Counting", "Summarising"),selected = "Filtering",multiple = F),
+                            shinyBS::bsTooltip(id="whichStage", title="(Re)-Run the pipeline from the specified stage. Default: Filtering.", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body"))
                           )),
 
 
@@ -92,17 +127,27 @@ ui <- fluidPage(
                         fluidRow(
                           column(6,wellPanel(
                             h4("Counting options:"),
-                            checkboxInput("countIntrons",label="Also count introns & exon+intron",value = T),
-                            textInput("downsamp",label = "Number of reads to downsample to. This value can be a fixed number of reads (e.g. 10000) or a desired range (e.g. 10000-20000). 0 invokes adaptive downsampling.",value = "0"),
+                            checkboxInput("countIntrons",label="Generate intron & exon+intron count tables?",value = T),
+                            shinyBS::bsTooltip(id="countIntrons", title="Exonic read count tables will by output in any case. Untick this box if you want to count exonic reads only.", 
+                                               placement = "top", trigger = "hover",options = list(container = "body")),
+                            textInput("downsamp",label = "Number of reads to downsample to:",value = "0"),
+                            shinyBS::bsTooltip(id="downsamp", title="This value can be a fixed number of reads (e.g. 10000) or a desired range (e.g. 10000-20000). You can also use several depths (e.g. 10000,20000,40000-50000). 0 invokes adaptive downsampling using median-absolute deviation of observed read counts.", 
+                                               placement = "bottom", trigger = "hover",options = list(container = "body")),
                             selectInput("strand",label = "Is the library stranded?",choices = c("unstranded" = 0, "positively stranded" = 1, "negatively stranded" = 2),selected = "unstranded",multiple = F),
                             numericInput("HamDist","Hamming distance collapsing of UMI sequences:",value=0,min=0,max=5,step=1),
+                            shinyBS::bsTooltip(id="HamDist", title="Note: Using this will considerably slow down the processing.", 
+                                               placement = "top", trigger = "hover",options = list(container = "body")),
                             checkboxInput("doVelocity",label="Generate velocyto-compatible counting of intron-exon spanning reads. ATTENTION! This option is currently not implemented!",value = F),
                             checkboxInput("countPrimary",label="Count the primary Hits of multimapping reads towards gene expression levels?",value = T),
-                            checkboxInput("twoPass",label="Perform basic STAR twoPass mapping?",value = T)
+                            shinyBS::bsTooltip(id="countPrimary", title="Untick this box if you want to count uniquely aligned reads only.", 
+                                               placement = "top", trigger = "hover",options = list(container = "body")),
+                            checkboxInput("twoPass",label="Perform STAR twoPass mapping?",value = T),
+                            shinyBS::bsTooltip(id="twoPass", title="Two-Pass mapping can improve the mapping by identifying novel splice-junctions.", 
+                                               placement = "top", trigger = "hover",options = list(container = "body"))
                           )),
                           column(6,wellPanel(
                             h4("Barcode options:"),
-                            radioButtons(inputId = "barcodeChoice",label = "Type of barcode selection:",choices = c("Automatic","Number of top Barcodes","Barcod whitelist")),
+                            radioButtons(inputId = "barcodeChoice",label = "Type of barcode selection:",choices = c("Automatic","Number of top Barcodes","Barcode whitelist")),
                             uiOutput("barcodeUI"),
                             numericInput("HamBC","Hamming distance collapsing of close cell barcode sequences. ATTENTION! This option is currently not implemented!",value=0,min=0,max=5,step=1),
                             numericInput("nReadsBC","Keep only the cell barcodes with atleast n number of reads",value=100,min=1,max=5,step=1)
@@ -130,8 +175,20 @@ server <- function(input, output, session) {
     switch(input$barcodeChoice,
            "Automatic" = p(em("Intact barcodes will be detected automatically.")),
            "Number of top Barcodes" = numericInput(inputId = "BCnum",label = "Number of barcodes to consider:",value = 100, min = 10, step = 1),
-           "Barcod whitelist" = textInput(inputId = "BCfile",label = "File to barcode whitelist to use:", value = "/fullpath/to/file.txt")
+           "Barcode whitelist" = textInput(inputId = "BCfile",label = "File to barcode whitelist to use:", value = "/fullpath/to/file.txt")
     )
+  })
+  
+  output$patternUI <- renderUI({
+    if(input$patternsearch==T){
+           textInput(inputId = "pattern", label = "Search for the following sequence:" , placeholder = "ACTGCTGC")
+    }
+  })
+  
+  output$patternReadUI <- renderUI({
+    if(input$patternsearch==T){
+      selectInput(inputId = "patternRead", label = "Search for the pattern in this read:" ,choices = paste("Read",1:input$nfiles),selected = "Read 1")
+    }
   })
 
   output$refUI <- renderUI({
@@ -145,7 +202,7 @@ server <- function(input, output, session) {
   output$fqUI <- renderUI({
     if(input$nfiles>0){
       lapply(1:input$nfiles, function(i) {
-        textInput(inputId = paste0("fqpath_",i),label = paste("Full path to fastq file",i),placeholder = "/path/to/read.fq.gz")
+        textInput(inputId = paste0("fqpath_",i),label = paste("Full path to fastq file",i,":"),placeholder = "/path/to/read.fq.gz")
       })
     }
   })
@@ -157,20 +214,20 @@ server <- function(input, output, session) {
     #   })
     # }
     lapply(1:input$nfiles, function(i) {
-      textInput(inputId = paste0("BC_",i),label = paste("Read",i,"BC"),placeholder = "eg: 1-6")
+      textInput(inputId = paste0("BC_",i),label = paste("Read",i,"BC",":"),placeholder = "eg: 1-6")
     })
 
   })
 
   output$fqUMIui <- renderUI({
     lapply(1:input$nfiles, function(i) {
-      textInput(inputId = paste0("UMI_",i),label = paste("Read",i,"UMI"),placeholder = "eg: 7-16")
+      textInput(inputId = paste0("UMI_",i),label = paste("Read",i,"UMI",":"),placeholder = "eg: 7-16")
     })
   })
 
   output$fqCDNAui <- renderUI({
     lapply(1:input$nfiles, function(i) {
-      textInput(inputId = paste0("cDNA_",i),label = paste("Read",i,"cDNA"),placeholder = "eg: 1-50")
+      textInput(inputId = paste0("cDNA_",i),label = paste("Read",i,"cDNA",":"),placeholder = "eg: 1-50")
     })
   })
 
@@ -210,11 +267,20 @@ server <- function(input, output, session) {
       bc_struc<-c(input[[paste0("cDNA_",i)]],input[[paste0("BC_",i)]],input[[paste0("UMI_",i)]])
       names(bc_struc)<-c("cDNA","BC","UMI")
       bc_struc<-bc_struc[which( bc_struc != "" )]
-
-      seqf[[i]] <- list(
-        "name" = input[[paste0("fqpath_",i)]],
-        "base_definition" = paste0(names(bc_struc),"(",bc_struc,")")
-      )
+      
+      if(input$patternsearch==T & substr(input$patternRead,6,6)==i){
+        seqf[[i]] <- list(
+          "name" = input[[paste0("fqpath_",i)]],
+          "base_definition" = paste0(names(bc_struc),"(",bc_struc,")"),
+          "find_pattern" = input$pattern
+        )  
+      }else{
+        seqf[[i]] <- list(
+          "name" = input[[paste0("fqpath_",i)]],
+          "base_definition" = paste0(names(bc_struc),"(",bc_struc,")")
+        )
+      }
+      
     }
     names(seqf) <- paste0("file",1:input$nfiles)
 
@@ -320,6 +386,11 @@ server <- function(input, output, session) {
           cdna_string <- substr(cdna_string,start = 6, stop = nchar(cdna_string)-1)
           updateTextInput(session = session,inputId = paste0("cDNA_",i), value = cdna_string)
         }
+        if(length(ya$sequence_files[[i]]$find_pattern)==1){
+          updateCheckboxInput(session = session, inputId = "patternsearch", value = T)
+          updateSelectInput(session = session, inputId = "patternRead", choices = paste("Read",1:length(ya$sequence_files)), selected = paste("Read",i))
+          updateTextInput(session = session, inputId = "pattern", value = ya$sequence_files[[i]]$find_pattern)
+        }
 
       }
 
@@ -342,7 +413,7 @@ server <- function(input, output, session) {
         updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Automatic")
       }
       if (!is.null(ya$barcodes$barcode_file)){
-        updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Barcod whitelist")
+        updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Barcode whitelist")
         updateTextInput(session = session, inputId = "BCfile", value = ya$barcodes$barcode_file)
       }
       if (!is.null(ya$barcodes$barcode_num)){
