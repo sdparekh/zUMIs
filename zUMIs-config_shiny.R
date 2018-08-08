@@ -158,13 +158,23 @@ ui <- fluidPage(
                tabPanel("Generate YAML!",
                         p(strong("Your YAML is nearly ready...")),
                         uiOutput("saveUI"),
-                        actionButton(inputId = "SaveYAML",label = "Save YAML!")
-                         ),
-                         tabPanel("Load YAML",
-                           p(strong("You can load an existing YAML for zUMIs here")),
-                           textInput(inputId="inYAML", label="Full path to YAML file", placeholder="eg: /path/to.yaml"),
-                           actionButton(inputId = "LoadYAML",label = "Load YAML!"),
-                           p(strong("Please click the Load button twice for all options to be properly set in shiny! Sorry for the inconvenience."))
+                        actionButton(inputId = "SaveYAML",label = "Save YAML!"),
+                        p(),
+                        p(strong("...or download your YAML file by clicking here:")),
+                        downloadButton("downloadData", "Download YAML!")
+               ),
+               tabPanel("Load YAML",
+                        p(strong("You can load an existing YAML for zUMIs here")),
+                        textInput(inputId="inYAML", label="Full path to YAML file", placeholder="eg: /path/to.yaml"),
+                        fileInput('file1', '...or choose YAML file to upload',
+                                  accept = c(
+                                    'text/tab-separated-values',
+                                    'text/plain',
+                                    '.yml',
+                                    '.yaml'
+                                  )),
+                        actionButton(inputId = "LoadYAML",label = "Load YAML!"),
+                        p(strong("Please click the Load button twice for all options to be properly set in shiny! Sorry for the inconvenience."))
                )
   ))
 
@@ -259,6 +269,19 @@ server <- function(input, output, session) {
     )
 
   })
+  
+  output$downloadData <- downloadHandler(
+    filename = function() {
+      paste(input$runID, ".yaml", sep = "")
+    },
+    content = function(file) {
+      write_yaml(
+        makeYAML(input),
+        file 
+      )
+      #write.csv(datasetInput(), file, row.names = FALSE)
+    }
+  )
 
   makeYAML<-function(input){
     #collect fastq file information
@@ -342,15 +365,23 @@ server <- function(input, output, session) {
   }
 
   observeEvent(input$LoadYAML, {
-
+    
     if(file.exists(input$inYAML)){
       print(paste("Loading",input$inYAML))
       loading_func(input$inYAML)
       updateNavlistPanel(session = session, inputId = "mainNav",selected = "Mandatory Parameters")
-      }else{
+    }else{
+      if (is.null(input$file1)){
         print("File doesn't exist!")
+      }else{
+        print(paste("Loading",input$file1$datapath))
+        loading_func(input$file1$datapath)
+        updateNavlistPanel(session = session, inputId = "mainNav",selected = "Mandatory Parameters")
       }
-
+      
+      
+    }
+    
   })
 
   loading_func <- function(myYAML){
