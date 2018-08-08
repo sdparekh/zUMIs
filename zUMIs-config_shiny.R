@@ -291,18 +291,27 @@ server <- function(input, output, session) {
       names(bc_struc)<-c("cDNA","BC","UMI")
       bc_struc<-bc_struc[which( bc_struc != "" )]
       
-      if(input$patternsearch==T & substr(input$patternRead,6,6)==i){
-        seqf[[i]] <- list(
-          "name" = input[[paste0("fqpath_",i)]],
-          "base_definition" = paste0(names(bc_struc),"(",bc_struc,")"),
-          "find_pattern" = input$pattern
-        )  
-      }else{
+      
+      if(input$patternsearch==F){
         seqf[[i]] <- list(
           "name" = input[[paste0("fqpath_",i)]],
           "base_definition" = paste0(names(bc_struc),"(",bc_struc,")")
         )
+      }else{
+        if(input$patternsearch==T & substr(input$patternRead,6,6)==i){
+          seqf[[i]] <- list(
+            "name" = input[[paste0("fqpath_",i)]],
+            "base_definition" = paste0(names(bc_struc),"(",bc_struc,")"),
+            "find_pattern" = input$pattern
+          )  
+        }else{
+          seqf[[i]] <- list(
+            "name" = input[[paste0("fqpath_",i)]],
+            "base_definition" = paste0(names(bc_struc),"(",bc_struc,")")
+          )
+        }
       }
+      
       
     }
     names(seqf) <- paste0("file",1:input$nfiles)
