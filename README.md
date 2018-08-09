@@ -65,6 +65,7 @@ Compatibility includes these single-cell UMI protocols:
 - Wafergen ICELL8 (Gao et al., 2017)
 - Illumina ddSEQ SureCell
 - inDrops (Zilionis et al., 2017; Klein et al. 2015)
+- mcSCRB-seq (Bagnoli et al., 2018)
 
 zUMIs is now also compatible with non-UMI single-cell protocols:
 
