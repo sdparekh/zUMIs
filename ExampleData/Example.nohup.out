@@ -1,0 +1,156 @@
+zUMIs/zUMIs-master.sh -y Example.yaml 
+
+
+ You provided these parameters:
+ YAML file:	Example.yaml
+ zUMIs directory:		/mnt/kauffman/chrisz/test_zUMIs/final2validation/zUMIs
+ STAR executable		STAR
+ samtools executable		samtools
+ pigz executable		pigz
+ Rscript executable		Rscript
+ RAM limit:   20
+ zUMIs version 0.2.0 
+
+
+Filtering...
+[W::bam_merge_core2] No @HD tag found.
+Mapping...
+Aug 09 17:01:12 ..... started STAR run
+Aug 09 17:01:12 ..... loading genome
+Aug 09 17:03:33 ..... processing annotations GTF
+Aug 09 17:04:00 ..... inserting junctions into the genome indices
+Aug 09 17:08:26 ..... started mapping
+Aug 09 17:08:51 ..... finished successfully
+Counting...
+[1] "2018-08-09 17:09:13 CEST"
+[1] "78 barcodes detected."
+[1] "8279 reads were assigned to barcodes that do not correspond to intact cells."
+[1] "9e+07 Reads per chunk"
+[1] "Loading reference annotation from:"
+[1] "/mnt/kauffman/chrisz/GigaDB/reference/Homo_sapiens.GRCh38.84_chrsNamesUCSC.gtf"
+[1] "Annotation loaded!"
+[1] "Assigning reads to features (ex)"
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+       Rsubread 1.30.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                           S Example.filtered.tagged.Aligned.out.bam        ||
+||                                                                            ||
+||             Output file : .Rsubread_featureCounts_pid77308                 ||
+||                 Summary : .Rsubread_featureCounts_pid77308.summary         ||
+||              Annotation : .Rsubread_UserProvidedAnnotation_pid77308 (SAF)  ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||      Dir for temp files : .                                                ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||              Paired-end : yes                                              ||
+||         Strand specific : no                                               ||
+||      Multimapping reads : not counted                                      ||
+||     Multiple alignments : primary alignment only                           ||
+|| Multi-overlapping reads : not counted                                      ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+||          Chimeric reads : not counted                                      ||
+||        Both ends mapped : not required                                     ||
+||                                                                            ||
+\\===================== http://subread.sourceforge.net/ ======================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file .Rsubread_UserProvidedAnnotation_pid77308 ...         ||
+||    Features : 1176808                                                      ||
+||    Meta-features : 51044                                                   ||
+||    Chromosomes/contigs : 59                                                ||
+||                                                                            ||
+|| Process BAM file Example.filtered.tagged.Aligned.out.bam...                ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 853296                                                    ||
+||    Successfully assigned reads : 290536 (34.0%)                            ||
+||    Running time : 0.03 minutes                                             ||
+||                                                                            ||
+||                         Read assignment finished.                          ||
+||                                                                            ||
+\\===================== http://subread.sourceforge.net/ ======================//
+
+[bam_sort_core] merging from 0 files and 8 in-memory blocks...
+[1] "Assigning reads to features (in)"
+
+        ==========     _____ _    _ ____  _____  ______          _____  
+        =====         / ____| |  | |  _ \|  __ \|  ____|   /\   |  __ \ 
+          =====      | (___ | |  | | |_) | |__) | |__     /  \  | |  | |
+            ====      \___ \| |  | |  _ <|  _  /|  __|   / /\ \ | |  | |
+              ====    ____) | |__| | |_) | | \ \| |____ / ____ \| |__| |
+        ==========   |_____/ \____/|____/|_|  \_\______/_/    \_\_____/
+       Rsubread 1.30.3
+
+//========================== featureCounts setting ===========================\\
+||                                                                            ||
+||             Input files : 1 BAM file                                       ||
+||                           S Example.filtered.tagged.Aligned.out.bam        ||
+||                                                                            ||
+||             Output file : .Rsubread_featureCounts_pid77308                 ||
+||                 Summary : .Rsubread_featureCounts_pid77308.summary         ||
+||              Annotation : .Rsubread_UserProvidedAnnotation_pid77308 (SAF)  ||
+||      Assignment details : <input_file>.featureCounts.bam                   ||
+||                      (Note that files are saved to the output directory)   ||
+||                                                                            ||
+||      Dir for temp files : .                                                ||
+||                 Threads : 8                                                ||
+||                   Level : meta-feature level                               ||
+||              Paired-end : yes                                              ||
+||         Strand specific : no                                               ||
+||      Multimapping reads : not counted                                      ||
+||     Multiple alignments : primary alignment only                           ||
+|| Multi-overlapping reads : not counted                                      ||
+||   Min overlapping bases : 1                                                ||
+||                                                                            ||
+||          Chimeric reads : not counted                                      ||
+||        Both ends mapped : not required                                     ||
+||                                                                            ||
+\\===================== http://subread.sourceforge.net/ ======================//
+
+//================================= Running ==================================\\
+||                                                                            ||
+|| Load annotation file .Rsubread_UserProvidedAnnotation_pid77308 ...         ||
+||    Features : 274058                                                       ||
+||    Meta-features : 27878                                                   ||
+||    Chromosomes/contigs : 36                                                ||
+||                                                                            ||
+|| Process BAM file Example.filtered.tagged.Aligned.out.bam...                ||
+||    Single-end reads are included.                                          ||
+||    Assign reads to features...                                             ||
+||    Total reads : 853296                                                    ||
+||    Successfully assigned reads : 211531 (24.8%)                            ||
+||    Running time : 0.03 minutes                                             ||
+||                                                                            ||
+||                         Read assignment finished.                          ||
+||                                                                            ||
+\\===================== http://subread.sourceforge.net/ ======================//
+
+[bam_sort_core] merging from 0 files and 8 in-memory blocks...
+[1] "Here are the detected subsampling options:"
+[1] "Automatic downsampling"
+[1] "Working on barcode chunk 1 out of 1"
+[1] "Processing 78 barcodes in this chunk..."
+[1] "2018-08-09 17:13:18 CEST"
+[1] "I am done!! Look what I produced.../mnt/kauffman/chrisz/test_zUMIs/final2validation/zUMIs_output/"
+           used  (Mb) gc trigger  (Mb) max used  (Mb)
+Ncells  5481029 292.8    9968622 532.4  9968622 532.4
+Vcells 21841831 166.7   47923536 365.7 93600659 714.2
+Descriptive statistics...
+[1] "I am loading useful packages for plotting..."
+[1] "2018-08-09 17:13:20 CEST"
+          used (Mb) gc trigger  (Mb) max used  (Mb)
+Ncells 1728611 92.4    2637877 140.9  2637877 140.9
+Vcells 8034256 61.3   21661928 165.3 18764800 143.2

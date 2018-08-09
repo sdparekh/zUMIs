@@ -1,13 +1,13 @@
 
 
  You provided these parameters:
- YAML file:	ExampleRun_config.yaml
- zUMIs directory:		/data/share/htp/zUMIs2/zUMIs
+ YAML file:	Example.yaml
+ zUMIs directory:		/mnt/kauffman/chrisz/test_zUMIs/final2validation/zUMIs
  STAR executable		STAR
  samtools executable		samtools
  pigz executable		pigz
  Rscript executable		Rscript
- RAM limit:   50
+ RAM limit:   20
  zUMIs version 0.2.0 
 
 
