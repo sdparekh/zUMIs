@@ -10,17 +10,21 @@ sub argClean{
 sub makeFileHandles{
   $f = shift;
   $p = shift;
+	$fp = shift;
+
   @files = split(" ",$f);
   @pats = split(" ",$p);
+	@fpats = split(" ",$fp);
 
   $j=0;
   for $file ( @files ) {
     $j++;
     $pat=$pats[$j-1];
+		$fpat=$fpats[$j-1];
     $fh="file".$j;
 
     if ( open $fh, '<', $file ) {
-      $file_handles{ $fh } = $file.":".$pat;
+      $file_handles{ $fh } = $file.":".$pat.":".$fpat;
       close $fh;
     }
     else {

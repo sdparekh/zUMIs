@@ -26,7 +26,7 @@ open(YL,"Rscript $zumisdir/readYaml4fqfilter.R $yml |");
 @arg=<YL>;
 close YL;
 %argHash;
-@params=("filenames", "seqtype","outdir","StudyName","num_threads", "BCfilter","UMIfilter");
+@params=("filenames", "seqtype", "outdir", "StudyName", "num_threads", "BCfilter", "UMIfilter", "find_pattern");
 
 
 for($i=0;$i<=$#params;$i++){
@@ -41,7 +41,8 @@ $StudyName = distilReads::argClean($argHash{"StudyName"});
 $num_threads = distilReads::argClean($argHash{"num_threads"});
 $BCfilter = distilReads::argClean($argHash{"BCfilter"});
 $UMIfilter = distilReads::argClean($argHash{"UMIfilter"});
-
+$pattern = distilReads::argClean($argHash{"find_pattern"});
+#/data/share/htp/Project_mcSCRB-seqPaper/PEG_May2017/demult_HEK_r1.fq.gz; /data/share/htp/Project_mcSCRB-seqPaper/PEG_May2017/demult_HEK_r2.fq.gz;ACTGCTGTA
 chomp($f);
 chomp($st);
 chomp($outdir);
@@ -49,12 +50,13 @@ chomp($StudyName);
 chomp($num_threads);
 chomp($BCfilter);
 chomp($UMIfilter);
+chomp($pattern);
 
 $outbcstats = "$outdir/zUMIs_output/.tmpMerge/$StudyName.$tmpPrefix.BCstats.txt";
 $outbam = "$outdir/zUMIs_output/.tmpMerge/$StudyName.$tmpPrefix.filtered.tagged.bam";
 
 # Make and open all the file handles
-%file_handles = distilReads::makeFileHandles($f,$st);
+%file_handles = distilReads::makeFileHandles($f,$st,$pattern);
 
 # First file handle to start the while loop for the first file
 @keys = sort(keys %file_handles);
@@ -98,6 +100,18 @@ while(<$fh1>){
 	$qid=<$fh1>;
 	$qseq=<$fh1>;
 	$p1 = $fp1[1];
+  $p2 = $fp1[2];
+
+#This block checks if the read should have certian pattern
+  if($p2 =~ /^character/){
+    $mcrseq = $rseq;
+    $checkpattern = $rseq;
+  }
+  else{
+    #print "I am in the else condition line 106";
+    $mcrseq = $rseq;
+    $checkpattern = $p2;
+  }
 
   if($count==0){
     $count=1;
@@ -118,6 +132,17 @@ while(<$fh1>){
 		$qid1=<$fh>;
 		$qseq1=<$fh>;
     $p = $fp[1];
+    $pf = $fp[2];
+
+    #This block checks if the read should have certian pattern
+    if($pf =~ /^character/){
+      $mcrseq = $rseq1;
+      $checkpattern = $rseq1;
+    }
+    else{
+      $mcrseq = $rseq1;
+      $checkpattern = $pf;
+    }
 
     @c = split(/\/|\s/,$rid);
     @b = split(/\/|\s/,$rid1);
@@ -143,8 +168,10 @@ while(<$fh1>){
     $btmp = grep {$_ < $bcthres[1]} @bquals;
     $mtmp = grep {$_ < $umithres[1]} @mquals;
 
+
     # print out only if above the quality threshold
-    if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0])){
+    if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ($mcrseq =~ m/^$checkpattern/)){
+    #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0])){
       $rid =~ m/^\@(.*)\s(.*)\n$/;
       $filtered++;
       $bclist{$bcseq}++;
