@@ -1,4 +1,4 @@
-# Welcome to zUMIs-dev :wrench: :red_car::dash: :wrench:
+# Welcome to zUMIs :wrench: :red_car::dash: :wrench:
 
 zUMIs is a fast and flexible pipeline to process RNA-seq data with (or without) UMIs.
 
