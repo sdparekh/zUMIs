@@ -1,16 +1,32 @@
-# Welcome to zUMIs :red_car::dash:
+# Welcome to zUMIs-dev :wrench: :red_car::dash: :wrench:
 
-zUMIs is a fast and flexible pipeline to process RNA-seq data with UMIs.
+zUMIs is a fast and flexible pipeline to process RNA-seq data with (or without) UMIs.
 
-The input to this pipeline is paired-end fastq files, where one read contains the cDNA sequence and the other read contains UMI and Cell Barcode information. Furthermore, you will need a STAR index for your genome (see below).
-
-![zUMIs Workflow](https://github.com/sdparekh/zUMIs/blob/master/zUMIs.png?raw=true)
+The input to this pipeline is simply fastq files. In the most common cases, you will have a read containing the cDNA sequence and other read(s) containing UMI and Cell Barcode information. Furthermore, you will need a STAR index for your genome and GTF annotation file.
 
 You can read more about zUMIs in our [paper](https://doi.org/10.1093/gigascience/giy059)!
 
-You can glance through zUMIs in [zUMIs poster](https://github.com/sdparekh/zUMIs/blob/master/zUMIs_GI2017_poster.pdf)!
 
-## Releases/Changelog
+## zUMIs2.0 released!
+We have completely rewritten zUMIs with a boatload of improvements! Today we finally release this version for general use.
+For all existing & new zUMIs users, we would really appreciate if you get in touch with us and give us some feedback!
+Here are some of the new features:
+- Setup of all parameters in a [convenient YAML config file](https://github.com/sdparekh/zUMIs/blob/zUMIs-dev/zUMIs.yaml). This will allow better reproducibility and parameter tracking. You can create the YAML config file using an easy to use [Rshiny application](https://chrzi.shinyapps.io/zUMIs-config/).
+- User-definable memory limit: zUMIs calculates expression matrices for cell barcodes within a given amount of RAM. For this, cell barcodes are grouped according to the maximum number of reads that may be processed without exceeding the memory limit.
+- Much increased processing speed! For our [published](http://gigadb.org/dataset/100447) test data set of 96 HEK cells, zUMIs2.0 is *more than 2x faster*. To achieve this, we have parallelized the filtering step as well as rewritten the UMI collapsing scripts.
+![zUMIs2 speed](https://drive.google.com/uc?export=download&id=1kwpF3cUwK8h0fYA-tAbd8MNNoCzQ7bs4)
+- More convenient & flexible handling of barcodes, UMIs and cDNA sequences that eliminates protocol-specific settings or preprocessing scripts. You can use zUMIs now with up to 4 fastq input files, ie. paired-end dual-index Illumina data!
+- Compatibility with non-UMI protocols, such as Smart-seq2. You can simply run zUMIs with multiplexed Smart-seq2 data and will obtain per-cell read counts.
+- Compatibility with paired-end cDNA reads in combination with cell barcodes and UMIs.
+- Possibility to integrate transgenes or external references like ERCC spike ins on the fly. Simply add the path to an additional fasta file and zUMIs will add it to the reference genome and produce summary stats separately from endogenous mRNA for these.
+- Pattern recognition: zUMIs can find a sequence pattern in the input reads and retain only those with their matched barcodes & UMIs for further analysis.
+
+The previous implementation of zUMIs has moved to an [archive branch in GitHub](https://github.com/sdparekh/zUMIs/tree/zUMIs-version1) and is no longer being updated. You can also find other older versions of zUMIs [here](https://github.com/sdparekh/zUMIs/releases/).
+
+
+## Changelog
+09 Aug 2018: [zUMIs2.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.0). For a detailed list of changes check above and in the updated wiki.
+
 12 Apr 2018: [zUMIs.0.0.6 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.6).
 Improved support for combinatorial indexing methods.
 
@@ -23,15 +39,14 @@ Added support for plate barcodes with input of an additional barcode fastq file 
 18 Feb 2018: [zUMIs.0.0.3 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.3).
 Switched support to the new Rsubread version and data format. Furthermore to compensate sequencing/PCR errors, zUMIs now features UMI correction using Hamming distance and binning of adjacent cell barcodes.
 
-You can find the older versions of zUMIs [here](https://github.com/sdparekh/zUMIs/releases/).
-
 ## Installation and Usage
 
 Please find information on [installation](https://github.com/sdparekh/zUMIs/wiki/Installation) and [usage](https://github.com/sdparekh/zUMIs/wiki/Usage) in the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/).
 
 ## Compatibility
 
-zUMIs is compatible with these single-cell UMI protocols:
+zUMIs is compatible with nearly all (single-cell) RNA-seq protocols!
+Compatibility includes these single-cell UMI protocols:
 
 - CEL-seq with UMI (Grün et al., 2014)
 - SCRB-seq (Soumillon et al., 2014)
@@ -51,7 +66,11 @@ zUMIs is compatible with these single-cell UMI protocols:
 - Illumina ddSEQ SureCell
 - inDrops (Zilionis et al., 2017; Klein et al. 2015)
 
-For combinatorial indexing protocols, be sure to [check our wiki page](https://github.com/sdparekh/zUMIs/wiki/Combinatorial-Indexing).
+zUMIs is now also compatible with non-UMI single-cell protocols:
+
+- CEL-seq (Hashimshony et al., 2012)
+- Smart-seq (Ramskold et al., 2012)
+- Smart-seq2 (Picelli et al., 2013)
 
 If you do not find your (favorite) scRNA-seq protocol on the list, get in touch with us!
 
