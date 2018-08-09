@@ -83,11 +83,14 @@ checkRsubreadVersion<- function(){
                                    countChimericFragments=F)$stat
   fn<-paste0(abamfile,".featureCounts.bam")
   nfn<-paste0(abamfile,".",type,".featureCounts.bam")
-  
+
   if(is.null(mem)){
     mempercpu <- round(100/cpu,0)
   }else{
     mempercpu <- round(mem/cpu,0)
+    if(mempercpu==0){
+      mempercpu <- 1
+    }
   }
 
   system(paste("samtools sort -n -O 'BAM' -@",cpu,paste0("-m ",mempercpu,"G"),"-o",nfn,fn))
