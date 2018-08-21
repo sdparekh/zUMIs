@@ -116,10 +116,18 @@ sub makeSeqs{
 				@c = split("-",$r);
         $cs = $c[0] - 1;
         $cl = $c[1]-$c[0]+1;
-				if($cl > length($arseq)){ "Your range is longer than the read length.\n\n"; last; }
 
-        $acseq2 = substr($arseq,$cs,$cl);
-        $acqseq2 = substr($aqseq,$cs,$cl);
+				if($cl > length($arseq)){
+					$acseq2 = substr($arseq,$cs);
+	        $acqseq2 = substr($aqseq,$cs);
+				}else{
+					$acseq2 = substr($arseq,$cs,$cl);
+	        $acqseq2 = substr($aqseq,$cs,$cl);
+				}
+
+				chomp($acseq2);
+				chomp($acqseq2);
+
 			}else{
 				$cdnacounter++;
 
@@ -127,10 +135,19 @@ sub makeSeqs{
 				@c = split("-",$r);
         $cs = $c[0] - 1;
         $cl = $c[1]-$c[0]+1;
-				if($cl > length($arseq)){ "Your range is longer than the read length.\n\n"; last; }
 
-        $acseq = substr($arseq,$cs,$cl);
-        $acqseq = substr($aqseq,$cs,$cl);
+
+				if($cl > length($arseq)){
+					$acseq = substr($arseq,$cs);
+	        $acqseq = substr($aqseq,$cs);
+				}else{
+					$acseq = substr($arseq,$cs,$cl);
+	        $acqseq = substr($aqseq,$cs,$cl);
+				}
+
+				chomp($acseq);
+				chomp($acqseq);
+
 			}
     }
   }
