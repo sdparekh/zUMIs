@@ -22,19 +22,19 @@ names(featColors)<-c("Exon","Intron+Exon","Intron","Unmapped","Ambiguity","Multi
 source(paste0(opt$zUMIs_directory,"/statsFUN.R"))
 data.table::setDTthreads(threads=opt$num_threads)
 
-user_seq<- getUserSeq(opt$reference$GTF_file_final)  # find a way to read from end of file or grep the last 
+user_seq<- getUserSeq(opt$reference$GTF_file_final)  # find a way to read from end of file or grep the last
 bc<-data.table::fread(paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt"),select = 1, header = T)
 AllCounts<-readRDS(paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".dgecounts.rds",sep=""))
 
 # GeneCounts --------------------------------------------------------------
 
-genecounts <- dplyr::bind_rows( lapply(names(AllCounts$umicount), function(i){  
+genecounts <- dplyr::bind_rows( lapply(names(AllCounts$umicount), function(i){
                        countGenes(AllCounts$umicount[[i]][["all"]], user_seq=user_seq) %>%
                        mutate(type=case_when( i == "exon" ~ "Exon",
                                               i == "inex" ~ "Intron+Exon",
                                               i == "intron" ~ "Intron")) }))
 
-umicounts <- dplyr::bind_rows( lapply(names(AllCounts$umicount), function(i){  
+umicounts <- dplyr::bind_rows( lapply(names(AllCounts$umicount), function(i){
                         countUMIs(AllCounts$umicount[[i]][["all"]], user_seq=user_seq) %>%
                          mutate(type=case_when( i == "exon" ~ "Exon",
                                                 i == "inex" ~ "Intron+Exon",
@@ -58,15 +58,22 @@ write.table(genecounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$proj
 write.table(umicounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".UMIcounts.txt"),sep="\t",row.names = F,col.names = T)
 
 ## Total number of reads per cell
+if(opt$counting_opts$introns==T){
+  featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.ex.featureCounts.bam"),
+                       paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.in.featureCounts.bam"))
+}else{
+  featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.ex.featureCounts.bam"),
+                       paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.ex.featureCounts.bam"))
+}
 
-typeCount <- sumstatBAM(featfiles=c(paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.ex.featureCounts.bam"),
-                                     paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.in.featureCounts.bam")),
+
+typeCount <- sumstatBAM( featfiles = featfile_vector,
                          cores = opt$num_threads,
                          outdir= opt$out_dir,
                          user_seq = user_seq,
                          bc = bc,
                          outfile = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".bc.READcounts.rds"))
- 
+
 #only print per BC mapping stats if there are fewer than 200 BCs
 tc<-data.frame(typeCount)
 tc$type<-factor(tc$type, levels=rev(c("Exon","Intron","Intergenic","Ambiguity","Unmapped","User")))
@@ -75,13 +82,13 @@ write.table(tc,file = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".rea
 if(length( unique(typeCount$RG))<=200  ){
   p <- ggplot( tc, aes(x=reorder(RG,N), y=N,fill=type))+
         geom_bar(stat = "identity",alpha=0.9,width=0.7) +
-        xlab("") + 
-        ylab("log10(Number of reads)") + 
+        xlab("") +
+        ylab("log10(Number of reads)") +
         scale_fill_manual(values=featColors[levels(tc$type)])+
-        scale_y_log10() + 
+        scale_y_log10() +
         theme_bw() +
         coord_flip()+
-        theme(axis.text.y = element_text(size=5,family="Courier" ), 
+        theme(axis.text.y = element_text(size=5,family="Courier" ),
            axis.title.y = element_text(size=20),
            legend.title = element_blank())
 

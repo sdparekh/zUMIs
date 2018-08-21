@@ -54,7 +54,9 @@ reads2genes <- function(featfiles,chunks,rgfile,cores){
 
    if(length(featfiles)==1){
           reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
-                                   select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","UB","GE") )
+                                   select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","UB","GE") )[
+                                   ,"ftype":="NA"
+                                   ][is.na(GE)==F,  ftype:="exon"]
   }else{
     reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
                              select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","UB","GE") )[
