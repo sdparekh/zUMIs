@@ -108,7 +108,6 @@ while(<$fh1>){
     $checkpattern = $rseq;
   }
   else{
-    #print "I am in the else condition line 106";
     $mcrseq = $rseq;
     $checkpattern = $p2;
   }
@@ -117,11 +116,8 @@ while(<$fh1>){
     $count=1;
     $phredoffset = distilReads::checkPhred($qseq);
   }
-
   ($bcseq, $bcqseq, $ubseq, $ubqseq, $cseqr1, $cqseqr1, $cseqr2, $cqseqr2, $cdc, $lay) = ("","","","","","","","",0,"SE");
-  #print $cdc,"\n";
   ($bcseq, $bcqseq, $ubseq, $ubqseq, $cseqr1, $cqseqr1, $cseqr2, $cqseqr2, $cdc, $lay) = distilReads::makeSeqs($rseq,$qseq,$p1,$cdc);
-  #print $cdc,"\n";
 
 	for($i=1;$i<=$#keys;$i++){
     $fh = $keys[$i];
@@ -172,7 +168,7 @@ while(<$fh1>){
     # print out only if above the quality threshold
     if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ($mcrseq =~ m/^$checkpattern/)){
     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0])){
-      $rid =~ m/^\@(.*)\s(.*)\n$/;
+      $rid =~ m/^\@(.*)\s+/;
       $filtered++;
       $bclist{$bcseq}++;
       #print $lay,"\n";
@@ -192,9 +188,3 @@ foreach $bc (keys %bclist){
   print BCOUT $bc,"\t",$bclist{$bc},"\n";
 }
 close BCOUT;
-
-#print "Raw reads: $total \nFiltered reads: $filtered \n\n";
-
-#open YAML, '>>', $yml || die "Couldn't open file ".$yml.". Check permissions!\n";
-#print YAML "read_layout: ",$lay,"\n";
-#close YAML;
