@@ -168,15 +168,27 @@ while(<$fh1>){
     # print out only if above the quality threshold
     if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ($mcrseq =~ m/^$checkpattern/)){
     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0])){
-      $rid =~ m/^\@(.*)\s+/;
+
+      chomp($rid);
+
+      if($rid =~ m/^\@.*\s/){
+        $rid =~ m/^\@(.*)\s/;
+        $ridtmp = $1;
+        print "if condition";
+      }
+      else{
+        $rid =~ m/^\@(.*)/;
+        $ridtmp = $1;
+      }
+
       $filtered++;
       $bclist{$bcseq}++;
       #print $lay,"\n";
       if($lay eq "SE"){
-        print BCBAM $1,"\t4\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
+        print BCBAM $ridtmp,"\t4\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
       }else{
-        print BCBAM $1,"\t77\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
-        print BCBAM $1,"\t141\t*\t0\t0\t*\t*\t0\t0\t",$cseqr2,"\t",$cqseqr2,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
+        print BCBAM $ridtmp,"\t77\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
+        print BCBAM $ridtmp,"\t141\t*\t0\t0\t*\t*\t0\t0\t",$cseqr2,"\t",$cqseqr2,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
       }
     }
 }
