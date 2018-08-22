@@ -174,7 +174,6 @@ while(<$fh1>){
       if($rid =~ m/^\@.*\s/){
         $rid =~ m/^\@(.*)\s/;
         $ridtmp = $1;
-        print "if condition";
       }
       else{
         $rid =~ m/^\@(.*)/;
