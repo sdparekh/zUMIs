@@ -59,6 +59,18 @@ if(opt$counting_opts$introns){
   ffiles<-c(ffiles,fnin)
 }
 
+if(is.null(opt$mem_limit)){
+  mempercpu <- round(100/opt$num_threads/2,0)
+}else{
+  mempercpu <- round(opt$mem_limit/opt$num_threads/2,0)
+  if(mempercpu==0){
+    mempercpu <- 1
+  }
+}
+
+system(paste0("for i in ",paste(ffiles,collapse=" ")," ; do samtools sort -n -O 'BAM' -@ ",round(opt$num_threads/2,0)," -m ",mempercpu,"G -o $i $i.tmp & done ; wait"))
+system(paste("rm",paste0(ffiles,".tmp",collapse=" ")))
+
 ##########################################
 #set Downsampling ranges
 
