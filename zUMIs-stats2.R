@@ -28,8 +28,8 @@ AllCounts<-readRDS(paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".d
 
 # GeneCounts --------------------------------------------------------------
 
-genecounts <- dplyr::bind_rows( lapply(names(AllCounts$umicount), function(i){
-                       countGenes(AllCounts$umicount[[i]][["all"]], user_seq=user_seq) %>%
+genecounts <- dplyr::bind_rows( lapply(names(AllCounts$readcount), function(i){
+                       countGenes(AllCounts$readcount[[i]][["all"]], user_seq=user_seq) %>%
                        mutate(type=case_when( i == "exon" ~ "Exon",
                                               i == "inex" ~ "Intron+Exon",
                                               i == "intron" ~ "Intron")) }))
@@ -41,21 +41,21 @@ umicounts <- dplyr::bind_rows( lapply(names(AllCounts$umicount), function(i){
                                                 i == "intron" ~ "Intron"))}))
 
 med<-genecounts %>% dplyr::group_by(type) %>% dplyr::summarise(n=round(median(Count)))
-medUMI<-umicounts %>% dplyr::group_by(type) %>% dplyr::summarise(n=round(median(Count)))
+medUMI<-try(umicounts %>% dplyr::group_by(type) %>% dplyr::summarise(n=round(median(Count))))
 
 ag <- countBoxplot(cnt = genecounts,
                    ylab= "Number of Genes",
                    fillcol=featColors[unique(genecounts$type)],
                    lab = med)
-bg <- countBoxplot(cnt = umicounts,
+bg <- try(countBoxplot(cnt = umicounts,
                    ylab= "Number of UMIs",
                    fillcol=featColors[unique(umicounts$type)],
-                   lab = medUMI)
-cp<-cowplot::plot_grid(ag,bg,ncol = 2)
+                   lab = medUMI))
+cp<-try(cowplot::plot_grid(ag,bg,ncol = 2))
 
-ggsave(cp,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".geneUMIcounts.pdf",sep=""),width = 10,height = 5)
+try(ggsave(cp,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".geneUMIcounts.pdf",sep=""),width = 10,height = 5))
 write.table(genecounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".genecounts.txt"),sep="\t",row.names = F,col.names = T)
-write.table(umicounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".UMIcounts.txt"),sep="\t",row.names = F,col.names = T)
+try(write.table(umicounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".UMIcounts.txt"),sep="\t",row.names = F,col.names = T))
 
 ## Total number of reads per cell
 if(opt$counting_opts$introns==T){

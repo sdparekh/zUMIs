@@ -42,7 +42,9 @@ ui <- fluidPage(
                             shinyBS::bsTooltip(id="nfiles", title="How many reads (including index reads) were obtained by your sequencing layout?", 
                                                placement = "bottom", trigger = "hover",options = list(container = "body")),
                             checkboxInput("patternsearch", "Search for sequence pattern in reads?", value = F),
-                            uiOutput("patternUI"), uiOutput("patternReadUI")
+                            checkboxInput("frameshiftsearch", "Correct for frameshift in barcode reads?", value = F),
+                            uiOutput("patternUI"), uiOutput("patternReadUI"),
+                            uiOutput("frameshiftUI"), uiOutput("frameshiftReadUI")
                           )),
                           column(8,wellPanel(
                             uiOutput("fqUI"),
@@ -191,6 +193,7 @@ server <- function(input, output, session) {
   
   output$patternUI <- renderUI({
     if(input$patternsearch==T){
+           updateCheckboxInput(session = session, inputId = "frameshiftsearch",value = F)
            textInput(inputId = "pattern", label = "Search for the following sequence:" , placeholder = "ACTGCTGC")
     }
   })
@@ -198,6 +201,19 @@ server <- function(input, output, session) {
   output$patternReadUI <- renderUI({
     if(input$patternsearch==T){
       selectInput(inputId = "patternRead", label = "Search for the pattern in this read:" ,choices = paste("Read",1:input$nfiles),selected = "Read 1")
+    }
+  })
+  
+  output$frameshiftUI <- renderUI({
+    if(input$frameshiftsearch==T){
+      updateCheckboxInput(session = session, inputId = "patternsearch",value = F)
+      textInput(inputId = "pattern", label = "Correct frameshifts using the following sequence:" , placeholder = "ACTGCTGC")
+    }
+  })
+  
+  output$frameshiftReadUI <- renderUI({
+    if(input$frameshiftsearch==T){
+      selectInput(inputId = "patternRead", label = "Correct for frameshift with pattern in this read:" ,choices = paste("Read",1:input$nfiles),selected = "Read 1")
     }
   })
 
@@ -292,7 +308,7 @@ server <- function(input, output, session) {
       bc_struc<-bc_struc[which( bc_struc != "" )]
       
       
-      if(input$patternsearch==F){
+      if(input$patternsearch==F & input$frameshiftsearch==F){
         seqf[[i]] <- list(
           "name" = input[[paste0("fqpath_",i)]],
           "base_definition" = paste0(names(bc_struc),"(",bc_struc,")")
@@ -305,10 +321,18 @@ server <- function(input, output, session) {
             "find_pattern" = input$pattern
           )  
         }else{
+          if(input$frameshiftsearch==T & substr(input$patternRead,6,6)==i){
+            seqf[[i]] <- list(
+              "name" = input[[paste0("fqpath_",i)]],
+              "base_definition" = paste0(names(bc_struc),"(",bc_struc,")"),
+              "correct_frameshift" = input$pattern
+            ) 
+          }else{
           seqf[[i]] <- list(
             "name" = input[[paste0("fqpath_",i)]],
             "base_definition" = paste0(names(bc_struc),"(",bc_struc,")")
           )
+          }
         }
       }
       
@@ -431,7 +455,11 @@ server <- function(input, output, session) {
           updateSelectInput(session = session, inputId = "patternRead", choices = paste("Read",1:length(ya$sequence_files)), selected = paste("Read",i))
           updateTextInput(session = session, inputId = "pattern", value = ya$sequence_files[[i]]$find_pattern)
         }
-
+        if(length(ya$sequence_files[[i]]$correct_frameshift)==1){
+          updateCheckboxInput(session = session, inputId = "frameshiftsearch", value = T)
+          updateSelectInput(session = session, inputId = "patternRead", choices = paste("Read",1:length(ya$sequence_files)), selected = paste("Read",i))
+          updateTextInput(session = session, inputId = "pattern", value = ya$sequence_files[[i]]$correct_frameshift)
+        }
       }
 
       updateNumericInput(session = session, inputId = "BCbases", value = ya$filter_cutoffs$BC_filter$num_bases)
