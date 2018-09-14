@@ -131,11 +131,7 @@ while(<$fh1>){
     $pf = $fp[2];
 
     #This block checks if the read should have certian pattern
-    if($pf =~ /^character/){
-      $mcrseq = $rseq1;
-      $checkpattern = $rseq1;
-    }
-    else{
+    if($pf !~ /^character/){
       $mcrseq = $rseq1;
       $checkpattern = $pf;
     }
