@@ -75,6 +75,7 @@ reads2genes <- function(featfiles,chunks,rgfile,cores){
 }
 hammingFilter<-function(umiseq, edit=1, gbcid=NULL ){
   # umiseq a vector of umis, one per read
+  library(dplyr)
   umiseq <- sort(umiseq)
   uc     <- data.frame(us = umiseq,stringsAsFactors = F) %>% dplyr::count(us) # normal UMI counts
 
@@ -134,12 +135,24 @@ umiCollapseID<-function(reads,bccount,nmin=0,nmax=Inf,ftype=c("intron","exon"),.
   }
 }
 umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon"),HamDist=1){
-  df<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)[
-    ,list(umicount =hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),
-          readcount =.N),
-    by=c("RG","GE")]
+  # df<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)[
+  #   ,list(umicount =hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),
+  #         readcount =.N),
+  #   by=c("RG","GE")]
+  library(multidplyr)
+  cluster <- create_cluster(opt$num_threads)
+  set_default_cluster(cluster)
+  cluster_copy(cluster,ham_mat)
+  cluster_copy(cluster,hammingFilter)
+  cluster_copy(cluster,HamDist)
 
-  return(df)
+  df <- .sampleReads4collapsing(reads,bccount,nmin,nmax,ftype) %>%
+        multidplyr::partition(RG, cluster= cluster) %>%
+        dplyr::group_by(RG,GE) %>%
+        dplyr::summarise(umicount=hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),readcount=length(UB)) %>% 
+        dplyr::collect()
+
+  return(as.data.table(df))
 }
 umiFUNs<-list(umiCollapseID=umiCollapseID,  umiCollapseHam=umiCollapseHam)
 
