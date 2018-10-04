@@ -12,7 +12,7 @@ outdir=$5
 yaml=$6
 
 ls $tmpMerge/$project.*.filtered.tagged.bam > $tmpMerge/$project.bamlist.txt
-samtools merge -f -@ $nthreads -b $tmpMerge/$project.bamlist.txt $outdir/$project.filtered.tagged.bam > /dev/null 2>&1
+#samtools merge -f -@ $nthreads -b $tmpMerge/$project.bamlist.txt $outdir/$project.filtered.tagged.bam > /dev/null 2>&1
 
 cat $tmpMerge/$project.*.BCstats.txt > $outdir/$project.BCstats.txt
 
