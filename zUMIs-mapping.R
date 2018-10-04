@@ -8,6 +8,9 @@ inp<-yaml::read_yaml(y)
 additional_fq <- inp$reference$additional_files
 samtools <- inp$samtools_exec
 STAR_exec <- inp$STAR_exec
+# collect filtered bam files ----------------------------------------------
+tmpfolder <- paste(inp$out_dir,"/zUMIs_output/.tmpMerge/",sep="")
+filtered_bams <- list.files(path = tmpfolder, pattern=paste(inp$project,".*.filtered.tagged.bam$",sep=""),full.names=T)
 
 # GTF file setup ----------------------------------------------------------
 #in case of additional sequences, we need to create a custom GTF
@@ -49,9 +52,9 @@ yaml::write_yaml(inp,file = paste(inp$out_dir,"/",inp$project,".postmap.yaml",se
 
 # Detect read length ------------------------------------------------------
 #check the first 100 reads to detect the read length of the cDNA read
-filtered_bam <- paste(inp$out_dir,"/",inp$project,".filtered.tagged.bam",sep="")
+#filtered_bam <- paste(inp$out_dir,"/",inp$project,".filtered.tagged.bam",sep="")
 
-cDNA_peek <- data.table::fread(paste(samtools,"view",filtered_bam,"| cut -f10 | head -n 100"),stringsAsFactors = F,data.table = T, header = F)
+cDNA_peek <- data.table::fread(paste(samtools,"view",filtered_bams[1],"| cut -f10 | head -n 100"),stringsAsFactors = F,data.table = T, header = F)
 
 getmode <- function(v) {
   uniqv <- unique(v)
@@ -63,11 +66,11 @@ cDNA_read_length <- getmode(nchar(cDNA_peek$V1))
 
 # Setup STAR mapping ------------------------------------------------------
 
-param_defaults <- "--readFilesCommand samtools view --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --outSAMtype BAM Unsorted"
+param_defaults <- "--readFilesCommand samtools view -@2 --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --outSAMtype BAM Unsorted"
 param_misc <- paste("--genomeDir",inp$reference$STAR_index,
                     "--sjdbGTFfile",gtf_to_use,
                     "--runThreadN",inp$num_threads,
-                    "--readFilesIn",filtered_bam,
+                    "--readFilesIn",paste0(filtered_bams,collapse=","),
                     "--outFileNamePrefix",paste(inp$out_dir,"/",inp$project,".filtered.tagged.",sep=""),
                     "--sjdbOverhang", cDNA_read_length-1,
                     "--readFilesType SAM",inp$read_layout)
@@ -80,5 +83,5 @@ if(inp$counting_opts$twoPass==T){
 
 #finally, run STAR
 system(STAR_command)
-
+system(paste0("rm ",tmpfolder,"/",inp$project,".*"))
 q()
