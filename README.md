@@ -43,6 +43,8 @@ Switched support to the new Rsubread version and data format. Furthermore to com
 
 Please find information on [installation](https://github.com/sdparekh/zUMIs/wiki/Installation) and [usage](https://github.com/sdparekh/zUMIs/wiki/Usage) in the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/).
 
+Please make sure to use the same or higher versions of dependencies as [mentioned](https://github.com/sdparekh/zUMIs/wiki/Installation).
+
 ## Compatibility
 
 zUMIs is compatible with nearly all (single-cell) RNA-seq protocols!
