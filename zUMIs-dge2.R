@@ -12,7 +12,7 @@ setwd(opt$out_dir)
 source(paste0(opt$zUMIs_directory,"/runfeatureCountFUN.R"))
 source(paste0(opt$zUMIs_directory,"/UMIstuffFUN.R"))
 source(paste0(opt$zUMIs_directory,"/barcodeIDFUN.R"))
-
+options(datatable.fread.input.cmd.message=FALSE)
 print(Sys.time())
 
 data.table::setDTthreads(threads=opt$num_threads)

@@ -43,7 +43,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
 
 .cellBarcode_unknown <- function( bccount, outfilename=NULL) {
 
-  bccount[ ,cs:=cumsum(n)]
+  bccount[ ,cs:=cumsum(as.numeric(n))]
   cut <- .FindBCcut(bccount)
   nkeep<-bccount[n>=cut][,list(s=.N)]
   if(nkeep<10){

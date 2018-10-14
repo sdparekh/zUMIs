@@ -10,7 +10,7 @@ library(ggplot2)
 library(Matrix)
 suppressMessages(library(dplyr))
 suppressMessages(library(cowplot))
-
+options(datatable.fread.input.cmd.message=FALSE)
 ##########################
 myYaml<-commandArgs(trailingOnly = T)
 opt   <-read_yaml(myYaml)

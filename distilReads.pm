@@ -11,20 +11,24 @@ sub makeFileHandles{
   $f = shift;
   $p = shift;
 	$fp = shift;
+	$cf = shift;
 
   @files = split(" ",$f);
   @pats = split(" ",$p);
 	@fpats = split(" ",$fp);
+	@cframes = split(" ",$cf);
 
   $j=0;
   for $file ( @files ) {
     $j++;
     $pat=$pats[$j-1];
 		$fpat=$fpats[$j-1];
+		$cframe=$cframes[$j-1];
+
     $fh="file".$j;
 
     if ( open $fh, '<', $file ) {
-      $file_handles{ $fh } = $file.":".$pat.":".$fpat;
+      $file_handles{ $fh } = $file.":".$pat.":".$fpat.":".$cframe;
       close $fh;
     }
     else {
@@ -40,6 +44,39 @@ sub checkPhred{
     return $offset;
 }
 
+sub correctFrameshift{
+	$read = shift;
+	$p = shift;
+	$pat = shift;
+
+	@arr = split(";", $p); #$p = BC(1-6,22-27,43-48);UMI(49-56)
+	($index) = grep { $arr[$_] =~ /BC/ } 0..$#arr;
+	($index2) = grep { $arr[$_] =~ /UMI/ } 0..$#arr;
+
+	@ranges = split(",",$arr[$index]);
+	$ranges[0] =~ m/(\d+)-(\d+)/;
+  $bc1length = $2;
+
+	$arr[$index2] =~ m/UMI\((\d+)-(\d+)\)/;
+  $fulllength = $2;
+
+    #@bla = split($pat,$read);
+     $read =~ m/(.*)($pat.*)/;
+     $before = $1;
+     $after = $2;
+
+		 #print $bc1length,"\t",$fulllength,"\n",length($before),"\t",length($after),"\n";
+
+     if((length($before) >= $bc1length) && ((length($after)+$bc1length) >= $fulllength)){
+       $st = length($before) - $bc1length;
+       $newread = substr($read, $st);
+     }
+		 else
+		 {
+			 $newread = "fail";
+		 }
+		return $newread;
+}
 
 sub makeSeqs{
   $arseq = shift;
