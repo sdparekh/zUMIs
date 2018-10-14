@@ -1,6 +1,7 @@
 #!/usr/bin/env Rscript
 suppressMessages(require(yaml))
 suppressMessages(require(data.table))
+options(datatable.fread.input.cmd.message=FALSE)
 
 y<-commandArgs(trailingOnly = T)
 

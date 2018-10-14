@@ -25,6 +25,9 @@ The previous implementation of zUMIs has moved to an [archive branch in GitHub](
 
 
 ## Changelog
+14 Oct 2018: [zUMIs2.2 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.2).
+Since the big update of zUMIs2, we have continuously imprved performance and fixed bugs. Additionally, we have implemnted a barcode-frameshift correction, which helps for [ddSeq/Surecell data](https://github.com/sdparekh/zUMIs/wiki/Protocol-specific-setup#ddseq--surecell-3).
+
 09 Aug 2018: [zUMIs2.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.0). For a detailed list of changes check above and in the updated wiki.
 
 12 Apr 2018: [zUMIs.0.0.6 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.6).
@@ -42,6 +45,9 @@ Switched support to the new Rsubread version and data format. Furthermore to com
 ## Installation and Usage
 
 Please find information on [installation](https://github.com/sdparekh/zUMIs/wiki/Installation) and [usage](https://github.com/sdparekh/zUMIs/wiki/Usage) in the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/).
+
+Please make sure to use the same or higher versions of dependencies as [mentioned](https://github.com/sdparekh/zUMIs/wiki/Installation).
+
 
 ## Compatibility
 

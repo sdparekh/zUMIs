@@ -26,7 +26,7 @@ open(YL,"Rscript $zumisdir/readYaml4fqfilter.R $yml |");
 @arg=<YL>;
 close YL;
 %argHash;
-@params=("filenames", "seqtype", "outdir", "StudyName", "num_threads", "BCfilter", "UMIfilter", "find_pattern");
+@params=("filenames", "seqtype", "outdir", "StudyName", "num_threads", "BCfilter", "UMIfilter", "find_pattern", "correct_frameshift");
 
 
 for($i=0;$i<=$#params;$i++){
@@ -42,7 +42,12 @@ $num_threads = distilReads::argClean($argHash{"num_threads"});
 $BCfilter = distilReads::argClean($argHash{"BCfilter"});
 $UMIfilter = distilReads::argClean($argHash{"UMIfilter"});
 $pattern = distilReads::argClean($argHash{"find_pattern"});
+$frameshift = distilReads::argClean($argHash{"correct_frameshift"});
+
+
 #/data/share/htp/Project_mcSCRB-seqPaper/PEG_May2017/demult_HEK_r1.fq.gz; /data/share/htp/Project_mcSCRB-seqPaper/PEG_May2017/demult_HEK_r2.fq.gz;ACTGCTGTA
+#if find_pattern exists, readYaml4fqfilter returns  "ATTGCGCAATG character(0) character(0)"
+
 chomp($f);
 chomp($st);
 chomp($outdir);
@@ -51,17 +56,16 @@ chomp($num_threads);
 chomp($BCfilter);
 chomp($UMIfilter);
 chomp($pattern);
+chomp($frameshift);
 
 $outbcstats = "$outdir/zUMIs_output/.tmpMerge/$StudyName.$tmpPrefix.BCstats.txt";
 $outbam = "$outdir/zUMIs_output/.tmpMerge/$StudyName.$tmpPrefix.filtered.tagged.bam";
 
 # Make and open all the file handles
-%file_handles = distilReads::makeFileHandles($f,$st,$pattern);
+%file_handles = distilReads::makeFileHandles($f,$st,$pattern,$frameshift);
 
-# First file handle to start the while loop for the first file
+# get all the filehandles in @keys
 @keys = sort(keys %file_handles);
-$fh1 = $keys[0];
-@fp1 = split(":",$file_handles{$fh1});
 
 for($i=0;$i<=$#keys;$i++){
   $fh = $keys[$i];
@@ -92,6 +96,10 @@ $filtered = 0;
 
 open(BCBAM,"| samtools view -Sb - > $outbam");
 
+# First file handle to start the while loop for the first file
+$fh1 = $keys[0];
+@fp1 = split(":",$file_handles{$fh1});
+$count = 0;
 # reading the first file while others are processed in parallel within
 while(<$fh1>){
   $total++;
@@ -101,7 +109,8 @@ while(<$fh1>){
 	$qseq=<$fh1>;
 	$p1 = $fp1[1];
   $p2 = $fp1[2];
-
+  $p3 = $fp1[3];
+#$flag = 0;
 #This block checks if the read should have certian pattern
   if($p2 =~ /^character/){
     $mcrseq = $rseq;
@@ -112,43 +121,90 @@ while(<$fh1>){
     $checkpattern = $p2;
   }
 
+#This block checks if the read should be read corrected for frameshift in BC pattern
+  if($p3 !~ /^character/){
+    @bla = split($p3,$rseq);
+    #next if($#bla != 1);
+    if($#bla != 1){
+      $isPass = "fail";
+    }else{
+      $isPass = distilReads::correctFrameshift($rseq,$p1,$p3);
+    }
+    #print $isPass,"\n";
+    if($isPass ne "fail"){
+      $qst = length($rseq) - length($isPass);
+      $qseq = substr($qseq, $qst);
+      $rseq = $isPass;
+    }
+  }
+
   if($count==0){
     $count=1;
     $phredoffset = distilReads::checkPhred($qseq);
   }
   ($bcseq, $bcqseq, $ubseq, $ubqseq, $cseqr1, $cqseqr1, $cseqr2, $cqseqr2, $cdc, $lay) = ("","","","","","","","",0,"SE");
-  ($bcseq, $bcqseq, $ubseq, $ubqseq, $cseqr1, $cqseqr1, $cseqr2, $cqseqr2, $cdc, $lay) = distilReads::makeSeqs($rseq,$qseq,$p1,$cdc);
+
+  if($isPass ne "fail"){
+    ($bcseq, $bcqseq, $ubseq, $ubqseq, $cseqr1, $cqseqr1, $cseqr2, $cqseqr2, $cdc, $lay) = distilReads::makeSeqs($rseq,$qseq,$p1,$cdc);
+  }
 
 	for($i=1;$i<=$#keys;$i++){
     $fh = $keys[$i];
     @fp = split(":",$file_handles{$fh});
-
+  #  $flag = 0;
 		$rid1=<$fh>;
 		$rseq1=<$fh>;
 		$qid1=<$fh>;
 		$qseq1=<$fh>;
     $p = $fp[1];
     $pf = $fp[2];
+    $pf2 = $fp[3];
 
     #This block checks if the read should have certian pattern
+    #if find_pattern exists, readYaml4fqfilter returns  "ATTGCGCAATG character(0) character(0)"
     if($pf !~ /^character/){
       $mcrseq = $rseq1;
       $checkpattern = $pf;
     }
 
+    #This block checks if the read should be read corrected for frameshift in BC pattern
+      if($pf2 !~ /^character/){
+        @bla = split($pf2,$rseq1);
+        #next if($#bla != 1);
+        if($#bla != 1){
+          $isPass = "fail";
+        }else{
+          $isPass = distilReads::correctFrameshift($rseq1,$pf,$pf2);
+        }
+        #print $isPass,"\n";
+        if($isPass ne "fail"){
+          $qst = length($rseq1) - length($isPass);
+          $qseq1 = substr($qseq1, $qst);
+          $rseq1 = $isPass;
+        }
+      }
+
     @c = split(/\/|\s/,$rid);
     @b = split(/\/|\s/,$rid1);
     if($c[0] ne $b[0]){
+      print $c[0],"\n",$b[0],"\n";
       print "ERROR! Fastq files are not in the same order.\n Make sure to provide reads in the same order.\n\n";
       last;
     }
 
     # get the BC, UMI and cDNA sequences from all the given fastq files and concatenate according to given ranges
-    ($bcseq1, $bcqseq1, $ubseq1, $ubqseq1, $cseq1, $cqseq1, $cseq2, $cqseq2, $cdc, $lay) = distilReads::makeSeqs($rseq1,$qseq1,$p,$cdc);
+    if($isPass ne "fail"){
+      ($bcseq1, $bcqseq1, $ubseq1, $ubqseq1, $cseq1, $cqseq1, $cseq2, $cqseq2, $cdc, $lay) = distilReads::makeSeqs($rseq1,$qseq1,$p,$cdc);
+    }
+    else
+    {
+      ($bcseq1, $bcqseq1, $ubseq1, $ubqseq1, $cseq1, $cqseq1, $cseq2, $cqseq2, $cdc, $lay) = ("","","","","","","","",0,"SE");
+    }
 
     # concatenate according to given ranges with other files
     ($bcseq, $bcqseq, $ubseq, $ubqseq, $cseqr1, $cqseqr1, $cseqr2, $cqseqr2) = ($bcseq.$bcseq1, $bcqseq.$bcqseq1, $ubseq.$ubseq1, $ubqseq.$ubqseq1, $cseqr1.$cseq1, $cqseqr1.$cqseq1, $cseqr2.$cseq2, $cqseqr2.$cqseq2);
 	}
+#next if($flag = 1); # if correct_Frame is present and the pattern is not found in the read
 
     # Check the quality filter thresholds given
     @bcthres = split(" ",$BCfilter);
@@ -160,9 +216,8 @@ while(<$fh1>){
     $btmp = grep {$_ < $bcthres[1]} @bquals;
     $mtmp = grep {$_ < $umithres[1]} @mquals;
 
-
     # print out only if above the quality threshold
-    if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ($mcrseq =~ m/^$checkpattern/)){
+    if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ($mcrseq =~ m/^$checkpattern/) && ($isPass ne "fail")){
     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0])){
 
       chomp($rid);
