@@ -57,6 +57,7 @@ chomp($BCfilter);
 chomp($UMIfilter);
 chomp($pattern);
 chomp($frameshift);
+$isPass="pass";
 
 $outbcstats = "$outdir/zUMIs_output/.tmpMerge/$StudyName.$tmpPrefix.BCstats.txt";
 $outbam = "$outdir/zUMIs_output/.tmpMerge/$StudyName.$tmpPrefix.filtered.tagged.bam";
