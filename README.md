@@ -48,10 +48,7 @@ Please find information on [installation](https://github.com/sdparekh/zUMIs/wiki
 
 Please make sure to use the same or higher versions of dependencies as [mentioned](https://github.com/sdparekh/zUMIs/wiki/Installation).
 
-<<<<<<< HEAD
 
-=======
->>>>>>> b834f78913a31cc07abbcb6173699e010b7a5da7
 ## Compatibility
 
 zUMIs is compatible with nearly all (single-cell) RNA-seq protocols!
