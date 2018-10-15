@@ -26,7 +26,7 @@ The previous implementation of zUMIs has moved to an [archive branch in GitHub](
 
 ## Changelog
 14 Oct 2018: [zUMIs2.2 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.2).
-Since the big update of zUMIs2, we have continuously imprved performance and fixed bugs. Additionally, we have implemnted a barcode-frameshift correction, which helps for [ddSeq/Surecell data](https://github.com/sdparekh/zUMIs/wiki/Protocol-specific-setup#ddseq--surecell-3).
+Since the big update of zUMIs2, we have continuously improved performance and fixed bugs. Additionally, we have implemented a barcode-frameshift correction, which helps for [ddSeq/Surecell data](https://github.com/sdparekh/zUMIs/wiki/Protocol-specific-setup#ddseq--surecell-3).
 
 09 Aug 2018: [zUMIs2.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.0). For a detailed list of changes check above and in the updated wiki.
 
