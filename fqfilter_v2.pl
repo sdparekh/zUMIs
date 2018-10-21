@@ -22,7 +22,7 @@ $tmpPrefix=$ARGV[5];
 use lib "$zumisdir";
 use distilReads;
 
-open(YL,"Rscript $zumisdir/readYaml4fqfilter.R $yml |");
+open(YL,"$rscriptexc $zumisdir/readYaml4fqfilter.R $yml |");
 @arg=<YL>;
 close YL;
 %argHash;
@@ -95,7 +95,7 @@ $total = 0;
 $filtered = 0;
 %bclist;
 
-open(BCBAM,"| samtools view -Sb - > $outbam");
+open(BCBAM,"| $samtoolsexc view -Sb - > $outbam");
 
 # First file handle to start the while loop for the first file
 $fh1 = $keys[0];

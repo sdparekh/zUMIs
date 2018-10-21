@@ -3,12 +3,13 @@ suppressMessages(require(yaml))
 suppressMessages(require(data.table))
 options(datatable.fread.input.cmd.message=FALSE)
 
-y<-commandArgs(trailingOnly = T)
+y <- commandArgs(trailingOnly = T)
 
 inp<-yaml::read_yaml(y)
 additional_fq <- inp$reference$additional_files
 samtools <- inp$samtools_exec
 STAR_exec <- inp$STAR_exec
+
 # collect filtered bam files ----------------------------------------------
 tmpfolder <- paste(inp$out_dir,"/zUMIs_output/.tmpMerge/",sep="")
 filtered_bams <- list.files(path = tmpfolder, pattern=paste(inp$project,".*.filtered.tagged.bam$",sep=""),full.names=T)
@@ -67,7 +68,7 @@ cDNA_read_length <- getmode(nchar(cDNA_peek$V1))
 
 # Setup STAR mapping ------------------------------------------------------
 
-param_defaults <- "--readFilesCommand samtools view -@2 --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --outSAMtype BAM Unsorted"
+param_defaults <- paste("--readFilesCommand ",samtools," view -@2 --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --outSAMtype BAM Unsorted")
 param_misc <- paste("--genomeDir",inp$reference$STAR_index,
                     "--sjdbGTFfile",gtf_to_use,
                     "--runThreadN",inp$num_threads,

@@ -3,13 +3,13 @@
 .rmXT<-function(b){ gsub("XT:Z:","",b)}
 .rmUnassigned<-function(b){ gsub("Unassigned_","",b)}
 
-sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile){
+sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile,samtoolsexc){
   require(data.table)
   # check for user defined sequences
   ## minifunction for string operations
   headerXX<-paste( c(paste0("V",1:3)) ,collapse="\t")
   write(headerXX,paste(outdir,"freadHeader",sep="/"))
-  samcommand<-paste("cat freadHeader; samtools view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB -@",cores)
+  samcommand<-paste("cat freadHeader; ",samtoolsexc," view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB -@",cores)
   #issue with BC matching
   mapCount<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/XS:Z://' | sed 's/XT:Z://' "), na.strings=c(""),
                              select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","XS","GE") )[
@@ -65,7 +65,7 @@ countUMIs <- function(cnt, user_seq){
 countBoxplot<-function(cnt, ylab,fillcol,lab){
   ggplot(cnt, aes(x=type, y=Count, fill=type))+
     geom_boxplot(notch = T) +
-    geom_text(data=lab,aes(x=type,y=n,label=n),size=5,vjust=-0.5,col="white") +
+    geom_text(data=lab,aes(x=type,y=n,label=n),size=5,vjust=-0.5,col="orange") +
     scale_fill_manual(values = fillcol) +
     xlab("") + ylab(ylab) +
     theme_bw() +

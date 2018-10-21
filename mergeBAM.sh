@@ -10,6 +10,7 @@ nthreads=$3
 project=$4
 outdir=$5
 yaml=$6
+samtoolsexc=$7
 
 ls $tmpMerge/$project.*.filtered.tagged.bam > $tmpMerge/$project.bamlist.txt
 #samtools merge -f -@ $nthreads -b $tmpMerge/$project.bamlist.txt $outdir/$project.filtered.tagged.bam > /dev/null 2>&1
@@ -17,7 +18,7 @@ ls $tmpMerge/$project.*.filtered.tagged.bam > $tmpMerge/$project.bamlist.txt
 cat $tmpMerge/$project.*.BCstats.txt > $outdir/$project.BCstats.txt
 
 f=`head -n1 $tmpMerge/$project.bamlist.txt`
-flag=`samtools view $f | head -n1 | cut -f2`
+flag=`$samtoolsexc view $f | head -n1 | cut -f2`
 
 if [[ $flag == 4 ]]; then
 	if grep -q 'read_layout:' $yaml
