@@ -12,8 +12,11 @@ suppressMessages(library(dplyr))
 suppressMessages(library(cowplot))
 options(datatable.fread.input.cmd.message=FALSE)
 ##########################
-myYaml<-commandArgs(trailingOnly = T)
+myYaml <- commandArgs(trailingOnly = T)
+
 opt   <-read_yaml(myYaml)
+samtoolsexc <- opt$samtools_exec
+
 setwd(opt$out_dir)
 featColors<-c("#1A5084", "#914614" ,"#118730","grey33","tan1","#631879FF","gold1","grey73","firebrick3")
 names(featColors)<-c("Exon","Intron+Exon","Intron","Unmapped","Ambiguity","MultiMapping","Intergenic","Unused BC","User")
@@ -72,7 +75,8 @@ typeCount <- sumstatBAM( featfiles = featfile_vector,
                          outdir= opt$out_dir,
                          user_seq = user_seq,
                          bc = bc,
-                         outfile = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".bc.READcounts.rds"))
+                         outfile = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".bc.READcounts.rds"),
+                       samtoolsexc=samtoolsexc)
 
 #only print per BC mapping stats if there are fewer than 200 BCs
 tc<-data.frame(typeCount)

@@ -53,7 +53,7 @@ f=$7
 
 
 if [[ $f =~ \.gz$ ]]; then
-	nlines=`pigz -p $num_threads -d -c $f | wc -l`
+	nlines=`$pigzexc -p $num_threads -d -c $f | wc -l`
 else
 	nlines=`wc -l $f | awk '{print $1}'`
 fi

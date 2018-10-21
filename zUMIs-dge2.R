@@ -5,7 +5,8 @@ library(yaml)
 library(ggplot2)
 
 ##########################
-myYaml<-commandArgs(trailingOnly = T)
+myYaml <- commandArgs(trailingOnly = T)
+
 opt   <-read_yaml(myYaml)
 setwd(opt$out_dir)
 #unixtools::set.tempdir(opt$out_dir)
@@ -15,6 +16,7 @@ source(paste0(opt$zUMIs_directory,"/barcodeIDFUN.R"))
 options(datatable.fread.input.cmd.message=FALSE)
 print(Sys.time())
 
+samtoolsexc <- opt$samtools_exec
 data.table::setDTthreads(threads=opt$num_threads)
 #Check the version of Rsubread
 checkRsubreadVersion()
@@ -68,7 +70,7 @@ if(is.null(opt$mem_limit)){
   }
 }
 
-system(paste0("for i in ",paste(ffiles,collapse=" ")," ; do samtools sort -n -O 'BAM' -@ ",round(opt$num_threads/2,0)," -m ",mempercpu,"G -o $i $i.tmp & done ; wait"))
+system(paste0("for i in ",paste(ffiles,collapse=" ")," ; do ",samtoolsexc," sort -n -O 'BAM' -@ ",round(opt$num_threads/2,0)," -m ",mempercpu,"G -o $i $i.tmp & done ; wait"))
 system(paste("rm",paste0(ffiles,".tmp",collapse=" ")))
 
 ##########################################
@@ -100,7 +102,8 @@ for(i in unique(bccount$chunkID)){
      reads<-reads2genes( featfiles = ffiles,
                              chunks    = bccount[chunkID==i]$XC,
                              rgfile    = paste0(opt$out_dir,"/zUMIs_output/.currentRGgroup.txt"),
-                             cores     = opt$num_threads  )
+                             cores     = opt$num_threads,
+                           samtoolsexc=samtoolsexc  )
 
      tmp<-collectCounts(  reads =reads,
                           bccount=bccount[chunkID==i],

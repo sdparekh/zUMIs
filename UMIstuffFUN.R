@@ -43,14 +43,14 @@ ham_mat <- function(umistrings) {
   nrow(X) - H
 }
 
-reads2genes <- function(featfiles,chunks,rgfile,cores){
+reads2genes <- function(featfiles,chunks,rgfile,cores,samtoolsexc){
 
   ## minifunction for string operations
   nfiles=length(featfiles)
   write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
   headerXX<-paste( c(paste0("V",1:3)) ,collapse="\t")
   write(headerXX,"freadHeader")
-  samcommand<-paste("cat freadHeader; samtools view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@",cores)
+  samcommand<-paste("cat freadHeader; ",samtoolsexc," view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@",cores)
 
    if(length(featfiles)==1){
           reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
@@ -149,7 +149,7 @@ umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon")
   df <- .sampleReads4collapsing(reads,bccount,nmin,nmax,ftype) %>%
         multidplyr::partition(RG, cluster= cluster) %>%
         dplyr::group_by(RG,GE) %>%
-        dplyr::summarise(umicount=hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),readcount=length(UB)) %>% 
+        dplyr::summarise(umicount=hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),readcount=length(UB)) %>%
         dplyr::collect()
 
   return(as.data.table(df))
