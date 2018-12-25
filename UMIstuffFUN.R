@@ -152,7 +152,10 @@ umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon")
         dplyr::collect())
 
   if (class(df) == "try-error") {
-            print("Caught an error during multidplyr, trying linearly...\n")
+            print("Caught an error during multidplyr, trying linearly...")
+	    parallel::stopCluster(cluster)
+	    rm(cluster)
+	    gc()
             df <- .sampleReads4collapsing(reads,bccount,nmin,nmax,ftype) %>%
                     dplyr::group_by(RG,GE) %>%
                     dplyr::summarise(umicount=hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),readcount=length(UB))
