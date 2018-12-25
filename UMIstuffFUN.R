@@ -145,12 +145,19 @@ umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon")
   cluster_copy(cluster,ham_mat)
   cluster_copy(cluster,hammingFilter)
   cluster_copy(cluster,HamDist)
-
-  df <- .sampleReads4collapsing(reads,bccount,nmin,nmax,ftype) %>%
+  df <- try(.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype) %>%
         multidplyr::partition(RG, cluster= cluster) %>%
         dplyr::group_by(RG,GE) %>%
         dplyr::summarise(umicount=hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),readcount=length(UB)) %>%
-        dplyr::collect()
+        dplyr::collect())
+
+  if (class(df) == "try-error") {
+            print("Caught an error during multidplyr, trying linearly...\n")
+            df <- .sampleReads4collapsing(reads,bccount,nmin,nmax,ftype) %>%
+                    dplyr::group_by(RG,GE) %>%
+                    dplyr::summarise(umicount=hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),readcount=length(UB))
+          }
+
 
   return(as.data.table(df))
 }
