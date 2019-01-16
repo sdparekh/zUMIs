@@ -63,7 +63,7 @@ checkRsubreadVersion<- function(){
 
   intron.saf<-dplyr::left_join(intron.saf,unique(exon.saf[,c("GeneID","Strand")]),by=c("GeneID"))
 
-  saf <- list(introns=intron.saf,exons=exon.saf)
+  saf <- list(introns=unique(intron.saf),exons=unique(exon.saf))
   print("Annotation loaded!")
 #  safout <- paste(out,"/zUMIs_output/expression/",sn,".annotationsSAF.rds",sep="")
 #  saveRDS(saf, file=safout)
