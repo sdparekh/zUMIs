@@ -25,6 +25,9 @@ The previous implementation of zUMIs has moved to an [archive branch in GitHub](
 
 
 ## Changelog
+17 Jan 2019: [zUMIs2.2.3 released] (https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.2.3).
+We implemented fuzzy matching for pattern finding. From this version onwards, finding patterns take one mismatch into account.
+
 14 Oct 2018: [zUMIs2.2 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.2).
 Since the big update of zUMIs2, we have continuously improved performance and fixed bugs. Additionally, we have implemented a barcode-frameshift correction, which helps for [ddSeq/Surecell data](https://github.com/sdparekh/zUMIs/wiki/Protocol-specific-setup#ddseq--surecell-3).
 
