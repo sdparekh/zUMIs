@@ -106,11 +106,12 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL ){
   if(nrow(rcl)>0)  {
     return( rcl[ rcl[ ,exn:=.N,by=RG
                       ][         , targetN:=exn  # use binomial to break down to exon sampling
-                        ][ n> nmax, targetN:=rbinom(1,nmax,mean(exn)/mean(n) ), by=RG
-                          ][targetN>exn, targetN:=exn
-                            ][ ,sample(.I ,median( targetN )),by = RG]$V1 ])
+                                 ][ n> nmax, targetN:=rbinom(1,nmax,mean(exn)/mean(n) ), by=RG
+                                    ][targetN>exn, targetN:=exn][is.na(targetN),targetN :=0
+                                                                 ][ ,sample(.I , median(na.omit(targetN))),by = RG]$V1 ])
   }else{ return(NULL) }
 }
+
 .makewide <- function(longdf,type){
   #print("I am making a sparseMatrix!!")
   ge<-as.factor(longdf$GE)
