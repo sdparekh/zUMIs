@@ -1,8 +1,9 @@
+## set downsampling option
 setDownSamplingOption<-function( down ,bccount, filename=NULL){
-
-  if(down!="0") {
+  
+  if(down!="0"){
     subsample=TRUE
-
+    
     if(grepl(pattern = ",",x = down)==TRUE){
       subsample.splits <- t(sapply(strsplit(down,split = ",")[[1]],
                                    function(x){
@@ -11,8 +12,14 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
                                      }else{  as.numeric(rep(x,2)) }
                                    }))
     }else{
-      subn=as.numeric(down)
-      subsample.splits <- matrix( c(subn,subn),1,2 )
+      
+      if(grepl(pattern = "-",x = down)==TRUE){
+        subsample.splits <- t(as.numeric(strsplit(down,split="-")[[1]]))
+      }else{  
+        subn=as.numeric(down)
+        subsample.splits <- matrix( c(subn,subn),1,2 )
+      }
+      rownames(subsample.splits) <- down
     }
     if(any(subsample.splits[,1] > max(bccount$n))){
       print("Warning! None of the barcodes had enough reads for the following requested downsampling:")
@@ -25,7 +32,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
     subsample.splits <- matrix( mads, 1, 2)
   }
   colnames(subsample.splits)<-c("minR","maxR")
-
+  
   return( subsample.splits )
 }
 
