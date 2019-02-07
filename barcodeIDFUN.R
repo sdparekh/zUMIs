@@ -175,3 +175,44 @@ plotReadCountSelection<-function(bccount , mads, filename){
   abline(h=MAD_up,col="red")
   dev.off()
 }
+
+
+BCbin <- function(bccount_file, bc_detected) {
+  true_BCs <- bc_detected[,XC]
+  nocell_bccount<-data.table::fread( bccount_file, col.names = c("XC","n"))[
+                                                                            ,list(n=sum(n)),by=XC][
+                                                                            n>=opt$barcodes$nReadsperCell][
+                                                                            order(-n)][
+                                                                            !( XC %in% true_BCs )   ]
+  nocell_BCs <- nocell_bccount[,XC]
+  
+  #break up in pieces of 1000 real BCs in case the hamming distance calculation gets too large!
+  true_chunks <- split(true_BCs, ceiling(seq_along(true_BCs)/1000))
+  for(i in 1:length(true_chunks)){
+    dists <- stringdist::stringdistmatrix(true_chunks[[i]],nocell_BCs,method="hamming", nthread = opt$num_threads)
+    dists <- setDT(data.frame(dists))
+    colnames(dists) <- nocell_BCs
+    dists <- suppressWarnings(data.table::melt(dists,variable.factor = F,variable.name="falseBC", value.name="hamming"))
+    dists <- dists[, trueBC := rep(true_chunks[[i]],length(nocell_BCs))][
+          hamming<=opt$barcodes$BarcodeBinning,]
+    if(i==1){
+      binmap <- dists
+    }else{
+      binmap <- rbind(binmap,dists)
+    }
+  }
+  #remove unused BCs that fit equally well to two true parent BCs
+  binmap[    , min_ham :=  min(hamming), by = falseBC][
+             , n_false :=  length(hamming), by = falseBC][
+             , n_min := sum(hamming==min_ham), by =  falseBC]
+  binmap <- binmap[n_min==1         ,][
+                   hamming==min_ham ,][
+                   , min_ham := NULL][
+                   , n_false := NULL][
+                   , n_min := NULL][
+                   , n := nocell_bccount[match(falseBC,nocell_bccount$XC),n]]
+  
+  print(paste("Found",nrow(binmap),"daughter barcodes that can be binned into",length(unique(binmap[,trueBC])),"parent barcodes."))
+  print(paste("Binned barcodes correspond to",sum(binmap[,n]),"reads."))
+  return(binmap)
+}
