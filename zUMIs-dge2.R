@@ -36,6 +36,15 @@ fwrite(bccount,file=paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcod
 
 bccount<-splitRG(bccount=bccount, mem= opt$mem_limit)
 
+#check if binning of adjacent barcodes should be run
+if(opt$barcodes$BarcodeBinning > 0){
+  binmap <- BCbin(bccount_file = paste0(opt$out_dir,"/", opt$project, ".BCstats.txt"),
+                  bc_detected  = bccount)
+  #update the number reads in BCcount table
+  bccount[match(binmap[,trueBC],XC),n := n + binmap[,n]]
+  fwrite(bccount,file=paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes_binned.txt"))
+}
+
 ##############################################################
 ##### featureCounts
 

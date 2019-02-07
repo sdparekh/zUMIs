@@ -47,7 +47,12 @@ reads2genes <- function(featfiles,chunks,rgfile,cores,samtoolsexc){
 
   ## minifunction for string operations
   nfiles=length(featfiles)
-  write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
+  if(opt$barcodes$BarcodeBinning > 0){
+    write.table(file=rgfile,c(chunks,binmap[,falseBC]),col.names = F,quote = F,row.names = F)
+  }else{
+    write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
+  }
+  
   headerXX<-paste( c(paste0("V",1:3)) ,collapse="\t")
   write(headerXX,"freadHeader")
   samcommand<-paste("cat freadHeader; ",samtoolsexc," view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@",cores)
@@ -69,6 +74,10 @@ reads2genes <- function(featfiles,chunks,rgfile,cores,samtoolsexc){
 
   }
   system("rm freadHeader")
+  if(opt$barcodes$BarcodeBinning > 0){
+    reads[RG %in% binmap[,falseBC], RG := binmap[match(RG,binmap[,falseBC]),trueBC]]
+  }
+  
   setkey(reads,RG)
 
   return( reads[GE!="NA"] )

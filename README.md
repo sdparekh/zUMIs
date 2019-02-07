@@ -25,6 +25,9 @@ The previous implementation of zUMIs has moved to an [archive branch in GitHub](
 
 
 ## Changelog
+07 Feb 2019: zUMIs2.3.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.3.0).
+Implemented barcode binning according to specified hamming distance.
+
 17 Jan 2019: [zUMIs2.2.3 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.2.3).
 We implemented fuzzy matching for pattern finding. From this version onwards, finding patterns take one mismatch into account.
 
