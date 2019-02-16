@@ -21,7 +21,7 @@ $tmpPrefix=$ARGV[5];
 }
 use lib "$zumisdir";
 use distilReads;
-use Approx;
+#use Approx;
 
 open(YL,"$rscriptexc $zumisdir/readYaml4fqfilter.R $yml |");
 @arg=<YL>;
@@ -219,9 +219,9 @@ while(<$fh1>){
     $mtmp = grep {$_ < $umithres[1]} @mquals;
 
     # print out only if above the quality threshold
-     if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ( Approx::amatch($checkpattern, [ 1 ],$mcrseq) ) && ($isPass ne "fail")){
-	     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ($mcrseq =~ m/^$checkpattern/) && ($isPass ne "fail")){
-    #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0])){
+     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ( Approx::amatch($checkpattern, [ 1 ],$mcrseq) ) && ($isPass ne "fail")){
+     if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ($mcrseq =~ m/^$checkpattern/) && ($isPass ne "fail")){
+     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0])){
 
       chomp($rid);
 
