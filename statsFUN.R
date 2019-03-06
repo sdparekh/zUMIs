@@ -43,9 +43,11 @@ getUserSeq <-function(gtf ) {
 
 countGenes <- function(cnt,threshold=1,user_seq){
 
-  #tmp[tmp<threshold]<-0
-  cnt[cnt>=threshold]<-1
-
+  # use boolean matrix directly without indexing cnt to
+  # avoid integer overflow issues in large matrices
+  # see https://github.com/sdparekh/zUMIs/issues/105
+  cnt <- (cnt>=threshold)
+  
   samples<-as.data.frame(Matrix::colSums(cnt[!(rownames(cnt) %in% user_seq),]))
   colnames(samples) <- c("Count")
   samples[,"SampleID"] <- as.factor(row.names(samples))
