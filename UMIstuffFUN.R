@@ -74,6 +74,9 @@ reads2genes <- function(featfiles,chunks,rgfile,cores,samtoolsexc){
 
   }
   system("rm freadHeader")
+  if(opt$read_layout == "PE"){
+    reads <- reads[ seq(1,nrow(reads),2) ]
+  }
   if(opt$barcodes$BarcodeBinning > 0){
     reads[RG %in% binmap[,falseBC], RG := binmap[match(RG,binmap[,falseBC]),trueBC]]
   }
