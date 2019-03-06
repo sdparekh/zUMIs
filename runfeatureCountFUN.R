@@ -9,7 +9,7 @@ checkRsubreadVersion<- function(){
       print("I did not find Rsubread so I am installing it...")
       BiocInstaller::biocLite("Rsubread",dependencies = TRUE, ask = FALSE)
     }else{
-      if(all(as.numeric_version(installed.packages()[grep("Rsubread",installed.packages()),"Version"])<'1.26.1')){
+      if(all(as.numeric_version(packageVersion("Rsubread"))<'1.26.1')){
           print("I need newer Rsubread so I am updating it...")
           BiocInstaller::biocUpdatePackages("Rsubread", ask=FALSE)
        }
