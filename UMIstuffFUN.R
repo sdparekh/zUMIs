@@ -179,6 +179,19 @@ umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon")
 }
 umiFUNs<-list(umiCollapseID=umiCollapseID,  umiCollapseHam=umiCollapseHam)
 
+check_nonUMIcollapse <- function(seqfiles){
+  #decide wether to run in UMI or no-UMI mode
+  UMI_check <- lapply(seqfiles, 
+                      function(x) {
+                        if(!is.null(x$base_definition)) {
+                          if(any(grepl("^UMI",x$base_definition))) return("UMI method detected.")
+                        }
+                      })
+  
+  umi_decision <- ifelse(length(unlist(UMI_check))>0,"UMI","nonUMI")
+  return(umi_decision)
+}
+
 collectCounts<-function(reads,bccount,subsample.splits, mapList,HamDist, ...){
   subNames<-paste("downsampled",rownames(subsample.splits),sep="_")
   umiFUN<-ifelse(HamDist==0,"umiCollapseID","umiCollapseHam")

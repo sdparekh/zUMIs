@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.4.0a
+vers=2.4.0b
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -74,6 +74,7 @@ genomedir=`grep 'STAR_index:' $yaml | awk '{print $2}'`
 mem_limit=`grep 'mem_limit:' $yaml | awk '{print $2}'`
 isstats=`grep 'make_stats:' $yaml | awk '{print $2}'`
 fqfiles=`grep 'name:' $yaml | awk '{print $2}'`
+velo=`grep 'velocyto:' $yaml | awk '{print $2}'`
 
 if grep -q 'samtools_exec:' $yaml
   then
@@ -185,6 +186,9 @@ then
   echo "Counting..."
   $Rexc $zumisdir/zUMIs-dge2.R $yaml
   date
+  if [[ "$velo" == "yes" ]]; then
+    $Rexc $zumisdir/runVelocyto.R $yaml
+  fi
 fi
 
 if
