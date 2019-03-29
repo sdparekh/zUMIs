@@ -1,0 +1,36 @@
+[1] "Please provide a project name. It can not be NULL."
+[1] "Please provide path to STAR index directory. It can not be NULL."
+[1] "Please provide path to GTF file. It can not be NULL."
+[1] "Please provide path to output directory. It can not be NULL."
+[1] "You need to provide atleast two input fastq files and their base definitions."
+[1] "You need to provide base definition for all input files"
+[1] "You need to provide base definition for all input files"
+[1] "You need to provide base definition for all input files"
+[2] "You need to provide base definition for all input files"
+[1] "file1"
+[1] "file1 : You need to provide path to the input file"
+[1] "file2"
+[1] "file2 : You need to provide path to the input file"
+[1] "file1 : You need to provide path to the input file"
+[2] "file2 : You need to provide path to the input file"
+[1] "file1"
+[1] "file1 : You need to provide base definitions for this input file"
+[1] "file2"
+[1] "file2 : You need to provide base definitions for this input file"
+[1] "file1 : You need to provide base definitions for this input file"
+[2] "file2 : You need to provide base definitions for this input file"
+[1] "The base definition can only be BC/cDNA/UMI. Check if you have a typo/special characters in your base definition or you forgot to add /space/ after -. Refer to the example yaml."
+[1] "The base definition can only be BC/cDNA/UMI. Check if you have a typo/special characters in your base definition or you forgot to add /space/ after -. Refer to the example yaml."
+$file1
+[1] "The base definition can only be BC/cDNA/UMI. Check if you have a typo/special characters in your base definition or you forgot to add /space/ after -. Refer to the example yaml."
+
+$file2
+[1] "The base definition can only be BC/cDNA/UMI. Check if you have a typo/special characters in your base definition or you forgot to add /space/ after -. Refer to the example yaml."
+
+$file1
+NULL
+
+$file2
+NULL
+
+[1] 1
