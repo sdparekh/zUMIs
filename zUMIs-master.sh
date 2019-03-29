@@ -65,6 +65,13 @@ fi
 
 check_opts "$yaml" "YAML" "-y"
 
+$Rexc $zumisdir/checkyaml.R $yaml > zUMIs_YAMLerror.log
+iserror=`tail errorlog.log -n1 | awk '{print $2}'`
+
+if [[ $iserror -eq 1 ]] ; then
+    echo "YAML file has an error. Look at the zUMIs_YAMLerror.log or contact developers."
+    exit 1
+fi
 #now get some variables from YAML
 num_threads=`grep 'num_threads' $yaml | awk '{print $2}'`
 project=`grep 'project:' $yaml | awk '{print $2}'`
@@ -134,8 +141,6 @@ outdir=`grep 'out_dir' $yaml | awk '{print $2}'`
 [ -d $outdir/zUMIs_output/expression ] || mkdir $outdir/zUMIs_output/expression
 [ -d $outdir/zUMIs_output/stats ] || mkdir $outdir/zUMIs_output/stats
 [ -d $outdir/zUMIs_output/.tmpMerge ] || mkdir $outdir/zUMIs_output/.tmpMerge
-
-
 
 
 if
