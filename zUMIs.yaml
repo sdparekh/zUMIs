@@ -59,7 +59,7 @@ filter_cutoffs:
 barcodes:
   barcode_num: null
   barcode_file: null
-  BarcodeBinning: 0 #Hamming distance binning of close cell barcode sequences. 
+  BarcodeBinning: 0 #Hamming distance binning of close cell barcode sequences.
   nReadsperCell: 100 #Keep only the cell barcodes with atleast n number of reads.
 
 #Options related to counting of reads towards expression profiles
@@ -79,4 +79,10 @@ make_stats: yes
 #Start zUMIs from stage. Possible TEXT(Filtering, Mapping, Counting, Summarising). Default: Filtering.
 which_Stage: Filtering
 
-#below, the fqfilter will add a read_layout flag defining SE or PE
+#define dependencies program paths
+samtools_exec: samtools #samtools executable
+Rscript_exec: Rscript #Rscript executable
+STAR_exec: STAR #STAR executable
+pigz_exec: pigz #pigz executable
+
+#below, fqfilter will add a read_layout flag defining SE or PE

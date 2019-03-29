@@ -20,6 +20,7 @@ filtered_bams <- list.files(path = tmpfolder, pattern=paste(inp$project,".*.filt
 if ( is.null(additional_fq[1]) | length(additional_fq)==0 ) {
   gtf_to_use <- inp$reference$GTF_file
   param_additional_fa <- NULL
+  system(paste0("cp ",gtf_to_use," ",inp$out_dir,"/",inp$project,".final_annot.gtf"))
 }else{
   for (i in additional_fq) {
     system(paste(samtools,"faidx",i))
@@ -43,14 +44,14 @@ if ( is.null(additional_fq[1]) | length(additional_fq)==0 ) {
 
   write.table(user_gtf,file = paste(inp$out_dir,"/additional_sequence_annot.gtf",sep = ""),sep = "\t",quote = F,row.names = F,col.names = F)
 
-  system(command = paste("cat ",inp$reference$GTF_file," ",paste(inp$out_dir,"/additional_sequence_annot.gtf",sep = "")," > ",inp$out_dir,"/ref_and_additional_annot.gtf",sep=""))
+  system(command = paste("cat ",inp$reference$GTF_file," ",paste(inp$out_dir,"/additional_sequence_annot.gtf",sep = "")," > ",inp$out_dir,"/",inp$project,".final_annot.gtf",sep=""))
 
-  gtf_to_use <- paste(inp$out_dir,"/ref_and_additional_annot.gtf",sep="")
+  gtf_to_use <- paste(inp$out_dir,"/",inp$project,".final_annot.gtf",sep="")
   param_additional_fa <- paste("--genomeFastaFiles",paste(inp$reference$additional_files,collapse = " "))
 }
 
-inp$reference$GTF_file_final <- gtf_to_use
-yaml::write_yaml(inp,file = paste(inp$out_dir,"/",inp$project,".postmap.yaml",sep=""))
+#inp$reference$GTF_file_final <- gtf_to_use
+#yaml::write_yaml(inp,file = paste(inp$out_dir,"/",inp$project,".postmap.yaml",sep=""))
 
 # Detect read length ------------------------------------------------------
 #check the first 100 reads to detect the read length of the cDNA read

@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.3.1
+vers=2.4.0a
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -35,11 +35,7 @@ function usage () {
 
 	-y  <YAML config file> : Path to the YAML config file. Required.
 
-## Program paths ##
-	-s  <STAR-executable>	 : path to STAR executable in your system. Default: STAR
-	-t  <samtools-executable>: path to samtools executable in your system. Default: samtools
-  	-p <pigz-executable> 	 : path to pigz executable in your system. Default: pigz
-  	-r <Rscript-executable>  : path to Rscript executable in your system. Default: Rscript
+## Program path ##
 	-d  <zUMIs-dir>   	 : Directory containing zUMIs scripts.  Default: path to this script.
 
 zUMIs version $vers
@@ -48,20 +44,12 @@ EOF
 }
 
 # Define the default variables #
-starexc=STAR
-samtoolsexc=samtools
-pigzexc=pigz
-Rexc=Rscript
 zumisdir=$(dirname `readlink -f $0`)
 
-while getopts ":y:s:t:p:r:d:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
+while getopts ":y:d:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
   case $options in
   y ) yaml=$OPTARG;;
-  s ) starexc=$OPTARG;;
-  t ) samtoolsexc=$OPTARG;;
-  p ) pigzexc=$OPTARG;;
   d ) zumisdir=$OPTARG;;
-  r ) Rexc=$OPTARG;;
   h ) usage
           exit 1;;
   \? ) echo -e "\n This key is not available! Please check the usage again: -$OPTARG"
@@ -87,6 +75,47 @@ mem_limit=`grep 'mem_limit:' $yaml | awk '{print $2}'`
 isstats=`grep 'make_stats:' $yaml | awk '{print $2}'`
 fqfiles=`grep 'name:' $yaml | awk '{print $2}'`
 
+if grep -q 'samtools_exec:' $yaml
+  then
+    samtoolsexc=`grep 'samtools_exec' $yaml | awk '{print $2}'`
+  else
+    samtoolsexc=samtools
+    echo "samtools_exec: $samtoolsexc" >> $yaml
+fi
+
+if grep -q 'pigz_exec:' $yaml
+  then
+    pigzexc=`grep 'pigz_exec' $yaml | awk '{print $2}'`
+  else
+    pigzexc=pigz
+    echo "pigz_exec: $pigzexc" >> $yaml
+fi
+
+if grep -q 'STAR_exec:' $yaml
+  then
+    starexc=`grep 'STAR_exec' $yaml | awk '{print $2}'`
+  else
+    starexc=STAR
+    echo "STAR_exec: $starexc" >> $yaml
+fi
+
+if grep -q 'Rscript_exec:' $yaml
+  then
+    Rexc=`grep 'Rscript_exec' $yaml | awk '{print $2}'`
+  else
+    Rexc=Rscript
+    echo "Rscript_exec: $Rexc" >> $yaml
+fi
+
+if grep -q 'zUMIs_directory:' $yaml
+  then
+    sed -i "s|zUMIs_directory:.*|zUMIs_directory: $zumisdir|" $yaml
+  else
+    echo "zUMIs_directory: $zumisdir" >> $yaml
+fi
+
+
+
 echo -e "\n\n You provided these parameters:
  YAML file:	$yaml
  zUMIs directory:		$zumisdir
@@ -96,6 +125,7 @@ echo -e "\n\n You provided these parameters:
  Rscript executable		$Rexc
  RAM limit:   $mem_limit
  zUMIs version $vers \n\n" | tee "$outdir/zUMIs_runlog.txt"
+date
 
 #create output folders
 outdir=`grep 'out_dir' $yaml | awk '{print $2}'`
@@ -104,33 +134,7 @@ outdir=`grep 'out_dir' $yaml | awk '{print $2}'`
 [ -d $outdir/zUMIs_output/stats ] || mkdir $outdir/zUMIs_output/stats
 [ -d $outdir/zUMIs_output/.tmpMerge ] || mkdir $outdir/zUMIs_output/.tmpMerge
 
-if grep -q 'samtools_exec:' $yaml
-  then
-    sed -i "s|samtools_exec:.*|samtools_exec: $samtoolsexc|" $yaml
-  else
-    echo "samtools_exec: $samtoolsexc" >> $yaml
-  fi
 
-  if grep -q 'pigz_exec:' $yaml
-  then
-    sed -i "s|pigz_exec:.*|pigz_exec: $pigzexc|" $yaml
-  else
-    echo "pigz_exec: $pigzexc" >> $yaml
-  fi
-
-  if grep -q 'STAR_exec:' $yaml
-  then
-    sed -i "s|STAR_exec:.*|STAR_exec: $starexc|" $yaml
-  else
-    echo "STAR_exec: $starexc" >> $yaml
-  fi
-
-  if grep -q 'zUMIs_directory:' $yaml
-  then
-    sed -i "s|zUMIs_directory:.*|zUMIs_directory: $zumisdir|" $yaml
-  else
-    echo "zUMIs_directory: $zumisdir" >> $yaml
-  fi
 
 
 if
@@ -161,6 +165,7 @@ then
       pref=`basename $i | sed 's/.fastq.gz//' | sed 's/.fq.gz//'`
       rm $tmpMerge$pref*gz
     done
+    date
 fi
 
 if
@@ -169,6 +174,7 @@ if
 then
   echo "Mapping..."
     $Rexc $zumisdir/zUMIs-mapping.R $yaml
+  date
 fi
 
 if
@@ -177,8 +183,8 @@ if
 [[ "$whichStage" == "Counting" ]]
 then
   echo "Counting..."
-  yamlnew=$outdir/$project.postmap.yaml  #note! mapping creates a temporary new yaml because of custom GTF!
-  $Rexc $zumisdir/zUMIs-dge2.R $yamlnew
+  $Rexc $zumisdir/zUMIs-dge2.R $yaml
+  date
 fi
 
 if
@@ -187,9 +193,9 @@ if
 [[ "$whichStage" == "Counting" ]] ||
 [[ "$whichStage" == "Summarising" ]]
 then
-  yamlnew=$outdir/$project.postmap.yaml  #note! mapping creates a temporary new yaml because of custom GTF!
   if [[ "$isstats" == "yes" ]]; then
     echo "Descriptive statistics..."
-      $Rexc $zumisdir/zUMIs-stats2.R $yamlnew
+      $Rexc $zumisdir/zUMIs-stats2.R $yaml
   fi
+  date
 fi
