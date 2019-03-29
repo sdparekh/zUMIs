@@ -25,6 +25,9 @@ The previous implementation of zUMIs has moved to an [archive branch in GitHub](
 
 
 ## Changelog
+07 Feb 2019: [zUMIs2.4.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.4.0).
+Improved stats to support protocols without UMIs. Creation of stats now also supports read group-chunking to reduce RAM usage. Rsubread::featureCounts multimapping settings were corrected. zUMIs does not create the intermediate "postmap" YAML file anymore - all options are stored in the user-provided YAML.
+
 07 Feb 2019: [zUMIs2.3.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.3.0).
 Implemented barcode binning according to specified hamming distance.
 
