@@ -68,7 +68,7 @@ counting_opts:
   downsampling: 0 #Number of reads to downsample to. This value can be a fixed number of reads (e.g. 10000) or a desired range (e.g. 10000-20000) Barcodes with less than <d> will not be reported. 0 means adaptive downsampling. Default: 0.
   strand: 0 #Is the library stranded? 0 = unstranded, 1 = positively stranded, 2 = negatively stranded
   Ham_Dist: 0 #Hamming distance collapsing of UMI sequences.
-  velocyto: no #Would you like velocyto-compatible counting of intron-exon spanning reads
+  velocyto: no #Would you like velocyto to do counting of intron-exon spanning reads
   primaryHit: yes #Do you want to count the primary Hits of multimapping reads towards gene expression levels?
   twoPass: yes #perform basic STAR twoPass mapping
 

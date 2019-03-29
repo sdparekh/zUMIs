@@ -103,6 +103,12 @@ if( opt$counting_opts$introns ){
   mapList<-list("exon"="exon")
 }
 
+########################## double check for non-UMI method
+UMIcheck <- check_nonUMIcollapse(opt$sequence_files)
+if(UMIcheck == "nonUMI"){
+  opt$counting_opts$Ham_Dist <- 0
+}
+
 ########################## assign reads to UB & GENE
 
 for(i in unique(bccount$chunkID)){

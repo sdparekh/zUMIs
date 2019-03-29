@@ -7,6 +7,33 @@ The input to this pipeline is simply fastq files. In the most common cases, you 
 You can read more about zUMIs in our [paper](https://doi.org/10.1093/gigascience/giy059)!
 
 
+## Changelog
+29 Mar 2019: [zUMIs2.4.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.4.0).
+Improved stats to support protocols without UMIs. Creation of stats now also supports read group-chunking to reduce RAM usage. Rsubread::featureCounts multimapping settings were corrected. zUMIs does not create the intermediate "postmap" YAML file anymore - all options are stored in the user-provided YAML. zUMIs can now run RNA velocity for you (set option velocyto to "yes" in the YAML file). We assume velocyto is installed in path.
+
+07 Feb 2019: [zUMIs2.3.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.3.0).
+Implemented barcode binning according to specified hamming distance.
+
+17 Jan 2019: [zUMIs2.2.3 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.2.3).
+We implemented fuzzy matching for pattern finding. From this version onwards, finding patterns take one mismatch into account.
+
+14 Oct 2018: [zUMIs2.2 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.2).
+Since the big update of zUMIs2, we have continuously improved performance and fixed bugs. Additionally, we have implemented a barcode-frameshift correction, which helps for [ddSeq/Surecell data](https://github.com/sdparekh/zUMIs/wiki/Protocol-specific-setup#ddseq--surecell-3).
+
+09 Aug 2018: [zUMIs2.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.0). For a detailed list of changes check below and in the updated wiki.
+
+12 Apr 2018: [zUMIs.0.0.6 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.6).
+Improved support for combinatorial indexing methods.
+
+30 Mar 2018: [zUMIs.0.0.5 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.5).
+Rewrote hamming distance binning of UMIs and barcodes. In addition to faster running times, removed dependency on the stringdist package that may have led to issues with parallel computing in some systems. Furthermore removed a possible bug when resuming running with the -w switch in combination with plate barcode usage.
+
+23 Feb 2018: [zUMIs.0.0.4 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.4).
+Added support for plate barcodes with input of an additional barcode fastq file (eg. Illumina i7 index read). Addition of version number in zUMIs-master. Parameters are printed in a .zUMIs_run.txt file for each call.
+
+18 Feb 2018: [zUMIs.0.0.3 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.3).
+Switched support to the new Rsubread version and data format. Furthermore to compensate sequencing/PCR errors, zUMIs now features UMI correction using Hamming distance and binning of adjacent cell barcodes.
+
 ## zUMIs2.0 released!
 We have completely rewritten zUMIs with a boatload of improvements! Today we finally release this version for general use.
 For all existing & new zUMIs users, we would really appreciate if you get in touch with us and give us some feedback!
@@ -23,33 +50,6 @@ Here are some of the new features:
 
 The previous implementation of zUMIs has moved to an [archive branch in GitHub](https://github.com/sdparekh/zUMIs/tree/zUMIs-version1) and is no longer being updated. You can also find other older versions of zUMIs [here](https://github.com/sdparekh/zUMIs/releases/).
 
-
-## Changelog
-07 Feb 2019: [zUMIs2.4.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.4.0).
-Improved stats to support protocols without UMIs. Creation of stats now also supports read group-chunking to reduce RAM usage. Rsubread::featureCounts multimapping settings were corrected. zUMIs does not create the intermediate "postmap" YAML file anymore - all options are stored in the user-provided YAML.
-
-07 Feb 2019: [zUMIs2.3.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.3.0).
-Implemented barcode binning according to specified hamming distance.
-
-17 Jan 2019: [zUMIs2.2.3 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.2.3).
-We implemented fuzzy matching for pattern finding. From this version onwards, finding patterns take one mismatch into account.
-
-14 Oct 2018: [zUMIs2.2 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.2).
-Since the big update of zUMIs2, we have continuously improved performance and fixed bugs. Additionally, we have implemented a barcode-frameshift correction, which helps for [ddSeq/Surecell data](https://github.com/sdparekh/zUMIs/wiki/Protocol-specific-setup#ddseq--surecell-3).
-
-09 Aug 2018: [zUMIs2.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.0). For a detailed list of changes check above and in the updated wiki.
-
-12 Apr 2018: [zUMIs.0.0.6 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.6).
-Improved support for combinatorial indexing methods.
-
-30 Mar 2018: [zUMIs.0.0.5 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.5).
-Rewrote hamming distance binning of UMIs and barcodes. In addition to faster running times, removed dependency on the stringdist package that may have led to issues with parallel computing in some systems. Furthermore removed a possible bug when resuming running with the -w switch in combination with plate barcode usage.
-
-23 Feb 2018: [zUMIs.0.0.4 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.4).
-Added support for plate barcodes with input of an additional barcode fastq file (eg. Illumina i7 index read). Addition of version number in zUMIs-master. Parameters are printed in a .zUMIs_run.txt file for each call.
-
-18 Feb 2018: [zUMIs.0.0.3 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs.0.0.3).
-Switched support to the new Rsubread version and data format. Furthermore to compensate sequencing/PCR errors, zUMIs now features UMI correction using Hamming distance and binning of adjacent cell barcodes.
 
 ## Installation and Usage
 
