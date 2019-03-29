@@ -139,7 +139,7 @@ ui <- fluidPage(
                             numericInput("HamDist","Hamming distance collapsing of UMI sequences:",value=0,min=0,max=5,step=1),
                             shinyBS::bsTooltip(id="HamDist", title="Note: Using this will considerably slow down the processing.", 
                                                placement = "top", trigger = "hover",options = list(container = "body")),
-                            checkboxInput("doVelocity",label="Generate velocyto-compatible counting of intron-exon spanning reads. ATTENTION! This option is currently not implemented!",value = F),
+                            checkboxInput("doVelocity",label="Generate RNA velocity counting of intron-exon spanning reads. Assumes velocyto is installed in path.",value = F),
                             checkboxInput("countPrimary",label="Count the primary Hits of multimapping reads towards gene expression levels?",value = T),
                             shinyBS::bsTooltip(id="countPrimary", title="Untick this box if you want to count uniquely aligned reads only.", 
                                                placement = "top", trigger = "hover",options = list(container = "body")),

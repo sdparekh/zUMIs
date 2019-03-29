@@ -77,7 +77,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
             plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
 
     p_bc<-ggplot2::ggplot(bccount,aes(y=cs,x=cellindex,color=keep))+
-      geom_point(size=2)+xlab("Cell Index")+
+      ggrastr::geom_point_rast(size=2)+xlab("Cell Index")+
       ylab("Cumulative number of reads")+
       ggtitle("Detected cells are highlighted in blue")+
       theme_classic()+theme(legend.position = "none",legend.text = element_text(size=15),
