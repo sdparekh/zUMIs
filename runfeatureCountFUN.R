@@ -76,6 +76,7 @@ checkRsubreadVersion<- function(){
                                    annot.ext=saf,
                                    isGTFAnnotationFile=F,
                                    primaryOnly=primaryOnly,
+                                   countMultiMappingReads=primaryOnly,
                                    nthreads=cpu,
                                    reportReads="BAM",
                                    strandSpecific=strand,

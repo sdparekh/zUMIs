@@ -23,42 +23,51 @@ names(featColors)<-c("Exon","Intron+Exon","Intron","Unmapped","Ambiguity","Multi
 #####################################
 
 source(paste0(opt$zUMIs_directory,"/statsFUN.R"))
+splitRG <- function(x) {0}
+suppressMessages(insertSource(paste0(opt$zUMIs_directory,"/UMIstuffFUN.R"), functions="splitRG"))
+ 
+
 data.table::setDTthreads(threads=opt$num_threads)
 
-user_seq<- getUserSeq(opt$reference$GTF_file_final)  # find a way to read from end of file or grep the last
+user_seq<- getUserSeq(paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"))  # find a way to read from end of file or grep the last
 bc<-data.table::fread(paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt"),select = 1, header = T)
 AllCounts<-readRDS(paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".dgecounts.rds",sep=""))
 
 # GeneCounts --------------------------------------------------------------
 
-genecounts <- dplyr::bind_rows( lapply(names(AllCounts$readcount), function(i){
+genecounts <- suppressWarnings(dplyr::bind_rows( lapply(names(AllCounts$readcount), function(i){
                        countGenes(AllCounts$readcount[[i]][["all"]], user_seq=user_seq) %>%
                        mutate(type=case_when( i == "exon" ~ "Exon",
                                               i == "inex" ~ "Intron+Exon",
-                                              i == "intron" ~ "Intron")) }))
+                                              i == "intron" ~ "Intron")) })))
 
-umicounts <- dplyr::bind_rows( lapply(names(AllCounts$umicount), function(i){
+umicounts <- suppressWarnings(dplyr::bind_rows( lapply(names(AllCounts$umicount), function(i){
                         countUMIs(AllCounts$umicount[[i]][["all"]], user_seq=user_seq) %>%
                          mutate(type=case_when( i == "exon" ~ "Exon",
                                                 i == "inex" ~ "Intron+Exon",
-                                                i == "intron" ~ "Intron"))}))
+                                                i == "intron" ~ "Intron"))})))
 
 med<-genecounts %>% dplyr::group_by(type) %>% dplyr::summarise(n=round(median(Count)))
-medUMI<-try(umicounts %>% dplyr::group_by(type) %>% dplyr::summarise(n=round(median(Count))))
+write.table(genecounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".genecounts.txt"),sep="\t",row.names = F,col.names = T)
 
 ag <- countBoxplot(cnt = genecounts,
                    ylab= "Number of Genes",
                    fillcol=featColors[unique(genecounts$type)],
                    lab = med)
-bg <- try(countBoxplot(cnt = umicounts,
-                   ylab= "Number of UMIs",
-                   fillcol=featColors[unique(umicounts$type)],
-                   lab = medUMI))
-cp<-try(cowplot::plot_grid(ag,bg,ncol = 2))
+
+if(length(umicounts) > 0){
+  medUMI<-try(umicounts %>% dplyr::group_by(type) %>% dplyr::summarise(n=round(median(Count))))
+  try(write.table(umicounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".UMIcounts.txt"),sep="\t",row.names = F,col.names = T))
+  bg <- try(countBoxplot(cnt = umicounts,
+                         ylab= "Number of UMIs",
+                         fillcol=featColors[unique(umicounts$type)],
+                         lab = medUMI))
+  cp<-try(cowplot::plot_grid(ag,bg,ncol = 2))
+}else{
+  cp <- ag
+}
 
 try(ggsave(cp,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".geneUMIcounts.pdf",sep=""),width = 10,height = 5))
-write.table(genecounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".genecounts.txt"),sep="\t",row.names = F,col.names = T)
-try(write.table(umicounts,file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".UMIcounts.txt"),sep="\t",row.names = F,col.names = T))
 
 ## Total number of reads per cell
 if(opt$counting_opts$introns==T){
@@ -76,7 +85,7 @@ typeCount <- sumstatBAM( featfiles = featfile_vector,
                          user_seq = user_seq,
                          bc = bc,
                          outfile = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".bc.READcounts.rds"),
-                       samtoolsexc=samtoolsexc)
+                         samtoolsexc=samtoolsexc)
 
 #only print per BC mapping stats if there are fewer than 200 BCs
 tc<-data.frame(typeCount)

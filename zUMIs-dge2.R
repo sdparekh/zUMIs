@@ -48,7 +48,7 @@ if(opt$barcodes$BarcodeBinning > 0){
 ##############################################################
 ##### featureCounts
 
-saf<-.makeSAF(opt$reference$GTF_file_final)
+saf<-.makeSAF(paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"))
 abamfile<-paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam")
 fnex<-.runFeatureCount(abamfile,
                        saf=saf$exons,
@@ -110,7 +110,7 @@ for(i in unique(bccount$chunkID)){
      print( paste( "Processing",length(bccount[chunkID==i]$XC), "barcodes in this chunk..." ))
      reads<-reads2genes( featfiles = ffiles,
                              chunks    = bccount[chunkID==i]$XC,
-                             rgfile    = paste0(opt$out_dir,"/zUMIs_output/.currentRGgroup.txt"),
+                             rgfile    = paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".currentRGgroup.txt"),
                              cores     = opt$num_threads,
                            samtoolsexc=samtoolsexc  )
 
