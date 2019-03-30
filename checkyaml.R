@@ -1,9 +1,8 @@
 #!/usr/bin/env Rscript
 
 suppressMessages(require(yaml))
-#y<-commandArgs(trailingOnly = T)
+y<-commandArgs(trailingOnly = T)
 
-y<-"ExampleData/Example.yaml"
 inp<-try(read_yaml(y),silent =  T)
 
 e=0
