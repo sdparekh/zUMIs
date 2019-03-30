@@ -29,6 +29,7 @@ checkRsubreadVersion()
 # bc is the vector of barcodes to keep
 bccount<-cellBC(bcfile      = opt$barcodes$barcode_file,
            bcnum       = opt$barcodes$barcode_num,
+           bcauto      = opt$barcodes$automatic,
            bccount_file= paste0(opt$out_dir,"/", opt$project, ".BCstats.txt"),
            outfilename = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".detected_cells.pdf"))
 

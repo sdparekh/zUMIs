@@ -48,13 +48,36 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   return(cut)
 }
 
+.barcode_plot  <- function( bccount, outfilename=NULL){
+  p_dens<-ggplot2::ggplot(bccount,aes(x=log10(n)))+
+    geom_density()+theme_classic()+
+    geom_vline(xintercept = log10(min(bccount$n[bccount$keep])),col="#56B4E9",size=1.5)+
+    xlab("log10(Number of reads per cell)")+ylab("Density")+
+    ggtitle("Cells right to the blue line are selected")+
+    theme(axis.text = element_text(size=12),axis.title = element_text(size=13),
+          plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
+  
+  p_bc<-ggplot2::ggplot(bccount,aes(y=cs,x=cellindex,color=keep))+
+    ggrastr::geom_point_rast(size=2)+xlab("Cell Index")+
+    ylab("Cumulative number of reads")+
+    ggtitle("Detected cells are highlighted in blue")+
+    theme_classic()+theme(legend.position = "none",legend.text = element_text(size=15),
+                          legend.title = element_blank(),axis.text = element_text(size=12),
+                          axis.title = element_text(size=13),
+                          plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
+  
+  bcplot <- cowplot::plot_grid(p_dens,p_bc,labels = c("a","b"))
+  ggplot2::ggsave(bcplot,filename=outfilename,
+                  width = 10,height = 4)
+}
+
 .cellBarcode_unknown <- function( bccount, outfilename=NULL) {
 
   bccount[ ,cs:=cumsum(as.numeric(n))]
   cut <- .FindBCcut(bccount)
   nkeep<-bccount[n>=cut][,list(s=.N)]
   if(nkeep<10){
-    print("Warning! Adaptive BC selection gave < 10 cells so I will try to use top 100 cells!")
+    print("Warning! Adaptive BC selection gave < 10 cells so I will try to use the top 100 cells!")
     if(nrow(bccount)<100){
       print("Less than 100 barcodes present, will continue with all barcodes...")
       bccount[1:nrow(bccount),keep:=TRUE]
@@ -65,30 +88,10 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
     bccount[n>=cut,keep:=TRUE]
     print(paste(nkeep," barcodes detected.",sep=""))
   }
-
-  #Plotting
   if(is.null(outfilename)==FALSE){
-    p_dens<-ggplot2::ggplot(bccount,aes(x=log10(n)))+
-      geom_density()+theme_classic()+
-      geom_vline(xintercept = log10(min(bccount$n[bccount$keep])),col="#56B4E9",size=1.5)+
-      xlab("log10(Number of reads per cell)")+ylab("Density")+
-      ggtitle("Cells right to the blue line are selected")+
-      theme(axis.text = element_text(size=12),axis.title = element_text(size=13),
-            plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
-
-    p_bc<-ggplot2::ggplot(bccount,aes(y=cs,x=cellindex,color=keep))+
-      ggrastr::geom_point_rast(size=2)+xlab("Cell Index")+
-      ylab("Cumulative number of reads")+
-      ggtitle("Detected cells are highlighted in blue")+
-      theme_classic()+theme(legend.position = "none",legend.text = element_text(size=15),
-                            legend.title = element_blank(),axis.text = element_text(size=12),
-                            axis.title = element_text(size=13),
-                            plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
-
-    bcplot <- cowplot::plot_grid(p_dens,p_bc,labels = c("a","b"))
-    ggplot2::ggsave(bcplot,filename=outfilename,
-                    width = 10,height = 4)
+    .barcode_plot(bccount,outfilename)
   }
+ 
   bccount[,cs:=NULL]
   return( bccount[keep==TRUE,XC] )
 }
@@ -107,7 +110,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
 
   return(bccount[keep==TRUE,XC])
 }
-.cellBarcode_known   <- function( bccount, bcfile  ){
+.cellBarcode_known   <- function( bccount, bcfile ){
 
   bc<-read.table(bcfile,header = F,stringsAsFactors = F)$V1
   if( any( bc %in% bccount$XC ) ){
@@ -125,15 +128,54 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
 
   return(bccount[keep==TRUE,XC])
 }
+.cellBarcode_expect <- function( bccount, bcfile, outfilename=NULL) {
+  #reading barcodes
+  bc_wl<-read.table(bcfile,header = F,stringsAsFactors = F)$V1
+  
+  bccount[ ,cs:=cumsum(as.numeric(n))]
+  cut <- .FindBCcut(bccount)
+  nkeep<-bccount[n>=cut][,list(s=.N)]
+  if(nkeep<10){
+    print("Warning! Adaptive BC selection gave < 10 cells so I will try to use the top 100 cells!")
+    if(nrow(bccount)<100){
+      print("Less than 100 barcodes present, will continue with all barcodes...")
+      bccount[1:nrow(bccount),keep:=TRUE]
+    }else{
+      bccount[1:100,keep:=TRUE]
+    }
+  }else{
+    bccount[n>=cut,keep:=TRUE]
+    print(paste(nkeep," barcodes detected automatically.",sep=""))
+  }
+  
+  #Plotting
+  if(is.null(outfilename)==FALSE){
+    .barcode_plot(bccount,outfilename)
+  }
+  
+  if(length(XC %in% bc_wl)>0){
+    bccount[ !(XC %in% bc_wl),keep:=FALSE]
+  }else{
+    warning("None of the frequent barcodes is present in the whitelist. Keep all automatically detected BCs.")
+  }
+  kbc<- sum(bccount$keep)
+  
+  print(paste("Keeping", kbc,"Barcodes."))
+  bccount[,cs:=NULL]
+  return( bccount[keep==TRUE,XC] )
+}
 
 #bccount needs to be read
-cellBC<-function(bcfile, bcnum, bccount_file, outfilename=NULL){
+cellBC<-function(bcfile, bcnum, bcauto, bccount_file, outfilename=NULL){
   bccount<-data.table::fread( bccount_file )
   names(bccount)<-c("XC","n")
   bccount <- bccount[,list(n=sum(n)),by=XC]
   bccount<-bccount[n>=opt$barcodes$nReadsperCell][order(-n)][,cellindex:=1:(.N)][,keep:=FALSE]
 
-  if(is.null(bcfile)==FALSE){
+  if(is.null(bcfile)==FALSE & bcauto){
+    print("Using intersection between automatic and whitelist.")
+    bc <- .cellBarcode_expect(bccount , bcfile=bcfile)
+  }else if( is.null(bcfile)==FALSE & bcauto==F ){
     bc <- .cellBarcode_known( bccount, bcfile=bcfile )
   }else if (is.null(bcnum)==FALSE){
     bc <- .cellBarcode_number(bccount ,bcNumber=bcnum )
