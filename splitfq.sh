@@ -17,9 +17,9 @@ function splitfq() {
 	nl=`expr $n \* 4`
   pref=`basename $fqfile`
   d=`dirname $fqfile`
-  split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' $d/$fqfile $t$pref
+  split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' $d/$fqfile $t$pref$project
 
-	ls $t$pref* | sed "s|$t$pref||" > $t/$project.listPrefix.txt
+	ls $t$pref$project* | sed "s|$t$pref$project||" > $t/$project.listPrefix.txt
 
 	exit 1
 }
@@ -36,9 +36,9 @@ function splitfqgz() {
   nl=`expr $n \* 4`
   pref=`basename $fqfile .gz`
   d=`dirname $fqfile`
-  $pexc -dc -p $nthreads $d/$pref.gz | split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' - $t$pref
+  $pexc -dc -p $nthreads $d/$pref.gz | split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' - $t$pref$project
 
-	ls $t$pref* | sed "s|$t$pref||" | sed 's/.gz//' > $t/$project.listPrefix.txt
+	ls $t$pref$project* | sed "s|$t$pref$project||" | sed 's/.gz//' > $t/$project.listPrefix.txt
 
 	exit 1
 }

@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.4.0c
+vers=2.4.0e
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -65,13 +65,6 @@ fi
 
 check_opts "$yaml" "YAML" "-y"
 
-$Rexc $zumisdir/checkyaml.R $yaml > zUMIs_YAMLerror.log
-iserror=`tail errorlog.log -n1 | awk '{print $2}'`
-
-if [[ $iserror -eq 1 ]] ; then
-    echo "YAML file has an error. Look at the zUMIs_YAMLerror.log or contact developers."
-    exit 1
-fi
 #now get some variables from YAML
 num_threads=`grep 'num_threads' $yaml | awk '{print $2}'`
 project=`grep 'project:' $yaml | awk '{print $2}'`
@@ -122,6 +115,13 @@ if grep -q 'zUMIs_directory:' $yaml
     echo "zUMIs_directory: $zumisdir" >> $yaml
 fi
 
+$Rexc $zumisdir/checkyaml.R $yaml > $project.zUMIs_YAMLerror.log
+iserror=`tail $project.zUMIs_YAMLerror.log -n1 | awk '{print $2}'`
+
+if [[ $iserror -eq 1 ]] ; then
+    echo "YAML file has an error. Look at the zUMIs_YAMLerror.log or contact developers."
+    exit 1
+fi
 
 
 echo -e "\n\n You provided these parameters:
@@ -132,8 +132,23 @@ echo -e "\n\n You provided these parameters:
  pigz executable		$pigzexc
  Rscript executable		$Rexc
  RAM limit:   $mem_limit
- zUMIs version $vers \n\n" | tee "$outdir/zUMIs_runlog.txt"
+ zUMIs version $vers \n\n" | tee "$outdir/$project.zUMIs_runlog.txt"
 date
+
+#check for executables
+sam_exc_check=`which $samtoolsexc`
+pigz_exc_check=`which $pigzexc`
+r_exc_check=`which $Rexc`
+star_exc_check=`which $starexc`
+
+if [[ -z "$sam_exc_check" ]] ||
+   [[ -z "$pigz_exc_check" ]] ||
+   [[ -z "$r_exc_check" ]] ||
+   [[ -z "$star_exc_check" ]]
+ then
+  echo "One or more of your executables were not found. Please check back."
+  exit 1
+fi
 
 #create output folders
 outdir=`grep 'out_dir' $yaml | awk '{print $2}'`
