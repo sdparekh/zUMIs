@@ -6,6 +6,7 @@ The input to this pipeline is simply fastq files. In the most common cases, you 
 
 You can read more about zUMIs in our [paper](https://doi.org/10.1093/gigascience/giy059)!
 
+[YAML config Rshiny application](http://shiny.bio.lmu.de:3838/zUMIs-config/)
 
 ## Changelog
 29 Mar 2019: [zUMIs2.4.0 released](https://github.com/sdparekh/zUMIs/releases/tag/zUMIs2.4.0).
@@ -38,7 +39,7 @@ Switched support to the new Rsubread version and data format. Furthermore to com
 We have completely rewritten zUMIs with a boatload of improvements! Today we finally release this version for general use.
 For all existing & new zUMIs users, we would really appreciate if you get in touch with us and give us some feedback!
 Here are some of the new features:
-- Setup of all parameters in a [convenient YAML config file](https://github.com/sdparekh/zUMIs/blob/zUMIs-dev/zUMIs.yaml). This will allow better reproducibility and parameter tracking. You can create the YAML config file using an easy to use [Rshiny application](https://chrzi.shinyapps.io/zUMIs-config/).
+- Setup of all parameters in a [convenient YAML config file](https://github.com/sdparekh/zUMIs/blob/zUMIs-dev/zUMIs.yaml). This will allow better reproducibility and parameter tracking. You can create the YAML config file using an easy to use [Rshiny application](http://shiny.bio.lmu.de:3838/zUMIs-config/).
 - User-definable memory limit: zUMIs calculates expression matrices for cell barcodes within a given amount of RAM. For this, cell barcodes are grouped according to the maximum number of reads that may be processed without exceeding the memory limit.
 - Much increased processing speed! For our [published](http://gigadb.org/dataset/100447) test data set of 96 HEK cells, zUMIs2.0 is *more than 2x faster*. To achieve this, we have parallelized the filtering step as well as rewritten the UMI collapsing scripts.
 ![zUMIs2 speed](https://drive.google.com/uc?export=download&id=1kwpF3cUwK8h0fYA-tAbd8MNNoCzQ7bs4)
