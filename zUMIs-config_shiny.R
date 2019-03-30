@@ -154,6 +154,13 @@ ui <- fluidPage(
                             numericInput("HamBC","Hamming distance collapsing of close cell barcode sequences.",value=0,min=0,max=5,step=1),
                             numericInput("nReadsBC","Keep only the cell barcodes with atleast n number of reads",value=100,min=1,max=5,step=1)
 
+                          )),
+                          column(6,wellPanel(
+                            h4("Dependencies:"),
+                            textInput("r_exec","Rscript executable:", value = "Rscript"),
+                            textInput("samtools_exec","samtools executable:", value = "samtools"),
+                            textInput("pigz_exec","pigz executable:", value = "pigz"),
+                            textInput("star_exec","STAR executable:", value = "STAR")
                           ))
                         )
                ),
@@ -392,7 +399,11 @@ server <- function(input, output, session) {
         "twoPass" = input$twoPass
       ),
       "make_stats" = input$makeStats,
-      "which_Stage" = input$whichStage
+      "which_Stage" = input$whichStage,
+      "Rscript_exec" = input$r_exec,
+      "STAR_exec" = input$star_exec,
+      "pigz_exec" = input$pigz_exec,
+      "samtools_exec" = input$samtools_exec
     )
     return(y)
   }
@@ -495,7 +506,11 @@ server <- function(input, output, session) {
       if(!is.null(ya$read_layout)){
         updateSelectInput(session = session, inputId = "layout", selected = ya$read_layout)
       }
-
+      
+      updateTextInput(session = session, inputId = "r_exec", value = ya$Rscript_exec)
+      updateTextInput(session = session, inputId = "samtools_exec", value = ya$samtools_exec)
+      updateTextInput(session = session, inputId = "pigz_exec", value = ya$pigz_exec)
+      updateTextInput(session = session, inputId = "star_exec", value = ya$STAR_exec)
   }
 
 }

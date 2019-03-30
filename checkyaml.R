@@ -2,6 +2,7 @@
 
 suppressMessages(require(yaml))
 y<-commandArgs(trailingOnly = T)
+
 inp<-try(read_yaml(y),silent =  T)
 
 e=0
@@ -11,7 +12,9 @@ if(grepl("try-error",class(inp))) {
   print(e)
   stop()
 } 
+
        
+## Check if mandatory parameters have arguments
 if(is.null(inp$project)) {
   e=1 
   print("Please provide a project name. It can not be NULL.")
@@ -34,6 +37,14 @@ if(is.null(unlist(inp$sequence_files)))  {
   e=1 
   print("You need to provide atleast two input fastq files and their base definitions.")
 }
+
+lapply(inp$sequence_files, function(x) {
+  if(is.null(x$name) | is.null(x$base_definition)){
+    e=1
+    print("You can not leave out file name or base definition.")
+  }
+} )
+
 
 print(
   paste(sapply(inp$sequence_files, function(x) 
