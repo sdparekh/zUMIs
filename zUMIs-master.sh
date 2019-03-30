@@ -76,6 +76,7 @@ isstats=`grep 'make_stats:' $yaml | awk '{print $2}'`
 fqfiles=`grep 'name:' $yaml | awk '{print $2}'`
 velo=`grep 'velocyto:' $yaml | awk '{print $2}'`
 
+
 if grep -q 'samtools_exec:' $yaml
   then
     samtoolsexc=`grep 'samtools_exec' $yaml | awk '{print $2}'`
@@ -152,11 +153,19 @@ fi
 
 #create output folders
 outdir=`grep 'out_dir' $yaml | awk '{print $2}'`
+#[ -d $outdir ] || mkdir $outdir
 [ -d $outdir/zUMIs_output/ ] || mkdir $outdir/zUMIs_output/
 [ -d $outdir/zUMIs_output/expression ] || mkdir $outdir/zUMIs_output/expression
 [ -d $outdir/zUMIs_output/stats ] || mkdir $outdir/zUMIs_output/stats
 [ -d $outdir/zUMIs_output/.tmpMerge ] || mkdir $outdir/zUMIs_output/.tmpMerge
 
+if [[ ! -d $outdir ]]; then
+  mkdir $outdir
+  if [ $? -ne 0 ] ; then
+      echo "Please provide a valide output directory path."
+      exit 1
+  fi
+fi
 
 if
 [[ "$whichStage" == "Filtering" ]]
@@ -222,4 +231,15 @@ then
       $Rexc $zumisdir/zUMIs-stats2.R $yaml
   fi
   date
+fi
+
+#convenience function
+if grep -q 'find_pattern: ATTGCGCAATG' $yaml &&
+   [[ "$whichStage" == "Filtering" ]]
+  then
+    cp $yaml $outdir/$project.allReads.yaml #copy yaml
+    sed -i "s/project: "$project"/project: "$project"_allReads/" $outdir/$project.allReads.yaml
+    sed -i '/find_pattern/d' $outdir/$project.allReads.yaml
+    sed -i '/UMI(/d' $outdir/$project.allReads.yaml
+    bash $zumisdir/zUMIs-master.sh -y $outdir/$project.allReads.yaml
 fi

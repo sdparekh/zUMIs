@@ -153,7 +153,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
     .barcode_plot(bccount,outfilename)
   }
   
-  if(length(XC %in% bc_wl)>0){
+  if(length(bccount[,XC] %in% bc_wl)>0){
     bccount[ !(XC %in% bc_wl),keep:=FALSE]
   }else{
     warning("None of the frequent barcodes is present in the whitelist. Keep all automatically detected BCs.")

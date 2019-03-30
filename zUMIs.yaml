@@ -59,6 +59,7 @@ filter_cutoffs:
 barcodes:
   barcode_num: null
   barcode_file: null
+  automatic: yes #Give yes/no to this option. If the cell barcodes should be detected automatically. If the barcode file is given in combination with automatic barcode detection, the list of given barcodes will be used as whitelist.
   BarcodeBinning: 0 #Hamming distance binning of close cell barcode sequences.
   nReadsperCell: 100 #Keep only the cell barcodes with atleast n number of reads.
 

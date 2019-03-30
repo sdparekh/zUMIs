@@ -212,6 +212,12 @@ while(<$fh1>){
     @bcthres = split(" ",$BCfilter);
     @umithres = split(" ",$UMIfilter);
 
+    if(($bcthres[0] < 0) || (length($bcthres) > length($bcseq))) {
+      $bcthres[0] = 1;
+    }
+    if(($umithres[0] < 0) || (length($umithres) > length($ubseq))) {
+      $umithres[0] = 1;
+    }
     # map to the correct phredoffset and get the number of bases under given quality threshold
     @bquals = map {$_ - $phredoffset} unpack "C*", $bcqseq;
     @mquals = map {$_ - $phredoffset} unpack "C*", $ubqseq;
