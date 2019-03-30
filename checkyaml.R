@@ -29,7 +29,7 @@ if(is.null(inp$reference$GTF_file))  {
 }
 
 if(is.null(inp$out_dir))  {
-  e=1 
+  e=1
   print("Please provide path to output directory. It can not be NULL.")
 }
 
@@ -104,18 +104,13 @@ lapply(inp$sequence_files,
       print("GTF file does not exists")
     }
   }
-  if(!is.null(inp$reference$GTF_file)) {
+  if(!is.null(inp$reference$STAR_index)) {
     if(!file.exists(inp$reference$STAR_index))  {
       e=1 
       print("STAR index does not exists")
     }
   }
-  if(!is.null(inp$reference$GTF_file)) {
-    if(!file.exists(inp$out_dir))  {
-      e=1 
-      print("Please check output directory path.")
-    }
-  }
+
   if(!is.null(inp$barcodes$barcode_file)){
   if(!file.exists(inp$barcodes$barcode_file))  {
     e=1 
