@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.4.0d
+vers=2.4.0e
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -123,6 +123,7 @@ if [[ $iserror -eq 1 ]] ; then
     exit 1
 fi
 
+
 echo -e "\n\n You provided these parameters:
  YAML file:	$yaml
  zUMIs directory:		$zumisdir
@@ -133,6 +134,21 @@ echo -e "\n\n You provided these parameters:
  RAM limit:   $mem_limit
  zUMIs version $vers \n\n" | tee "$outdir/$project.zUMIs_runlog.txt"
 date
+
+#check for executables
+sam_exc_check=`which $samtoolsexc`
+pigz_exc_check=`which $pigzexc`
+r_exc_check=`which $Rexc`
+star_exc_check=`which $starexc`
+
+if [[ -z "$sam_exc_check" ]] ||
+   [[ -z "$pigz_exc_check" ]] ||
+   [[ -z "$r_exc_check" ]] ||
+   [[ -z "$star_exc_check" ]]
+ then
+  echo "One or more of your executables were not found. Please check back."
+  exit 1
+fi
 
 #create output folders
 outdir=`grep 'out_dir' $yaml | awk '{print $2}'`
