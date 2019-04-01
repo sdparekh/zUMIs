@@ -193,7 +193,7 @@ server <- function(input, output, session) {
   output$barcodeUI <- renderUI({
     switch(input$barcodeChoice,
            #"Automatic" = p(em("Intact barcodes will be detected automatically.")),
-           "Automatic" = textInput(inputId = "BCfile",label = "Optional: File to barcode whitelist to use for guiding automatic detection", value = "/fullpath/to/file.txt"),
+           "Automatic" = textInput(inputId = "BCfile",label = "Optional: File to barcode whitelist to use for guiding automatic detection", value = NULL),
            "Number of top Barcodes" = numericInput(inputId = "BCnum",label = "Number of barcodes to consider:",value = 100, min = 10, step = 1),
            "Barcode whitelist" = textInput(inputId = "BCfile",label = "File to barcode whitelist to use:", value = "/fullpath/to/file.txt")
     )
@@ -387,6 +387,7 @@ server <- function(input, output, session) {
       "barcodes" = list(
         "barcode_num" = input$BCnum,
         "barcode_file" = input$BCfile,
+        "automatic" = ifelse(input$barcodeChoice=="Automatic", "yes", "no"),
         "BarcodeBinning" = input$HamBC,
         "nReadsperCell" = input$nReadsBC
       ),
@@ -489,10 +490,11 @@ server <- function(input, output, session) {
       updateCheckboxInput(session = session, inputId = "doVelocity", value = ya$counting_opts$velocyto)
       updateCheckboxInput(session = session, inputId = "countPrimary", value = ya$counting_opts$primaryHit)
       updateCheckboxInput(session = session, inputId = "twoPass", value = ya$counting_opts$twoPass)
-      if (is.null(ya$barcodes$barcode_num) & is.null(ya$barcodes$barcode_file)) {
+      if (is.null(ya$barcodes$barcode_num) & ya$barcodes$automatic == "yes") {
         updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Automatic")
+        updateTextInput(session = session, inputId = "BCfile", value = ya$barcodes$barcode_file)
       }
-      if (!is.null(ya$barcodes$barcode_file)){
+      if (!is.null(ya$barcodes$barcode_file) & ya$barcodes$automatic == "no"){
         updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Barcode whitelist")
         updateTextInput(session = session, inputId = "BCfile", value = ya$barcodes$barcode_file)
       }
