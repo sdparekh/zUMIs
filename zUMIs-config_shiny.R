@@ -192,7 +192,8 @@ server <- function(input, output, session) {
 
   output$barcodeUI <- renderUI({
     switch(input$barcodeChoice,
-           "Automatic" = p(em("Intact barcodes will be detected automatically.")),
+           #"Automatic" = p(em("Intact barcodes will be detected automatically.")),
+           "Automatic" = textInput(inputId = "BCfile",label = "Optional: File to barcode whitelist to use for guiding automatic detection", value = "/fullpath/to/file.txt"),
            "Number of top Barcodes" = numericInput(inputId = "BCnum",label = "Number of barcodes to consider:",value = 100, min = 10, step = 1),
            "Barcode whitelist" = textInput(inputId = "BCfile",label = "File to barcode whitelist to use:", value = "/fullpath/to/file.txt")
     )

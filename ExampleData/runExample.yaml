@@ -1,0 +1,48 @@
+project: Example
+sequence_files:
+  file1:
+    name: /mnt/storage1/chrisz/test_zUMIs/barcoderead_HEK.1mio.fq.gz
+    base_definition:
+    - BC(1-6)
+    - UMI(7-16)
+  file2:
+    name: /mnt/storage1/chrisz/test_zUMIs/cDNAread_HEK.1mio.fq.gz
+    base_definition:
+    - cDNA(1-50)
+reference:
+  STAR_index: /mnt/storage1/chrisz/resources/genomes/Human/STAR5idx_primary_noGTF
+  GTF_file: /mnt/storage1/chrisz/resources/genomes/Human/Homo_sapiens.GRCh38.95.chr.gtf
+  additional_STAR_params: ''
+  additional_files: ~
+out_dir: /mnt/storage1/chrisz/test_zUMIs/run_test
+num_threads: 8
+mem_limit: 20
+filter_cutoffs:
+  BC_filter:
+    num_bases: 1
+    phred: 20
+  UMI_filter:
+    num_bases: 1
+    phred: 20
+barcodes:
+  barcode_num: ~
+  barcode_file: ~
+  automatic: yes
+  BarcodeBinning: 0
+  nReadsperCell: 100
+counting_opts:
+  introns: yes
+  downsampling: '0'
+  strand: 0
+  Ham_Dist: 0
+  velocyto: no
+  primaryHit: yes
+  twoPass: no
+make_stats: yes
+which_Stage: Filtering
+samtools_exec: samtools
+pigz_exec: pigz
+STAR_exec: STAR
+Rscript_exec: Rscript
+zUMIs_directory: /home/chrisz/programs/zUMIs
+read_layout: SE
