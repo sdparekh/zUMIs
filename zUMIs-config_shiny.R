@@ -387,7 +387,7 @@ server <- function(input, output, session) {
       "barcodes" = list(
         "barcode_num" = input$BCnum,
         "barcode_file" = input$BCfile,
-        "automatic" = ifelse(input$barcodeChoice=="Automatic", "yes", "no"),
+        "automatic" = ifelse(input$barcodeChoice=="Automatic", TRUE, FALSE),
         "BarcodeBinning" = input$HamBC,
         "nReadsperCell" = input$nReadsBC
       ),
@@ -490,11 +490,11 @@ server <- function(input, output, session) {
       updateCheckboxInput(session = session, inputId = "doVelocity", value = ya$counting_opts$velocyto)
       updateCheckboxInput(session = session, inputId = "countPrimary", value = ya$counting_opts$primaryHit)
       updateCheckboxInput(session = session, inputId = "twoPass", value = ya$counting_opts$twoPass)
-      if (is.null(ya$barcodes$barcode_num) & ya$barcodes$automatic == "yes") {
+      if (is.null(ya$barcodes$barcode_num) & ya$barcodes$automatic == TRUE) {
         updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Automatic")
         updateTextInput(session = session, inputId = "BCfile", value = ya$barcodes$barcode_file)
       }
-      if (!is.null(ya$barcodes$barcode_file) & ya$barcodes$automatic == "no"){
+      if (!is.null(ya$barcodes$barcode_file) & ya$barcodes$automatic == FALSE){
         updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Barcode whitelist")
         updateTextInput(session = session, inputId = "BCfile", value = ya$barcodes$barcode_file)
       }
