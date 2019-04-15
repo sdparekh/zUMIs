@@ -9,7 +9,7 @@ myYaml <- commandArgs(trailingOnly = T)
 
 opt   <-read_yaml(myYaml)
 setwd(opt$out_dir)
-#unixtools::set.tempdir(opt$out_dir)
+try(unixtools::set.tempdir(opt$out_dir))
 source(paste0(opt$zUMIs_directory,"/runfeatureCountFUN.R"))
 source(paste0(opt$zUMIs_directory,"/UMIstuffFUN.R"))
 source(paste0(opt$zUMIs_directory,"/barcodeIDFUN.R"))
