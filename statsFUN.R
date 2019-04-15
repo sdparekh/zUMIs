@@ -40,7 +40,7 @@ sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile,samtoolsexc){
     if(i==1){
       mapCount<-tmp
     }else{
-      mapCount<-bindList(alldt=mapCount,newdt=tmp)
+      mapCount<-rbind(mapCount,tmp)
     }
   }
     saveRDS(mapCount,file=outfile)
