@@ -8,7 +8,7 @@ function splitfq() {
 	fqfile=$1
   pexc=$2
   nthreads=$3
-  nreads==`expr $4 / 4`
+  nreads=$4
   t=$5
 	project=$6
 
@@ -27,7 +27,7 @@ function splitfqgz() {
 	fqfile=$1
   pexc=$2
   nthreads=$3
-  nreads=`expr $4 / 4`
+  nreads=$4
   t=$5
 	project=$6
 
@@ -49,13 +49,8 @@ num_threads=$3
 tmpMerge=$4
 fun=$5
 project=$6
-f=$7
+nreads=$7
 
 
-if [[ $f =~ \.gz$ ]]; then
-	nlines=`$pigzexc -p $num_threads -d -c $f | wc -l`
-else
-	nlines=`wc -l $f | awk '{print $1}'`
-fi
 
-$fun "$i" "$pigzexc" "$num_threads" "$nlines" "$tmpMerge" "$project"
+$fun "$i" "$pigzexc" "$num_threads" "$nreads" "$tmpMerge" "$project"

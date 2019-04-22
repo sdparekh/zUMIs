@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.4.0f
+vers=2.4.1
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -173,16 +173,27 @@ then
   echo "Filtering..."
 
   f=`cut -d' ' -f1 <(echo $fqfiles)` # the first fastq file to determine gzip status
+  fullsize=`stat --printf="%s" $f`
 
   tmpMerge=$outdir/zUMIs_output/.tmpMerge/
 
     if [[ $f =~ \.gz$ ]]; then
-      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfqgz $project $f & done
+      $pigzexc -dc $f | head -n 4000000 | $pigzexc > $tmpMerge/$project.1mio.check.fq.gz
+      smallsize=`stat --printf="%s" $tmpMerge/$project.1mio.check.fq.gz`
+      rm $tmpMerge/$project.1mio.check.fq.gz
+      nreads=`expr $fullsize \* 1000000 / $smallsize`
+
+      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfqgz $project $nreads & done
       wait
       pref=`basename $f .gz`
       l=`ls $tmpMerge$pref* | sed "s|$tmpMerge$pref||" | sed 's/.gz//'`
     else
-      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfq $project $f & done
+      cat $f | head -n 4000000 > $tmpMerge/$project.1mio.check.fq
+      smallsize=`stat --printf="%s" $tmpMerge/$project.1mio.check.fq`
+      rm $tmpMerge/$project.1mio.check.fq
+      nreads=`expr $fullsize \* 1000000 / $smallsize`
+
+      for i in $fqfiles;do bash $zumisdir/splitfq.sh $i $pigzexc $num_threads $tmpMerge splitfq $project $nreads & done
       wait
       pref=`basename $f`
       l=`ls $tmpMerge$pref* | sed "s|$tmpMerge$pref||"`
