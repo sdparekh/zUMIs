@@ -20,7 +20,7 @@ sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile,samtoolsexc){
     write(headerXX,paste(outdir,"freadHeader",sep="/"))
     samcommand<-paste("cat freadHeader; ",samtoolsexc," view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB -@",cores)
     
-    tmp<-data.table::fread(cmd = paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/XS:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
+    tmp<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/XS:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
                                select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","XS","GE") )[
                                 ,"GEin":=fread(paste(samcommand,featfiles[2],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile),select=3,header=T,fill=T,na.strings=c(""),colClasses = "character")
                                  ][ ,"ftype":="NA"
