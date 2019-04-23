@@ -161,7 +161,7 @@ sub makeSeqs{
 
 				# If it is smart-seq3 pattern but not found in the read, consider full cDNA read
 					if($ss3 eq "nopattern"){
-						$cs = 1;
+						$cs = 0;
 					}
 
 				if($cl > length($arseq)){
@@ -185,7 +185,7 @@ sub makeSeqs{
 
 				# If it is smart-seq3 pattern but not found in the read, consider full cDNA read
 					if($ss3 eq "nopattern"){
-						$cs = 1;
+						$cs = 0;
 					}
 
 				if($cl > length($arseq)){
