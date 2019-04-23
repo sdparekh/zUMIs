@@ -84,6 +84,7 @@ sub makeSeqs{
   $pf = shift;
 	$cdnacounter = shift;
 	$ss3 = shift; # especially to check if it is smart-seq3 pattern to retain reads without pattern as PE
+	
 
   @arr = split(";", $pf); #$p = BC(1-6);UMI(7-16)
   $abcseq="";
@@ -156,13 +157,13 @@ sub makeSeqs{
 				$layout="PE";
 
 				@c = split("-",$r);
-        $cs = $c[0] - 1;
-        $cl = $c[1]-$c[0]+1;
-
 				# If it is smart-seq3 pattern but not found in the read, consider full cDNA read
 					if($ss3 eq "nopattern"){
-						$cs = 0;
+						$c[0] = 1;
 					}
+
+        $cs = $c[0] - 1;
+        $cl = $c[1]-$c[0]+1;
 
 				if($cl > length($arseq)){
 					$acseq2 = substr($arseq,$cs);
@@ -180,13 +181,14 @@ sub makeSeqs{
 
 				$layout="SE";
 				@c = split("-",$r);
+				# If it is smart-seq3 pattern but not found in the read, consider full cDNA read
+					if($ss3 eq "nopattern"){
+						$c[0] = 1;
+					}
+
         $cs = $c[0] - 1;
         $cl = $c[1]-$c[0]+1;
 
-				# If it is smart-seq3 pattern but not found in the read, consider full cDNA read
-					if($ss3 eq "nopattern"){
-						$cs = 0;
-					}
 
 				if($cl > length($arseq)){
 					$acseq = substr($arseq,$cs);
