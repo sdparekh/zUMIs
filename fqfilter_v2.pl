@@ -112,6 +112,7 @@ while(<$fh1>){
 	$p1 = $fp1[1];
   $p2 = $fp1[2];
   $p3 = $fp1[3];
+  $ss3 = "yespattern";
 #$flag = 0;
 #This block checks if the read should have certian pattern
   if($p2 =~ /^character/){
@@ -125,11 +126,17 @@ while(<$fh1>){
 
   # This block checks if smart-seq3 pattern is present and if it is found in the reads
   # If it is smart-seq3 pattern in the YAML file but not found in the read then the read is retained as full cDNA read where UMI is null.
-  if($p2 eq "ATTGCGCAATG" and $mcrseq !~ m/^$checkpattern/){
+  if($p2 eq "ATTGCGCAATG"){
+    if($mcrseq !~ m/^$checkpattern/){
     $ss3 = "nopattern";
-    $checkpattern = $rseq;
-  #  print "nopattern\n";
+    $checkpattern = $mcrseq;
+#    print "nopattern\n";
+    }else{
+      $ss3 = "yespattern";
+      $checkpattern = $p2;
+    }
   }
+
 
 
 #This block checks if the read should be read corrected for frameshift in BC pattern
@@ -170,6 +177,7 @@ while(<$fh1>){
     $p = $fp[1];
     $pf = $fp[2];
     $pf2 = $fp[3];
+    $ss3 = "yespattern";
 
     #This block checks if the read should have certian pattern
       if($pf =~ /^character/){
@@ -183,10 +191,15 @@ while(<$fh1>){
 
       # This block checks if smart-seq3 pattern is present and if it is found in the reads
       # If it is smart-seq3 pattern in the YAML file but not found in the read then the read is retained as full cDNA read where UMI is null.
-      if($pf eq "ATTGCGCAATG" and $mcrseq !~ m/^$checkpattern/){
-        $ss3 = "nopattern";
-        $checkpattern = $rseq1;
-      #  print "nopattern\n";
+      if($pf eq "ATTGCGCAATG"){
+        if($mcrseq !~ m/^$checkpattern/){
+          $ss3 = "nopattern";
+          $checkpattern = $mcrseq;
+        #  print "nopattern\n";
+        }else{
+          $ss3 = "yespattern";
+          $checkpattern = $pf;
+        }
       }
 
     #This block checks if the read should be read corrected for frameshift in BC pattern
