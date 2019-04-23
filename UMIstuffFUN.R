@@ -46,37 +46,94 @@ ham_mat <- function(umistrings) {
   nrow(X) - H
 }
 
-reads2genes <- function(featfiles,chunks,rgfile,cores,samtoolsexc){
-
-  ## minifunction for string operations
+prep_samtools <- function(featfiles,bccount,cores,samtoolsexc){
+  print("Extracting reads from bam file(s)...")
   nfiles=length(featfiles)
-  if(opt$barcodes$BarcodeBinning > 0){
-    write.table(file=rgfile,c(chunks,binmap[,falseBC]),col.names = F,quote = F,row.names = F)
-  }else{
-    write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
+  nchunks <- length(unique(bccount$chunkID))
+  all_rgfiles <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".RGgroup.",1:nchunks,".txt")
+  
+  
+  for(i in unique(bccount$chunkID)){
+    rgfile <- all_rgfiles[i]
+    chunks <- bccount[chunkID==i]$XC
+    if(opt$barcodes$BarcodeBinning > 0){
+      write.table(file=rgfile,c(chunks,binmap[,falseBC]),col.names = F,quote = F,row.names = F)
+    }else{
+      write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
+    }
   }
   
-  headerXX<-paste( c(paste0("V",1:3)) ,collapse="\t")
+  headerXX <- paste( c(paste0("V",1:3)) ,collapse="\t")
   write(headerXX,"freadHeader")
-  samcommand<-paste("cat freadHeader; ",samtoolsexc," view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@",cores)
+  
+  headercommand <- "cat freadHeader > "
+  samcommand <- paste(samtoolsexc," view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@")
+  grepcommand <- " | cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f "
+  
+  outfiles_ex <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".ex.",1:nchunks,".txt")
+  system(paste(headercommand,outfiles_ex,collapse = "; "))
+  
+  if(length(featfiles)==1){
+    cpusperchunk <- round(cores/nchunks,0)
+    ex_cmd <- paste(samcommand,cpusperchunk,featfiles[1],grepcommand,all_rgfiles,">>",outfiles_ex," & ",collapse = " ")
+    
+    system(paste(ex_cmd,"wait"))
+  }else{
+    cpusperchunk <- round(cores/(2*nchunks),0)
+    ex_cmd <- paste(samcommand,cpusperchunk,featfiles[1],grepcommand,all_rgfiles,">>",outfiles_ex," & ",collapse = " ")
+    
+    outfiles_in <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".in.",1:nchunks,".txt")
+    system(paste(headercommand,outfiles_in,collapse = "; "))
+    
+    in_cmd <- paste(samcommand,cpusperchunk,featfiles[2],grepcommand,all_rgfiles,">>",outfiles_in," & ",collapse = " ")
+    
+    system(paste(ex_cmd,in_cmd,"wait"))
+  }
+  system("rm freadHeader")
+  system(paste("rm",all_rgfiles))
+  
+  return(outfiles_ex)
+}
 
+#reads2genes <- function(featfiles,chunks,rgfile,cores,samtoolsexc){
+reads2genes <- function(featfiles,chunkID){
+  
+  #nfiles=length(featfiles)
+  #if(opt$barcodes$BarcodeBinning > 0){
+  #  write.table(file=rgfile,c(chunks,binmap[,falseBC]),col.names = F,quote = F,row.names = F)
+  #}else{
+  #  write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
+  #}
+  #
+  #headerXX<-paste( c(paste0("V",1:3)) ,collapse="\t")
+  #write(headerXX,"freadHeader")
+  #samcommand<-paste("cat freadHeader; ",samtoolsexc," view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@",cores)
+  samfile_ex <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".ex.",chunkID,".txt")
+  
    if(length(featfiles)==1){
-          reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
+          #reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
+           reads<-data.table::fread(samfile_ex, na.strings=c(""),
                                    select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","UB","GE") )[
                                    ,"ftype":="NA"
                                    ][is.na(GE)==F,  ftype:="exon"]
   }else{
-    reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
+    samfile_in <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".in.",chunkID,".txt")
+    #reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
+    reads<-data.table::fread(samfile_ex, na.strings=c(""),
                              select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","UB","GE") )[
-                                 ,"GEin":=fread(paste(samcommand,featfiles[2],"| cut -f12,13,14  | grep -F -f ",rgfile," | sed 's/XT:Z://'"),select=3,header=T,fill=T,na.strings=c(""),colClasses = "character")
+                                 #,"GEin":=fread(paste(samcommand,featfiles[2],"| cut -f12,13,14  | grep -F -f ",rgfile," | sed 's/XT:Z://'"),select=3,header=T,fill=T,na.strings=c(""),colClasses = "character")
+                               ,"GEin":=fread(samfile_in,select=3,header=T,fill=T,na.strings=c(""),colClasses = "character")
                                   ][ ,"ftype":="NA"
                                   ][is.na(GEin)==F,ftype:="intron"
                                   ][is.na(GE)==F,  ftype:="exon"
                                   ][is.na(GE),GE:=GEin
                                   ][ ,GEin:=NULL ]
+    system(paste("rm",samfile_in))
 
   }
-  system("rm freadHeader")
+  #system("rm freadHeader")
+  system(paste("rm",samfile_ex))
+  
   if(opt$read_layout == "PE"){
     reads <- reads[ seq(1,nrow(reads),2) ]
   }
@@ -141,7 +198,7 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL ){
 umiCollapseID<-function(reads,bccount,nmin=0,nmax=Inf,ftype=c("intron","exon"),...){
   retDF<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)
   if(!is.null(retDF)){
-    nret<-retDF[, list(umicount=length(unique(UB)),
+    nret<-retDF[, list(umicount=length(unique(UB[!is.na(UB)])),
                        readcount =.N),
                 by=c("RG","GE") ]
 #    ret<-lapply(c("umicount","readcount"),function(type){.makewide(nret,type) })
@@ -151,31 +208,29 @@ umiCollapseID<-function(reads,bccount,nmin=0,nmax=Inf,ftype=c("intron","exon"),.
   }
 }
 umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon"),HamDist=1){
-  # df<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)[
-  #   ,list(umicount =hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),
-  #         readcount =.N),
-  #   by=c("RG","GE")]
-  library(multidplyr)
-  cluster <- create_cluster(opt$num_threads)
-  set_default_cluster(cluster)
-  cluster_copy(cluster,ham_mat)
-  cluster_copy(cluster,hammingFilter)
-  cluster_copy(cluster,HamDist)
-  df <- try(.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype) %>%
-        multidplyr::partition(RG, cluster= cluster) %>%
-        dplyr::group_by(RG,GE) %>%
-        dplyr::summarise(umicount=hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),readcount=length(UB)) %>%
-        dplyr::collect())
 
-  if (class(df) == "try-error") {
-            print("Caught an error during multidplyr, trying linearly...")
-	    parallel::stopCluster(cluster)
-	    rm(cluster)
-	    gc()
-            df <- .sampleReads4collapsing(reads,bccount,nmin,nmax,ftype) %>%
-                    dplyr::group_by(RG,GE) %>%
-                    dplyr::summarise(umicount=hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),readcount=length(UB))
-          }
+  if(length(unique(bccount$RG)) >= 50){
+    library(multidplyr)
+    cluster <- create_cluster(opt$num_threads)
+    set_default_cluster(cluster)
+    cluster_copy(cluster,ham_mat)
+    cluster_copy(cluster,hammingFilter)
+    cluster_copy(cluster,HamDist)
+    df <- try(.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype) %>%
+                multidplyr::partition(RG, cluster= cluster) %>%
+                dplyr::group_by(RG,GE) %>%
+                dplyr::summarise(umicount=hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),readcount=length(UB)) %>%
+                dplyr::collect())
+    parallel::stopCluster(cluster)
+    rm(cluster)
+    gc()
+  }
+  if (class(df) == "try-error" | length(unique(bccount$RG)) < 50) {
+      print("Hamming distance calculation will be done linearly...")
+    df<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)[
+         ,list(umicount =hammingFilter(UB[!is.na(UB)],edit = HamDist,gbcid=paste(RG,GE,sep="_")),
+               readcount =.N), by=c("RG","GE")]
+   }
 
 
   return(as.data.table(df))
