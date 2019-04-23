@@ -112,14 +112,20 @@ if(UMIcheck == "nonUMI"){
 
 ########################## assign reads to UB & GENE
 
+samouts <- prep_samtools(featfiles = ffiles,
+                         bccount   = bccount,
+                         cores     = opt$num_threads,
+                         samtoolsexc=samtoolsexc)
+
 for(i in unique(bccount$chunkID)){
      print( paste( "Working on barcode chunk", i, "out of",length(unique(bccount$chunkID)) ))
      print( paste( "Processing",length(bccount[chunkID==i]$XC), "barcodes in this chunk..." ))
      reads<-reads2genes( featfiles = ffiles,
-                             chunks    = bccount[chunkID==i]$XC,
-                             rgfile    = paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".currentRGgroup.txt"),
-                             cores     = opt$num_threads,
-                           samtoolsexc=samtoolsexc  )
+                             #chunks    = bccount[chunkID==i]$XC,
+                             #rgfile    = paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".currentRGgroup.txt"),
+                          chunkID  = i )
+                             #cores     = opt$num_threads,
+                           #samtoolsexc=samtoolsexc  )
 
      tmp<-collectCounts(  reads =reads,
                           bccount=bccount[chunkID==i],
