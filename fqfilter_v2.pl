@@ -123,6 +123,15 @@ while(<$fh1>){
     $checkpattern = $p2;
   }
 
+  # This block checks if smart-seq3 pattern is present and if it is found in the reads
+  # If it is smart-seq3 pattern in the YAML file but not found in the read then the read is retained as full cDNA read where UMI is null.
+  if($p2 eq "ATTGCGCAATG" and $mcrseq !~ m/^$checkpattern/){
+    $ss3 = "nopattern";
+    $checkpattern = $rseq;
+  #  print "nopattern\n";
+  }
+
+
 #This block checks if the read should be read corrected for frameshift in BC pattern
   if($p3 !~ /^character/){
     @bla = split($p3,$rseq);
@@ -147,7 +156,7 @@ while(<$fh1>){
   ($bcseq, $bcqseq, $ubseq, $ubqseq, $cseqr1, $cqseqr1, $cseqr2, $cqseqr2, $cdc, $lay) = ("","","","","","","","",0,"SE");
 
   if($isPass ne "fail"){
-    ($bcseq, $bcqseq, $ubseq, $ubqseq, $cseqr1, $cqseqr1, $cseqr2, $cqseqr2, $cdc, $lay) = distilReads::makeSeqs($rseq,$qseq,$p1,$cdc);
+    ($bcseq, $bcqseq, $ubseq, $ubqseq, $cseqr1, $cqseqr1, $cseqr2, $cqseqr2, $cdc, $lay) = distilReads::makeSeqs($rseq,$qseq,$p1,$cdc,$ss3);
   }
 
 	for($i=1;$i<=$#keys;$i++){
@@ -163,11 +172,22 @@ while(<$fh1>){
     $pf2 = $fp[3];
 
     #This block checks if the read should have certian pattern
-    #if find_pattern exists, readYaml4fqfilter returns  "ATTGCGCAATG character(0) character(0)"
-    if($pf !~ /^character/){
-      $mcrseq = $rseq1;
-      $checkpattern = $pf;
-    }
+      if($pf =~ /^character/){
+        $mcrseq = $rseq1;
+        $checkpattern = $rseq1;
+      }
+      else{
+        $mcrseq = $rseq1;
+        $checkpattern = $pf;
+      }
+
+      # This block checks if smart-seq3 pattern is present and if it is found in the reads
+      # If it is smart-seq3 pattern in the YAML file but not found in the read then the read is retained as full cDNA read where UMI is null.
+      if($pf eq "ATTGCGCAATG" and $mcrseq !~ m/^$checkpattern/){
+        $ss3 = "nopattern";
+        $checkpattern = $rseq1;
+      #  print "nopattern\n";
+      }
 
     #This block checks if the read should be read corrected for frameshift in BC pattern
       if($pf2 !~ /^character/){
@@ -196,7 +216,7 @@ while(<$fh1>){
 
     # get the BC, UMI and cDNA sequences from all the given fastq files and concatenate according to given ranges
     if($isPass ne "fail"){
-      ($bcseq1, $bcqseq1, $ubseq1, $ubqseq1, $cseq1, $cqseq1, $cseq2, $cqseq2, $cdc, $lay) = distilReads::makeSeqs($rseq1,$qseq1,$p,$cdc);
+      ($bcseq1, $bcqseq1, $ubseq1, $ubqseq1, $cseq1, $cqseq1, $cseq2, $cqseq2, $cdc, $lay) = distilReads::makeSeqs($rseq1,$qseq1,$p,$cdc,$ss3);
     }
     else
     {

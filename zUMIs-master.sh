@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.4.1
+vers=2.4.1d
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -245,12 +245,12 @@ then
 fi
 
 #convenience function
-if grep -q 'find_pattern: ATTGCGCAATG' $yaml &&
-   [[ "$whichStage" == "Filtering" ]]
-  then
-    cp $yaml $outdir/$project.allReads.yaml #copy yaml
-    sed -i "s/project: "$project"/project: "$project"_allReads/" $outdir/$project.allReads.yaml
-    sed -i '/find_pattern/d' $outdir/$project.allReads.yaml
-    sed -i '/UMI(/d' $outdir/$project.allReads.yaml
-    bash $zumisdir/zUMIs-master.sh -y $outdir/$project.allReads.yaml
-fi
+#if grep -q 'find_pattern: ATTGCGCAATG' $yaml &&
+#   [[ "$whichStage" == "Filtering" ]]
+#  then
+#    cp $yaml $outdir/$project.allReads.yaml #copy yaml
+#    sed -i "s/project: "$project"/project: "$project"_allReads/" $outdir/$project.allReads.yaml
+#    sed -i '/find_pattern/d' $outdir/$project.allReads.yaml
+#    sed -i '/UMI(/d' $outdir/$project.allReads.yaml
+#    bash $zumisdir/zUMIs-master.sh -y $outdir/$project.allReads.yaml
+#fi

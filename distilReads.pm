@@ -83,6 +83,7 @@ sub makeSeqs{
   $aqseq = shift;
   $pf = shift;
 	$cdnacounter = shift;
+	$ss3 = shift; # especially to check if it is smart-seq3 pattern to retain reads without pattern as PE
 
   @arr = split(";", $pf); #$p = BC(1-6);UMI(7-16)
   $abcseq="";
@@ -144,6 +145,10 @@ sub makeSeqs{
         $aubseq = substr($arseq,$us,$ul);
         $aubqseq = substr($aqseq,$us,$ul);
       }
+			if($ss3 eq "nopattern"){
+				$aubseq = "";
+        $aubqseq = "";
+			}
     }elsif($a=~m/^cDNA\((.*)\)/){
       $r = $1;
 			if($r=~m/\,/){ "cDNA read can not be in multiple ranges.\n\n"; last; }
@@ -153,6 +158,11 @@ sub makeSeqs{
 				@c = split("-",$r);
         $cs = $c[0] - 1;
         $cl = $c[1]-$c[0]+1;
+
+				# If it is smart-seq3 pattern but not found in the read, consider full cDNA read
+					if($ss3 eq "nopattern"){
+						$cs = 1;
+					}
 
 				if($cl > length($arseq)){
 					$acseq2 = substr($arseq,$cs);
@@ -173,6 +183,10 @@ sub makeSeqs{
         $cs = $c[0] - 1;
         $cl = $c[1]-$c[0]+1;
 
+				# If it is smart-seq3 pattern but not found in the read, consider full cDNA read
+					if($ss3 eq "nopattern"){
+						$cs = 1;
+					}
 
 				if($cl > length($arseq)){
 					$acseq = substr($arseq,$cs);
