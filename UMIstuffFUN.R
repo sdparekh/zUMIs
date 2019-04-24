@@ -209,7 +209,7 @@ umiCollapseID<-function(reads,bccount,nmin=0,nmax=Inf,ftype=c("intron","exon"),.
 }
 umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon"),HamDist=1){
 
-  if(length(unique(bccount$RG)) >= 50){
+  if(length(unique(bccount$XC)) >= 50){
     library(multidplyr)
     cluster <- create_cluster(opt$num_threads)
     set_default_cluster(cluster)
@@ -225,7 +225,7 @@ umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon")
     rm(cluster)
     gc()
   }
-  if (class(df) == "try-error" | length(unique(bccount$RG)) < 50) {
+  if (class(df) == "try-error" | length(unique(bccount$XC)) < 50) {
       print("Hamming distance calculation will be done linearly...")
     df<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)[
          ,list(umicount =hammingFilter(UB[!is.na(UB)],edit = HamDist,gbcid=paste(RG,GE,sep="_")),
