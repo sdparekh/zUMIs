@@ -14,6 +14,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+28 Apr 2019: zUMIs2.4.3: Better parallelization of hamming distance UMI collapses using the parallel package.
+
 23 Apr 2019: zUMIs2.4.2: chunk-wise samtools processing while counting is now running in parallel
 
 22 Apr 2019: zUMI2.4.1: Various bugfixes; Initial splitting of fastq files is not much faster, especially for large datasets by estimating the number of reads instead of explicitly counting the lines of the input files. 
