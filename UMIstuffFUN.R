@@ -171,6 +171,14 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL ){
   return(n)
 }
 
+ham_helper_fun <- function(x){
+  tempdf <- x[
+    ,list(umicount  = hammingFilter(UB[!is.na(UB)],edit = opt$counting_opts$Ham_Dist,gbcid=paste(RG,GE,sep="_")),
+          readcount = .N), by=c("RG","GE")]
+  
+  return(tempdf)
+}
+
 .sampleReads4collapsing<-function(reads,bccount,nmin=0,nmax=Inf,ft){
   #filter reads by ftype and get bc-wise exon counts
   #join bc-wise total counts
@@ -209,30 +217,24 @@ umiCollapseID<-function(reads,bccount,nmin=0,nmax=Inf,ftype=c("intron","exon"),.
 }
 umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon"),HamDist=1){
 
-  if(length(unique(bccount$XC)) >= 50){
-    library(multidplyr)
-    cluster <- create_cluster(opt$num_threads)
-    set_default_cluster(cluster)
-    cluster_copy(cluster,ham_mat)
-    cluster_copy(cluster,hammingFilter)
-    cluster_copy(cluster,HamDist)
-    df <- try(.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype) %>%
-                multidplyr::partition(RG, cluster= cluster) %>%
-                dplyr::group_by(RG,GE) %>%
-                dplyr::summarise(umicount=hammingFilter(UB,edit = HamDist,gbcid=paste(RG,GE,sep="_")),readcount=length(UB)) %>%
-                dplyr::collect())
-    parallel::stopCluster(cluster)
-    rm(cluster)
-    gc()
-  }
-  if (class(df) == "try-error" | length(unique(bccount$XC)) < 50) {
-      print("Hamming distance calculation will be done linearly...")
-    df<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)[
-         ,list(umicount =hammingFilter(UB[!is.na(UB)],edit = HamDist,gbcid=paste(RG,GE,sep="_")),
-               readcount =.N), by=c("RG","GE")]
-   }
 
-
+  #library(foreach)
+  library(parallel)
+  library(dplyr)
+  readsamples <- .sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)
+  setkey(readsamples,RG)
+  print("Splitting data for multicore hamming distance collapse...")
+  readsamples_list <- split(x = readsamples, drop = T, by = c("RG"), sorted = T, keep.by = T)
+  print("Setting up multicore cluster ...")
+  #cl <- makeCluster(opt$num_threads, type="FORK") #set proper cores
+  #registerDoParallel(cl) #start cluster
+  out <- mclapply(readsamples_list,ham_helper_fun, mc.cores = opt$num_threads, mc.preschedule = TRUE)
+  #out <- parLapply(cl=cl,readsamples_list,ham_helper_fun) #calculate hammings in parallel
+  df <- data.table::rbindlist(out) #bind list into single DT
+  
+  print("Finished multi-threaded hamming distances")
+  #stopCluster(cl)
+  gc()
   return(as.data.table(df))
 }
 umiFUNs<-list(umiCollapseID=umiCollapseID,  umiCollapseHam=umiCollapseHam)
