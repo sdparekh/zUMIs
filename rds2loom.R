@@ -2,6 +2,13 @@
 require(yaml)
 require(Matrix)
 
+
+##########################
+myYaml <- commandArgs(trailingOnly = T)
+
+opt   <-read_yaml(myYaml)
+setwd(opt$out_dir)
+
 ##########################
 
 rds_to_loom <- function(zUMIsRDS){
