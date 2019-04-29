@@ -68,11 +68,20 @@ cDNA_read_length <- getmode(nchar(cDNA_peek$V1))
 
 
 # Setup STAR mapping ------------------------------------------------------
+samtools_load_cores <- ifelse(inp$num_threads>8,2,1)
+avail_cores <- inp$num_threads - samtools_load_cores #reserve threads for samtools file opening
+if(avail_cores < 3){
+  cores_samtools <- 1
+  cores_star <- 2
+}else{
+  cores_samtools <- floor(avail_cores/3)
+  cores_star <- avail_cores - cores_samtools
+}
 
-param_defaults <- paste("--readFilesCommand ",samtools," view -@2 --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --outSAMtype BAM Unsorted")
+param_defaults <- paste("--readFilesCommand ",samtools," view -@",samtools_load_cores," --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --outSAMtype SAM --outStd SAM")
 param_misc <- paste("--genomeDir",inp$reference$STAR_index,
                     "--sjdbGTFfile",gtf_to_use,
-                    "--runThreadN",inp$num_threads,
+                    "--runThreadN",cores_star,
                     "--readFilesIn",paste0(filtered_bams,collapse=","),
                     "--outFileNamePrefix",paste(inp$out_dir,"/",inp$project,".filtered.tagged.",sep=""),
                     "--sjdbOverhang", cDNA_read_length-1,
@@ -83,6 +92,9 @@ if(inp$counting_opts$twoPass==T){
   STAR_command <- paste(STAR_command,"--twopassMode Basic")
 }
 
+samtools_output <- paste0(" | ",samtools," view -@ ",cores_samtools," -o ",inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.out.bam")
+
+STAR_command <- paste(STAR_command,samtools_output)
 
 #finally, run STAR
 system(STAR_command)
