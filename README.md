@@ -20,7 +20,7 @@ To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
 
 23 Apr 2019: zUMIs2.4.2: chunk-wise samtools processing while counting is now running in parallel
 
-22 Apr 2019: zUMI2.4.1: Various bugfixes; Initial splitting of fastq files is not much faster, especially for large datasets by estimating the number of reads instead of explicitly counting the lines of the input files. 
+22 Apr 2019: zUMI2.4.1: Various bugfixes; Initial splitting of fastq files is now much faster, especially for large datasets by estimating the number of reads instead of explicitly counting the lines of the input files. 
 
 29 Mar 2019: [zUMIs2.4.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.4.0).
 Improved stats to support protocols without UMIs. Creation of stats now also supports read group-chunking to reduce RAM usage. Rsubread::featureCounts multimapping settings were corrected. zUMIs does not create the intermediate "postmap" YAML file anymore - all options are stored in the user-provided YAML. zUMIs can now run RNA velocity for you (set option velocyto to "yes" in the YAML file). We assume velocyto is installed in path. Implemented a check for correct YAML formatting to prevent runs with bad config files. Barcode detection has been refined and now supports automatic detection by zUMIs guided by a whitelist of possible barcodes (eg. for 10xGenomics data). Thus we have introduced a new flag in the barcode section of the YAML file which controls the automatic barcode detection (eg. automatic: yes).  
