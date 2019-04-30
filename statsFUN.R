@@ -139,6 +139,7 @@ sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile,samtoolsexc){
     }else{
       mapCount<-rbind(mapCount,tmp)
     }
+    system(paste("rm ",samfile_ex,samfile_in))
   }
     saveRDS(mapCount,file=outfile)
     #system(paste0("rm ",outdir,"/freadHeader"))
