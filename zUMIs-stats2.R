@@ -23,9 +23,9 @@ names(featColors)<-c("Exon","Intron+Exon","Intron","Unmapped","Ambiguity","Multi
 #####################################
 
 source(paste0(opt$zUMIs_directory,"/statsFUN.R"))
-splitRG <- function(x) {0}
-suppressMessages(insertSource(paste0(opt$zUMIs_directory,"/UMIstuffFUN.R"), functions="splitRG"))
- 
+#splitRG <- function(x) {0}
+#suppressMessages(insertSource(paste0(opt$zUMIs_directory,"/UMIstuffFUN.R"), functions="splitRG"))
+
 
 data.table::setDTthreads(threads=opt$num_threads)
 
@@ -123,4 +123,17 @@ d<-plot_grid(cp,bar,box,ncol = 1,rel_heights  = c(0.3,0.2,0.5))
 
 ggsave(d,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".features.pdf",sep=""),width = 12,height = 9)
 
+
+############### in case of smart3, check UMI fragment counts
+if(any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files)))){
+  print("Counting UMI fragments...")
+  script_filepath <- paste0(opt$zUMIs_directory,"/fqfilter_countUMI.pl")
+  bam_filepath <- paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam")
+  bc_filepath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
+  
+  system(paste(script_filepath,bam_filepath,bc_filepath))
+}
+
+############### 
 gc()
+
