@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.4.5b
+vers=2.5.0
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -207,6 +207,22 @@ then
       rm $tmpMerge$pref*gz
     done
     date
+
+    #run barcode detection
+    $Rexc $zumisdir/zUMIs-BCdetection.R $yaml
+
+    #check if BC correction should be performed!
+    BCbinTable=$outdir/zUMIs_output/"$project".BCbinning.txt
+    if [[ -f "$BCbinTable" ]]; then
+      for x in $l; do
+        rawbam="$tmpMerge/$project.$x.raw.tagged.bam"
+        fixedbam="$tmpMerge/$project.$x.filtered.tagged.bam"
+        mv $fixedbam $rawbam
+        perl $zumisdir/correct_BCtag.pl $rawbam $fixedbam $BCbinTable $samtoolsexc &
+      done
+      wait
+    fi
+
 fi
 
 if

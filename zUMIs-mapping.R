@@ -2,7 +2,7 @@
 suppressMessages(require(yaml))
 suppressMessages(require(data.table))
 options(datatable.fread.input.cmd.message=FALSE)
-
+Sys.time()
 y <- commandArgs(trailingOnly = T)
 
 inp<-yaml::read_yaml(y)
@@ -96,7 +96,10 @@ samtools_output <- paste0(" | ",samtools," view -@ ",cores_samtools," -o ",inp$o
 
 STAR_command <- paste(STAR_command,samtools_output)
 
+#also merge the unmapped bam files:
+sammerge_command <- paste(samtools,"merge -@",cores_samtools,paste0(inp$out_dir,"/",inp$project,".filtered.tagged.unmapped.bam"),paste0(filtered_bams,collapse=" "))
+
 #finally, run STAR
-system(STAR_command)
+system(paste(STAR_command,"&",sammerge_command,"& wait"))
 system(paste0("rm ",tmpfolder,"/",inp$project,".*"))
 q()

@@ -37,7 +37,7 @@ while(<BC>){
 }
 close BC;
 
-open BAMF, "samtools view -@ 2 -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN $bam | " || die "Couldn't open file $bam. Check permissions!\n Check if it is a bam file and it exists\n\n";
+open BAMF, "samtools view -@ 2 -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN $bam | " || die "Couldn't open file $bam. Check permissions!\n Check if it is a bam file and it exists\n\n";
 
 %bccount=();
 while(<BAMF>){
