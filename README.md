@@ -14,6 +14,9 @@ We provide a script to convert zUMIs output into loom file automatically based o
 To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+23 Jun 2019: [zUMIs2.5.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.5.0).
+Updated the behavior related to barcode detection: cell BC detection now occurs at the end of the filtering step. Additionally, cell BC correction by hamming distance is dramatically improved and its output stored in the bam file ("BC" tag) produced by zUMIs for downstream processing. Raw barcode sequences are stored in a new tag "BX". We recommend to always use this option from here on. Output bam files are now ordered by cell barcode. Bugfix related to downsampling potentially crashing when chunk-wise processing occurs to save memory.    
+
 30 Apr 2019: zUMIs2.4.5: Bugfix: Prevent crashing of statistics for large datasets.
 
 29 Apr 2019: zUMIs2.4.4: Faster mapping by piping STAR SAM output into threaded samtools BAM compression.
@@ -22,7 +25,7 @@ To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
 
 23 Apr 2019: zUMIs2.4.2: chunk-wise samtools processing while counting is now running in parallel
 
-22 Apr 2019: zUMI2.4.1: Various bugfixes; Initial splitting of fastq files is now much faster, especially for large datasets by estimating the number of reads instead of explicitly counting the lines of the input files. 
+22 Apr 2019: zUMI2.4.1: Various bugfixes; Initial splitting of fastq files is now much faster, especially for large datasets by estimating the number of reads instead of explicitly counting the lines of the input files.
 
 29 Mar 2019: [zUMIs2.4.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.4.0).
 Improved stats to support protocols without UMIs. Creation of stats now also supports read group-chunking to reduce RAM usage. Rsubread::featureCounts multimapping settings were corrected. zUMIs does not create the intermediate "postmap" YAML file anymore - all options are stored in the user-provided YAML. zUMIs can now run RNA velocity for you (set option velocyto to "yes" in the YAML file). We assume velocyto is installed in path. Implemented a check for correct YAML formatting to prevent runs with bad config files. Barcode detection has been refined and now supports automatic detection by zUMIs guided by a whitelist of possible barcodes (eg. for 10xGenomics data). Thus we have introduced a new flag in the barcode section of the YAML file which controls the automatic barcode detection (eg. automatic: yes).  

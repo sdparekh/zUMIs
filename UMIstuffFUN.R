@@ -7,7 +7,7 @@ splitRG<-function(bccount,mem){
   }
   if( (maxR > 2e+09 & opt$read_layout == "SE") | (maxR > 1e+09 & opt$read_layout == "PE") ){
     maxR <- ifelse(opt$read_layout == "SE",2e+09,1e+09)
-  } 
+  }
   print(paste(maxR,"Reads per chunk"))
   nc<-nrow(bccount)
   cs=0
@@ -51,53 +51,49 @@ prep_samtools <- function(featfiles,bccount,cores,samtoolsexc){
   nfiles=length(featfiles)
   nchunks <- length(unique(bccount$chunkID))
   all_rgfiles <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".RGgroup.",1:nchunks,".txt")
-  
-  
+
+
   for(i in unique(bccount$chunkID)){
     rgfile <- all_rgfiles[i]
     chunks <- bccount[chunkID==i]$XC
-    if(opt$barcodes$BarcodeBinning > 0){
-      write.table(file=rgfile,c(chunks,binmap[,falseBC]),col.names = F,quote = F,row.names = F)
-    }else{
-      write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
-    }
+    write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
   }
-  
+
   headerXX <- paste( c(paste0("V",1:3)) ,collapse="\t")
   write(headerXX,"freadHeader")
-  
+
   headercommand <- "cat freadHeader > "
-  samcommand <- paste(samtoolsexc," view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@")
+  samcommand <- paste(samtoolsexc," view -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@")
   grepcommand <- " | cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f "
-  
+
   outfiles_ex <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".ex.",1:nchunks,".txt")
   system(paste(headercommand,outfiles_ex,collapse = "; "))
-  
+
   if(length(featfiles)==1){
     cpusperchunk <- round(cores/nchunks,0)
     ex_cmd <- paste(samcommand,cpusperchunk,featfiles[1],grepcommand,all_rgfiles,">>",outfiles_ex," & ",collapse = " ")
-    
+
     system(paste(ex_cmd,"wait"))
   }else{
     cpusperchunk <- round(cores/(2*nchunks),0)
     ex_cmd <- paste(samcommand,cpusperchunk,featfiles[1],grepcommand,all_rgfiles,">>",outfiles_ex," & ",collapse = " ")
-    
+
     outfiles_in <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".in.",1:nchunks,".txt")
     system(paste(headercommand,outfiles_in,collapse = "; "))
-    
+
     in_cmd <- paste(samcommand,cpusperchunk,featfiles[2],grepcommand,all_rgfiles,">>",outfiles_in," & ",collapse = " ")
-    
+
     system(paste(ex_cmd,in_cmd,"wait"))
   }
   system("rm freadHeader")
   system(paste("rm",all_rgfiles))
-  
+
   return(outfiles_ex)
 }
 
 #reads2genes <- function(featfiles,chunks,rgfile,cores,samtoolsexc){
 reads2genes <- function(featfiles,chunkID){
-  
+
   #nfiles=length(featfiles)
   #if(opt$barcodes$BarcodeBinning > 0){
   #  write.table(file=rgfile,c(chunks,binmap[,falseBC]),col.names = F,quote = F,row.names = F)
@@ -109,7 +105,7 @@ reads2genes <- function(featfiles,chunkID){
   #write(headerXX,"freadHeader")
   #samcommand<-paste("cat freadHeader; ",samtoolsexc," view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@",cores)
   samfile_ex <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".ex.",chunkID,".txt")
-  
+
    if(length(featfiles)==1){
           #reads<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
            reads<-data.table::fread(samfile_ex, na.strings=c(""),
@@ -133,14 +129,14 @@ reads2genes <- function(featfiles,chunkID){
   }
   #system("rm freadHeader")
   system(paste("rm",samfile_ex))
-  
+
   if(opt$read_layout == "PE"){
     reads <- reads[ seq(1,nrow(reads),2) ]
   }
-  if(opt$barcodes$BarcodeBinning > 0){
-    reads[RG %in% binmap[,falseBC], RG := binmap[match(RG,binmap[,falseBC]),trueBC]]
-  }
-  
+  #if(opt$barcodes$BarcodeBinning > 0){
+  #  reads[RG %in% binmap[,falseBC], RG := binmap[match(RG,binmap[,falseBC]),trueBC]]
+  #}
+
   setkey(reads,RG)
 
   return( reads[GE!="NA"] )
@@ -175,7 +171,7 @@ ham_helper_fun <- function(x){
   tempdf <- x[
     ,list(umicount  = hammingFilter(UB[!is.na(UB)],edit = opt$counting_opts$Ham_Dist,gbcid=paste(RG,GE,sep="_")),
           readcount = .N), by=c("RG","GE")]
-  
+
   return(tempdf)
 }
 
@@ -231,7 +227,7 @@ umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon")
   out <- mclapply(readsamples_list,ham_helper_fun, mc.cores = opt$num_threads, mc.preschedule = TRUE)
   #out <- parLapply(cl=cl,readsamples_list,ham_helper_fun) #calculate hammings in parallel
   df <- data.table::rbindlist(out) #bind list into single DT
-  
+
   print("Finished multi-threaded hamming distances")
   #stopCluster(cl)
   gc()
@@ -241,13 +237,13 @@ umiFUNs<-list(umiCollapseID=umiCollapseID,  umiCollapseHam=umiCollapseHam)
 
 check_nonUMIcollapse <- function(seqfiles){
   #decide wether to run in UMI or no-UMI mode
-  UMI_check <- lapply(seqfiles, 
+  UMI_check <- lapply(seqfiles,
                       function(x) {
                         if(!is.null(x$base_definition)) {
                           if(any(grepl("^UMI",x$base_definition))) return("UMI method detected.")
                         }
                       })
-  
+
   umi_decision <- ifelse(length(unlist(UMI_check))>0,"UMI","nonUMI")
   return(umi_decision)
 }

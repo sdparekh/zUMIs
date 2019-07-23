@@ -18,7 +18,7 @@ $samtoolsexc=$ARGV[3];
 $pigz=$ARGV[4];
 }
 
-open STARBAMF, "$samtoolsexc view -@ 2 -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN $starbam | cut -f12,13 | " || die "Couldn't open file $starbam. Check permissions!\n Check if it is a bam file and it exists\n\n";
+open STARBAMF, "$samtoolsexc view -@ 2 -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN $starbam | cut -f12,13 | " || die "Couldn't open file $starbam. Check permissions!\n Check if it is a bam file and it exists\n\n";
 open BBBAMF,  "$pigz -dc $bbmap | $samtoolsexc view -x XT -x AM  - | " || die "Couldn't open file $bbmap. Check permissions!\n Check if it is differently zipped then .gz\n\n";
 
 open(BCBAM,"| $samtoolsexc view -b -o $outbam -");

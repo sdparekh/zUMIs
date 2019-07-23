@@ -26,25 +26,14 @@ checkRsubreadVersion()
 ##### Barcode handling & chunking
 
 #read file with barcodecounts
-# bc is the vector of barcodes to keep
-bccount<-cellBC(bcfile      = opt$barcodes$barcode_file,
-           bcnum       = opt$barcodes$barcode_num,
-           bcauto      = opt$barcodes$automatic,
-           bccount_file= paste0(opt$out_dir,"/", opt$project, ".BCstats.txt"),
-           outfilename = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".detected_cells.pdf"))
-
-fwrite(bccount,file=paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt"))
-
-bccount<-splitRG(bccount=bccount, mem= opt$mem_limit)
 
 #check if binning of adjacent barcodes should be run
 if(opt$barcodes$BarcodeBinning > 0){
-  binmap <- BCbin(bccount_file = paste0(opt$out_dir,"/", opt$project, ".BCstats.txt"),
-                  bc_detected  = bccount)
-  #update the number reads in BCcount table
-  bccount[match(binmap[,trueBC],XC),n := n + binmap[,n]]
-  fwrite(bccount,file=paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes_binned.txt"))
+  bccount <- fread(paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes_binned.txt"))
+}else{
+  bccount <- fread(paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt"))
 }
+bccount<-splitRG(bccount=bccount, mem= opt$mem_limit)
 
 ##############################################################
 ##### featureCounts
@@ -80,7 +69,7 @@ if(is.null(opt$mem_limit)){
   }
 }
 
-system(paste0("for i in ",paste(ffiles,collapse=" ")," ; do ",samtoolsexc," sort -n -O 'BAM' -@ ",round(opt$num_threads/2,0)," -m ",mempercpu,"G -o $i $i.tmp & done ; wait"))
+system(paste0("for i in ",paste(ffiles,collapse=" ")," ; do ",samtoolsexc," sort -t BC -n -O 'BAM' -@ ",round(opt$num_threads/2,0)," -m ",mempercpu,"G -o $i $i.tmp & done ; wait"))
 system(paste("rm",paste0(ffiles,".tmp",collapse=" ")))
 
 ##########################################
@@ -129,7 +118,7 @@ for(i in unique(bccount$chunkID)){
 
      tmp<-collectCounts(  reads =reads,
                           bccount=bccount[chunkID==i],
-                          subsample.splits=subS,
+                          subsample.splits=subS[which(max(bccount[chunkID==i]$n) >= subS[,1]), , drop = FALSE],
                           mapList=mapList,
                           HamDist=opt$counting_opts$Ham_Dist
                         )

@@ -129,11 +129,13 @@ if(any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files)))){
   print("Counting UMI fragments...")
   script_filepath <- paste0(opt$zUMIs_directory,"/fqfilter_countUMI.pl")
   bam_filepath <- paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam")
-  bc_filepath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
-  
+  if(opt$barcodes$BarcodeBinning > 0){
+    bc_filepath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes_binned.txt")
+  }else{
+    bc_filepath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
+  }
   system(paste(script_filepath,bam_filepath,bc_filepath))
 }
 
-############### 
+###############
 gc()
-
