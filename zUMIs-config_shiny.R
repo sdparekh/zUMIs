@@ -151,7 +151,7 @@ ui <- fluidPage(
                             h4("Barcode options:"),
                             radioButtons(inputId = "barcodeChoice",label = "Type of barcode selection:",choices = c("Automatic","Number of top Barcodes","Barcode whitelist")),
                             uiOutput("barcodeUI"),
-                            numericInput("HamBC","Hamming distance collapsing of close cell barcode sequences.",value=0,min=0,max=5,step=1),
+                            numericInput("HamBC","Hamming distance collapsing of close cell barcode sequences.",value=1,min=0,max=5,step=1),
                             numericInput("nReadsBC","Keep only the cell barcodes with atleast n number of reads",value=100,min=1,max=5,step=1)
 
                           )),
