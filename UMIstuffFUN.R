@@ -8,6 +8,11 @@ splitRG<-function(bccount,mem){
   if( (maxR > 2e+09 & opt$read_layout == "SE") | (maxR > 1e+09 & opt$read_layout == "PE") ){
     maxR <- ifelse(opt$read_layout == "SE",2e+09,1e+09)
   }
+  if(opt$counting_opts$Ham_Dist>0){ #multicore hamming distance takes a lot of memory
+    ram_factor <- ifelse(opt$num_threads>10, 5, 2)
+    maxR <- floor( maxR/ram_factor )
+  }
+
   print(paste(maxR,"Reads per chunk"))
   nc<-nrow(bccount)
   cs=0
