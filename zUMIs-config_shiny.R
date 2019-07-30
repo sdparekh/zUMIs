@@ -139,7 +139,8 @@ ui <- fluidPage(
                             numericInput("HamDist","Hamming distance collapsing of UMI sequences:",value=0,min=0,max=5,step=1),
                             shinyBS::bsTooltip(id="HamDist", title="Note: Using this will considerably slow down the processing.", 
                                                placement = "top", trigger = "hover",options = list(container = "body")),
-                            checkboxInput("doVelocity",label="Generate RNA velocity counting of intron-exon spanning reads. Assumes velocyto is installed in path.",value = F),
+                            checkboxInput("writeHam", label="Write hamming distance mappings to file?", value = F),
+                            checkboxInput("doVelocity",label="Generate RNA velocity counting of intron-exon spanning reads? Assumes velocyto is installed in path.",value = F),
                             checkboxInput("countPrimary",label="Count the primary Hits of multimapping reads towards gene expression levels?",value = T),
                             shinyBS::bsTooltip(id="countPrimary", title="Untick this box if you want to count uniquely aligned reads only.", 
                                                placement = "top", trigger = "hover",options = list(container = "body")),
@@ -152,7 +153,10 @@ ui <- fluidPage(
                             radioButtons(inputId = "barcodeChoice",label = "Type of barcode selection:",choices = c("Automatic","Number of top Barcodes","Barcode whitelist")),
                             uiOutput("barcodeUI"),
                             numericInput("HamBC","Hamming distance collapsing of close cell barcode sequences.",value=1,min=0,max=5,step=1),
-                            numericInput("nReadsBC","Keep only the cell barcodes with atleast n number of reads",value=100,min=1,max=5,step=1)
+                            numericInput("nReadsBC","Keep only the cell barcodes with atleast n number of reads",value=100,min=1,max=5,step=1),
+                            checkboxInput("demux", label = "Demultiplex into per-cell bam files?", value = F),
+                            shinyBS::bsTooltip(id="demux", title = "Output files will be stored in zUMIs_output/demultiplexed/ .", 
+                                               placement = "top", trigger = "hover",options = list(container = "body"))
 
                           )),
                           column(6,wellPanel(
@@ -389,13 +393,15 @@ server <- function(input, output, session) {
         "barcode_file" = input$BCfile,
         "automatic" = ifelse(input$barcodeChoice=="Automatic", TRUE, FALSE),
         "BarcodeBinning" = input$HamBC,
-        "nReadsperCell" = input$nReadsBC
+        "nReadsperCell" = input$nReadsBC,
+        "demultiplex" = input$demux
       ),
       "counting_opts" = list(
         "introns" = input$countIntrons,
         "downsampling" = input$downsamp,
         "strand" = as.integer(input$strand),
         "Ham_Dist" = input$HamDist,
+        "write_ham" = input$writeHam,
         "velocyto" = input$doVelocity,
         "primaryHit" = input$countPrimary,
         "twoPass" = input$twoPass
@@ -487,6 +493,7 @@ server <- function(input, output, session) {
       updateTextInput(session = session, inputId = "downsamp", value = ya$counting_opts$downsampling)
       updateSelectInput(session = session, inputId = "strand", selected = ya$counting_opts$strand)
       updateNumericInput(session = session, inputId = "HamDist", value = ya$counting_opts$Ham_Dist)
+      updateCheckboxInput(session = session, inputId = "writeHam", value = ya$counting_opts$write_ham)
       updateCheckboxInput(session = session, inputId = "doVelocity", value = ya$counting_opts$velocyto)
       updateCheckboxInput(session = session, inputId = "countPrimary", value = ya$counting_opts$primaryHit)
       updateCheckboxInput(session = session, inputId = "twoPass", value = ya$counting_opts$twoPass)
@@ -505,7 +512,8 @@ server <- function(input, output, session) {
 
       updateNumericInput(session = session, inputId = "HamBC", value = ya$barcodes$BarcodeBinning)
       updateNumericInput(session = session, inputId = "nReadsBC", value = ya$barcodes$nReadsperCell)
-
+      updateCheckboxInput(session = session, inputId = "demux", value = ya$barcodes$demultiplex)
+      
       if(!is.null(ya$read_layout)){
         updateSelectInput(session = session, inputId = "layout", selected = ya$read_layout)
       }

@@ -14,6 +14,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+31 Jun 2019: zUMIs2.5.1: New options for producing demultiplexed bam files per cell (in barcode_opts set demultiplex: yes) or the mapping of erroneous UMI sequences into their parent sequence (in counting_opts set write_ham: yes). Updated shiny application accordingly.
+
 23 Jun 2019: [zUMIs2.5.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.5.0).
 Updated the behavior related to barcode detection: cell BC detection now occurs at the end of the filtering step. Additionally, cell BC correction by hamming distance is dramatically improved and its output stored in the bam file ("BC" tag) produced by zUMIs for downstream processing. Raw barcode sequences are stored in a new tag "BX". We recommend to always use this option from here on. Output bam files are now ordered by cell barcode. Bugfix related to downsampling potentially crashing when chunk-wise processing occurs to save memory.    
 
