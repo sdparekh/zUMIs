@@ -146,7 +146,7 @@ reads2genes <- function(featfiles,chunkID){
 
   return( reads[GE!="NA"] )
 }
-hammingFilter<-function(umiseq, edit=1, gbcid=NULL ){
+hammingFilter<-function(umiseq, edit=1, gbcid=NULL, fullexon = FALSE ){
   # umiseq a vector of umis, one per read
   library(dplyr)
   umiseq <- sort(umiseq)
@@ -160,6 +160,12 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL ){
       umi <- reshape2::melt(umi, varnames = c('row', 'col'), na.rm = TRUE) %>% dplyr::filter( value <= edit  ) #make a long data frame and filter according to cutoff
       umi$n.1 <- uc[umi$row,]$n #add in observed freq
       umi$n.2 <- uc[umi$col,]$n#add in observed freq
+      if(!is.null(opt$counting_opts$write_ham) && opt$counting_opts$write_ham == TRUE && fullexon == TRUE){
+        umi_out <- umi %>%dplyr::transmute( falseUMI=if_else( n.1>=n.2, col, row ), trueUMI = if_else( n.1<n.2, col, row ))
+        umi_out <- umi_out %>% mutate( falseUMI = uc[umi_out$falseUMI,]$us, trueUMI = uc[umi_out$trueUMI,]$us) %>%
+                               mutate(BC = unlist(strsplit(gbcid,"_"))[1], GE = unlist(strsplit(gbcid,"_"))[2])
+        write.table(umi_out, file = paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/", opt$project, ".", gbcid , ".txt"), sep = "\t", quote = F, row.names = F)
+      }
       umi <- umi %>%dplyr::transmute( rem=if_else( n.1>=n.2, col, row )) %>%  unique() #discard the UMI with fewer reads
     }else{
       print( paste(gbcid," has more than 100,000 reads and thus escapes Hamming Distance collapsing."))
@@ -172,9 +178,9 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL ){
   return(n)
 }
 
-ham_helper_fun <- function(x){
+ham_helper_fun <- function(x, fullexon){
   tempdf <- x[
-    ,list(umicount  = hammingFilter(UB[!is.na(UB)],edit = opt$counting_opts$Ham_Dist,gbcid=paste(RG,GE,sep="_")),
+    ,list(umicount  = hammingFilter(UB[!is.na(UB)],edit = opt$counting_opts$Ham_Dist,gbcid=paste(RG,GE,sep="_"), fullexon = fullexon),
           readcount = .N), by=c("RG","GE")]
 
   return(tempdf)
@@ -229,7 +235,9 @@ umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon")
   print("Setting up multicore cluster ...")
   #cl <- makeCluster(opt$num_threads, type="FORK") #set proper cores
   #registerDoParallel(cl) #start cluster
-  out <- mclapply(readsamples_list,ham_helper_fun, mc.cores = opt$num_threads, mc.preschedule = TRUE)
+  fullexon <- ifelse(ftype == "exon" && nmin == 0 && nmax == Inf, TRUE, FALSE)
+
+  out <- mclapply(readsamples_list, function(x) ham_helper_fun(x, fullexon), mc.cores = opt$num_threads, mc.preschedule = TRUE)
   #out <- parLapply(cl=cl,readsamples_list,ham_helper_fun) #calculate hammings in parallel
   df <- data.table::rbindlist(out) #bind list into single DT
 
@@ -294,3 +302,36 @@ convert2countM<-function(alldt,what){
   }
   return(fmat)
 }
+
+collect_molecule_mapping <- function(bccount){
+  mm_path <- paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/")
+  for(i in bccount$XC){
+    mm_files <- list.files(path = mm_path, pattern = paste(opt$project,i,sep = ".") , full.names = TRUE)
+    mm_list <- lapply(mm_files, data.table::fread)
+    mm <- data.table::rbindlist(mm_list)
+    tmp <- lapply(mm_files, file.remove)
+    data.table::fwrite(mm, file = paste0(mm_path,opt$project,".",i,".txt"), quote = F, sep = "\t")
+  }
+}
+
+correct_UB_tags <- function(bccount, samtoolsexc){
+  mm_path <- paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/")
+  demux_path <- paste0(opt$out_dir,"/zUMIs_output/demultiplexed/")
+  UB_cmd_list <- list()
+  for(i in bccount$XC){
+    bam <- paste0(demux_path,opt$project,".",i,".demx.bam")
+    bamout <- paste0(demux_path,opt$project,".",i,".demx.UBfix.bam")
+    mm <- paste0(mm_path,opt$project,".",i,".txt")
+    pl_path <- paste0(opt$zUMIs_directory,"/correct_UBtag.pl")
+    UB_cmd <- paste(pl_path,bam,bamout,mm,samtoolsexc)
+    UB_cmd_list[[i]] <- UB_cmd
+  }
+  bla <- parallel::mclapply(UB_cmd_list, system ,mc.cores = opt$num_threads, mc.preschedule=F)
+  UB_cmd_list <- unlist(UB_cmd_list)
+  UB_files <- as.character(data.frame(strsplit(UB_cmd_list," "),stringsAsFactors=F)[3,])
+  UB_files <- paste(UB_files, collapse = " ")
+  outbam <- paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.ex.featureCounts.UBfix.bam")
+  merge_cmd <- paste(samtoolsexc,"merge -n -t BC -@",opt$num_threads,outbam,UB_files)
+  system(merge_cmd)
+}
+
