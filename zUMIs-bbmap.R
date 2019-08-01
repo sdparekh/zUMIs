@@ -14,16 +14,16 @@ outbam <- paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.out.bam")
 starbam <- paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.STAR.bam")
 bbbam <- paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.bbmap.sam.gz")
 fastqfile <- paste0(inp$out_dir,"/",inp$project,".filtered.tagged.cDNA.fastq.gz")
-fasta <- paste0(inp$reference$STAR_index,"/Genome")
-## rename!!
-fasta <- "/data/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+#fasta <- paste0(inp$reference$STAR_index,"/Genome")
+#fasta <- "/data/ngs/genomes/Human/hg38/Homo_sapiens.GRCh38.dna.primary_assembly.fa"
+fasta <- inp$reference$bbmap_fasta
 
 ###### make Fastq
 system(paste("mv",outbam,starbam))
 #system(paste0("picard SamToFastq I=",starbam," O=",fastqfile))
 #
 ###### run BBmap
-bb_cmd <- paste0(samtools," fastq ",starbam, 
+bb_cmd <- paste0(samtools," fastq ",starbam,
                  " | bbmap local=t maxindel=200000 nhtag=t nmtag=t ambiguous=best ordered=t int=f out=stdout.sam in=stdin.fq",
                 " out=",bbbam,
                 " threads=",cores,
