@@ -103,6 +103,8 @@ if(!is.null(opt$counting_opts$write_ham) && opt$counting_opts$write_ham == TRUE 
   if(!dir.exists( paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/") )){
     dir.create( paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/") )
   }
+}else{
+  molecule_map_flag <- FALSE
 }
 
 ########################## assign reads to UB & GENE
