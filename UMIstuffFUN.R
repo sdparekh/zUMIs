@@ -146,32 +146,39 @@ reads2genes <- function(featfiles,chunkID){
 
   return( reads[GE!="NA"] )
 }
+
 hammingFilter<-function(umiseq, edit=1, gbcid=NULL, fullexon = FALSE ){
   # umiseq a vector of umis, one per read
-  library(dplyr)
-  umiseq <- sort(umiseq)
-  uc     <- data.frame(us = umiseq,stringsAsFactors = F) %>% dplyr::count(us) # normal UMI counts
+  uc <- data.table(us = umiseq)[, .N, by = "us"] # normal UMI counts
+  setorder(uc, us) #order by sequence
 
   if(length(uc$us)>1){
-    if(length(uc$us)<100000){ #prevent use of > 100Gb RAM
-      Sys.time()
+    if(length(uc$us)<45000){ #prevent use of > 100Gb RAM
+      #Sys.time()
       umi <-  ham_mat(uc$us) #construct pairwise UMI distances
       umi[upper.tri(umi,diag=T)] <- NA #remove upper triangle of the output matrix
-      umi <- reshape2::melt(umi, varnames = c('row', 'col'), na.rm = TRUE) %>% dplyr::filter( value <= edit  ) #make a long data frame and filter according to cutoff
-      umi$n.1 <- uc[umi$row,]$n #add in observed freq
-      umi$n.2 <- uc[umi$col,]$n#add in observed freq
+      umi <-  data.table(
+                 row = rep(seq(nrow(umi)), ncol(umi)),
+                 col = rep(seq(ncol(umi)), each = nrow(umi)),
+                 value = as.vector(umi)
+               )[value <= edit ] #make a long data frame and filter according to cutoff
+      umi[, "n.1" := uc[row]$N ][
+          , "n.2" := uc[col]$N ] #add in observed freq
+
       if(!is.null(opt$counting_opts$write_ham) && opt$counting_opts$write_ham == TRUE && fullexon == TRUE){
-        umi_out <- umi %>%dplyr::transmute( falseUMI=if_else( n.1>=n.2, col, row ), trueUMI = if_else( n.1<n.2, col, row ))
-        umi_out <- umi_out %>% mutate( falseUMI = uc[umi_out$falseUMI,]$us, trueUMI = uc[umi_out$trueUMI,]$us) %>%
-                               mutate(BC = unlist(strsplit(gbcid,"_"))[1], GE = unlist(strsplit(gbcid,"_"))[2])
-        write.table(umi_out, file = paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/", opt$project, ".", gbcid , ".txt"), sep = "\t", quote = F, row.names = F)
+        umi_out <- umi[, .( falseUMI=ifelse( n.1>=n.2, col, row ), trueUMI = ifelse( n.1<n.2, col, row ) ) ]
+        umi_out[, falseUMI := uc[falseUMI]$us ][
+                , trueUMI  := uc[trueUMI ]$us][
+                , c("BC","GE") := tstrsplit(gbcid, "_") ]
+        #out_hams[[gbcid]] <<- umi_out
+        fwrite(umi_out, file = paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/", opt$project, ".", gbcid , ".txt"), sep = "\t", quote = F, row.names = F)
       }
-      umi <- umi %>%dplyr::transmute( rem=if_else( n.1>=n.2, col, row )) %>%  unique() #discard the UMI with fewer reads
+      umi <- unique(umi[, .(rem=ifelse( n.1>=n.2, col, row ))]) #discard the UMI with fewer reads
     }else{
-      print( paste(gbcid," has more than 100,000 reads and thus escapes Hamming Distance collapsing."))
+      print( paste(gbcid," has more than 45,000 UMIs and thus escapes Hamming Distance collapsing."))
     }
     if(nrow(umi)>0){
-      uc <- uc[-umi$rem,] #discard all filtered UMIs
+      uc <- uc[-umi$rem] #discard all filtered UMIs
     }
   }
   n <- nrow(uc)
@@ -240,12 +247,18 @@ umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon")
   out <- mclapply(readsamples_list, function(x) ham_helper_fun(x, fullexon), mc.cores = opt$num_threads, mc.preschedule = TRUE)
   #out <- parLapply(cl=cl,readsamples_list,ham_helper_fun) #calculate hammings in parallel
   df <- data.table::rbindlist(out) #bind list into single DT
-
   print("Finished multi-threaded hamming distances")
+
+  if(!is.null(opt$counting_opts$write_ham) && opt$counting_opts$write_ham == TRUE && fullexon == TRUE){
+    print("Parsing molecule mapping tables...")
+    bla <- collect_molecule_mapping(bccount)
+  }
+
   #stopCluster(cl)
   gc()
   return(as.data.table(df))
 }
+
 umiFUNs<-list(umiCollapseID=umiCollapseID,  umiCollapseHam=umiCollapseHam)
 
 check_nonUMIcollapse <- function(seqfiles){
@@ -307,9 +320,9 @@ collect_molecule_mapping <- function(bccount){
   mm_path <- paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/")
   for(i in bccount$XC){
     mm_files <- list.files(path = mm_path, pattern = paste(opt$project,i,sep = ".") , full.names = TRUE)
-    mm_list <- lapply(mm_files, data.table::fread)
+    mm_list <- parallel::mclapply(mm_files, function(x) data.table::fread(x, nThread = 1), mc.cores = opt$num_threads, mc.preschedule=T)
     mm <- data.table::rbindlist(mm_list)
-    tmp <- lapply(mm_files, file.remove)
+    tmp <- parallel::mclapply(mm_files, file.remove, mc.cores = opt$num_threads, mc.preschedule=T)
     data.table::fwrite(mm, file = paste0(mm_path,opt$project,".",i,".txt"), quote = F, sep = "\t")
   }
 }
@@ -334,4 +347,3 @@ correct_UB_tags <- function(bccount, samtoolsexc){
   merge_cmd <- paste(samtoolsexc,"merge -n -t BC -@",opt$num_threads,outbam,UB_files)
   system(merge_cmd)
 }
-

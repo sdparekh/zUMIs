@@ -156,8 +156,8 @@ if(molecule_map_flag == TRUE || opt$barcodes$demultiplex == TRUE ){
   system(demux_cmd)
 }
 if(molecule_map_flag == TRUE){
-  paste("Parsing molecule mapping tables...")
-  bla <- collect_molecule_mapping(bccount)
+  #paste("Parsing molecule mapping tables...")
+  #bla <- collect_molecule_mapping(bccount)
   paste("Correcting UB tags in bam files...")
   bla <- correct_UB_tags(bccount, samtoolsexc)
 }

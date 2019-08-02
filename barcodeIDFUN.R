@@ -1,9 +1,9 @@
 ## set downsampling option
 setDownSamplingOption<-function( down ,bccount, filename=NULL){
-  
+
   if(down!="0"){
     subsample=TRUE
-    
+
     if(grepl(pattern = ",",x = down)==TRUE){
       subsample.splits <- t(sapply(strsplit(down,split = ",")[[1]],
                                    function(x){
@@ -12,10 +12,10 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
                                      }else{  as.numeric(rep(x,2)) }
                                    }))
     }else{
-      
+
       if(grepl(pattern = "-",x = down)==TRUE){
         subsample.splits <- t(as.numeric(strsplit(down,split="-")[[1]]))
-      }else{  
+      }else{
         subn=as.numeric(down)
         subsample.splits <- matrix( c(subn,subn),1,2 )
       }
@@ -32,7 +32,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
     subsample.splits <- matrix( mads, 1, 2)
   }
   colnames(subsample.splits)<-c("minR","maxR")
-  
+
   return( subsample.splits )
 }
 
@@ -56,7 +56,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
     ggtitle("Cells right to the blue line are selected")+
     theme(axis.text = element_text(size=12),axis.title = element_text(size=13),
           plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
-  
+
   p_bc<-ggplot2::ggplot(bccount,aes(y=cs,x=cellindex,color=keep))+
     ggrastr::geom_point_rast(size=2)+xlab("Cell Index")+
     ylab("Cumulative number of reads")+
@@ -65,7 +65,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
                           legend.title = element_blank(),axis.text = element_text(size=12),
                           axis.title = element_text(size=13),
                           plot.title = element_text(hjust=0.5,vjust=0.5,size=13))
-  
+
   bcplot <- cowplot::plot_grid(p_dens,p_bc,labels = c("a","b"))
   ggplot2::ggsave(bcplot,filename=outfilename,
                   width = 10,height = 4)
@@ -91,7 +91,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   if(is.null(outfilename)==FALSE){
     .barcode_plot(bccount,outfilename)
   }
- 
+
   bccount[,cs:=NULL]
   return( bccount[keep==TRUE,XC] )
 }
@@ -131,7 +131,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
 .cellBarcode_expect <- function( bccount, bcfile, outfilename=NULL) {
   #reading barcodes
   bc_wl<-read.table(bcfile,header = F,stringsAsFactors = F)$V1
-  
+
   bccount[ ,cs:=cumsum(as.numeric(n))]
   cut <- .FindBCcut(bccount)
   nkeep<-bccount[n>=cut][,list(s=.N)]
@@ -147,19 +147,19 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
     bccount[n>=cut,keep:=TRUE]
     print(paste(nkeep," barcodes detected automatically.",sep=""))
   }
-  
+
   #Plotting
   if(is.null(outfilename)==FALSE){
     .barcode_plot(bccount,outfilename)
   }
-  
+
   if(length(bccount[,XC] %in% bc_wl)>0){
     bccount[ !(XC %in% bc_wl),keep:=FALSE]
   }else{
     warning("None of the frequent barcodes is present in the whitelist. Keep all automatically detected BCs.")
   }
   kbc<- sum(bccount$keep)
-  
+
   print(paste("Keeping", kbc,"Barcodes."))
   bccount[,cs:=NULL]
   return( bccount[keep==TRUE,XC] )
@@ -174,7 +174,7 @@ cellBC<-function(bcfile, bcnum, bcauto, bccount_file, outfilename=NULL){
 
   if(is.null(bcfile)==FALSE & bcauto){
     print("Using intersection between automatic and whitelist.")
-    bc <- .cellBarcode_expect(bccount , bcfile=bcfile)
+    bc <- .cellBarcode_expect(bccount , bcfile=bcfile, outfilename = outfilename)
   }else if( is.null(bcfile)==FALSE & bcauto==F ){
     bc <- .cellBarcode_known( bccount, bcfile=bcfile )
   }else if (is.null(bcnum)==FALSE){
@@ -227,7 +227,7 @@ BCbin <- function(bccount_file, bc_detected) {
                                                                             order(-n)][
                                                                             !( XC %in% true_BCs )   ]
   nocell_BCs <- nocell_bccount[,XC]
-  
+
   #break up in pieces of 1000 real BCs in case the hamming distance calculation gets too large!
   true_chunks <- split(true_BCs, ceiling(seq_along(true_BCs)/1000))
   for(i in 1:length(true_chunks)){
@@ -253,7 +253,7 @@ BCbin <- function(bccount_file, bc_detected) {
                    , n_false := NULL][
                    , n_min := NULL][
                    , n := nocell_bccount[match(falseBC,nocell_bccount$XC),n]]
-  
+
   print(paste("Found",nrow(binmap),"daughter barcodes that can be binned into",length(unique(binmap[,trueBC])),"parent barcodes."))
   print(paste("Binned barcodes correspond to",sum(binmap[,n]),"reads."))
   return(binmap)
