@@ -14,6 +14,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+08 Aug 2019: zUMIs2.5.3: optimizations in recently added features. Prevent Errors with missing options in YAML file ([see 130](https://github.com/sdparekh/zUMIs/issues/130#issuecomment-518840951)).
+
 02 Aug 2019: zUMIs2.5.2: Speed up hamming distance calculations. Fix [missing barcode detection plot](https://github.com/sdparekh/zUMIs/issues/128#issuecomment-517355261) when using automatic detection + whitelist.
 
 31 Jun 2019: zUMIs2.5.1: New options for producing demultiplexed bam files per cell (in barcode_opts set demultiplex: yes) or the mapping of erroneous UMI sequences into their parent sequence (in counting_opts set write_ham: yes). Updated shiny application accordingly.

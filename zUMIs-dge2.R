@@ -21,6 +21,7 @@ data.table::setDTthreads(threads=opt$num_threads)
 #Check the version of Rsubread
 checkRsubreadVersion()
 
+opt <- fixMissingOptions(opt)
 #######################################################################
 #######################################################################
 ##### Barcode handling & chunking
@@ -98,7 +99,7 @@ UMIcheck <- check_nonUMIcollapse(opt$sequence_files)
 if(UMIcheck == "nonUMI"){
   opt$counting_opts$Ham_Dist <- 0
 }
-if(!is.null(opt$counting_opts$write_ham) && opt$counting_opts$write_ham == TRUE && opt$counting_opts$Ham_Dist > 0){
+if(opt$counting_opts$write_ham == TRUE && opt$counting_opts$Ham_Dist > 0){
   molecule_map_flag <- TRUE
   if(!dir.exists( paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/") )){
     dir.create( paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/") )
@@ -152,14 +153,11 @@ saveRDS(final,file=paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".d
 #Accessory processing scripts
 
 if(molecule_map_flag == TRUE || opt$barcodes$demultiplex == TRUE ){
-  #to do: pack the demultiplexing in if-condition!
   print("Demultiplexing output bam file by cell barcode...")
   demux_cmd <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.pl ",opt$out_dir," ",opt$project, " ", samtoolsexc )
   system(demux_cmd)
 }
 if(molecule_map_flag == TRUE){
-  #paste("Parsing molecule mapping tables...")
-  #bla <- collect_molecule_mapping(bccount)
   paste("Correcting UB tags in bam files...")
   bla <- correct_UB_tags(bccount, samtoolsexc)
 }
