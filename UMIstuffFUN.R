@@ -147,7 +147,7 @@ reads2genes <- function(featfiles,chunkID){
   return( reads[GE!="NA"] )
 }
 
-hammingFilter<-function(umiseq, edit=1, gbcid=NULL, fullexon = FALSE ){
+hammingFilter<-function(umiseq, edit=1, gbcid=NULL, molecule_mapping = FALSE ){
   # umiseq a vector of umis, one per read
   uc <- data.table(us = umiseq)[, .N, by = "us"] # normal UMI counts
   setorder(uc, us) #order by sequence
@@ -165,13 +165,14 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL, fullexon = FALSE ){
       umi[, "n.1" := uc[row]$N ][
           , "n.2" := uc[col]$N ] #add in observed freq
 
-      if(!is.null(opt$counting_opts$write_ham) && opt$counting_opts$write_ham == TRUE && fullexon == TRUE){
+      if(!is.null(opt$counting_opts$write_ham) && opt$counting_opts$write_ham == TRUE && molecule_mapping == TRUE){
         umi_out <- umi[, .( falseUMI=ifelse( n.1>=n.2, col, row ), trueUMI = ifelse( n.1<n.2, col, row ) ) ]
         umi_out[, falseUMI := uc[falseUMI]$us ][
                 , trueUMI  := uc[trueUMI ]$us][
                 , c("BC","GE") := tstrsplit(gbcid, "_") ]
         #out_hams[[gbcid]] <<- umi_out
-        fwrite(umi_out, file = paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/", opt$project, ".", gbcid , ".txt"), sep = "\t", quote = F, row.names = F)
+        #fwrite(umi_out, file = paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/", opt$project, ".", gbcid , ".txt"), sep = "\t", quote = F, row.names = F)
+        return(umi_out)
       }
       umi <- unique(umi[, .(rem=ifelse( n.1>=n.2, col, row ))]) #discard the UMI with fewer reads
     }else{
@@ -185,12 +186,22 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL, fullexon = FALSE ){
   return(n)
 }
 
-ham_helper_fun <- function(x, fullexon){
-  tempdf <- x[
-    ,list(umicount  = hammingFilter(UB[!is.na(UB)],edit = opt$counting_opts$Ham_Dist,gbcid=paste(RG,GE,sep="_"), fullexon = fullexon),
-          readcount = .N), by=c("RG","GE")]
+ham_helper_fun <- function(x, molecule_mapping = FALSE){
+  if(molecule_mapping == TRUE){
+    x[, gbcid := paste(RG,GE,sep="_")]
+    x_list <- split(x = x, drop = T, by = c("gbcid"), sorted = T, keep.by = T)
+    out_list <- lapply(x_list, function(x) hammingFilter(x[!is.na(UB)]$UB, edit=opt$counting_opts$Ham_Dist, gbcid=unique(x$gbcid), molecule_mapping = TRUE) )
+    elements_keep <- which(unlist(lapply(out_list, function(x) nrow(x))) > 0 )
+    out_list <- out_list[names(elements_keep)]
+    outdf <- rbindlist(out_list)
+    return(outdf)
+  }else{
+    tempdf <- x[
+      ,list(umicount  = hammingFilter(UB[!is.na(UB)],edit = opt$counting_opts$Ham_Dist,gbcid=paste(RG,GE,sep="_"), molecule_mapping = FALSE),
+            readcount = .N), by=c("RG","GE")]
 
-  return(tempdf)
+    return(tempdf)
+  }
 }
 
 .sampleReads4collapsing<-function(reads,bccount,nmin=0,nmax=Inf,ft){
@@ -242,20 +253,22 @@ umiCollapseHam<-function(reads,bccount, nmin=0,nmax=Inf,ftype=c("intron","exon")
   print("Setting up multicore cluster ...")
   #cl <- makeCluster(opt$num_threads, type="FORK") #set proper cores
   #registerDoParallel(cl) #start cluster
-  fullexon <- ifelse(ftype == "exon" && nmin == 0 && nmax == Inf, TRUE, FALSE)
-
-  out <- mclapply(readsamples_list, function(x) ham_helper_fun(x, fullexon), mc.cores = opt$num_threads, mc.preschedule = TRUE)
+  out <- mclapply(readsamples_list, function(x) ham_helper_fun(x, molecule_mapping = FALSE), mc.cores = opt$num_threads, mc.preschedule = TRUE)
   #out <- parLapply(cl=cl,readsamples_list,ham_helper_fun) #calculate hammings in parallel
   df <- data.table::rbindlist(out) #bind list into single DT
   print("Finished multi-threaded hamming distances")
 
+  fullexon <- ifelse(ftype == "exon" && nmin == 0 && nmax == Inf, TRUE, FALSE)
   if(!is.null(opt$counting_opts$write_ham) && opt$counting_opts$write_ham == TRUE && fullexon == TRUE){
-    print("Parsing molecule mapping tables...")
-    bla <- collect_molecule_mapping(bccount)
+    print("Generating molecule mapping tables...")
+    #bla <- collect_molecule_mapping(bccount)
+    out_mm <- mclapply(readsamples_list, function(x) ham_helper_fun(x, molecule_mapping = TRUE), mc.cores = opt$num_threads, mc.preschedule = TRUE)
+    out_mm <- rbindlist(out_mm)
+    write_molecule_mapping (bccount, out_mm)
   }
 
   #stopCluster(cl)
-  gc()
+  gc(verbose = F)
   return(as.data.table(df))
 }
 
@@ -316,14 +329,10 @@ convert2countM<-function(alldt,what){
   return(fmat)
 }
 
-collect_molecule_mapping <- function(bccount){
+write_molecule_mapping <- function(bccount, mm){
   mm_path <- paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/")
   for(i in bccount$XC){
-    mm_files <- list.files(path = mm_path, pattern = paste(opt$project,i,sep = ".") , full.names = TRUE)
-    mm_list <- parallel::mclapply(mm_files, function(x) data.table::fread(x, nThread = 1), mc.cores = opt$num_threads, mc.preschedule=T)
-    mm <- data.table::rbindlist(mm_list)
-    tmp <- parallel::mclapply(mm_files, file.remove, mc.cores = opt$num_threads, mc.preschedule=T)
-    data.table::fwrite(mm, file = paste0(mm_path,opt$project,".",i,".txt"), quote = F, sep = "\t")
+    data.table::fwrite(mm[BC == i], file = paste0(mm_path,opt$project,".",i,".txt"), quote = F, sep = "\t")
   }
 }
 
@@ -345,5 +354,54 @@ correct_UB_tags <- function(bccount, samtoolsexc){
   UB_files <- paste(UB_files, collapse = " ")
   outbam <- paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.ex.featureCounts.UBfix.bam")
   merge_cmd <- paste(samtoolsexc,"merge -n -t BC -@",opt$num_threads,outbam,UB_files)
-  system(merge_cmd)
+  write(merge_cmd, file = paste0(opt$out_dir,"/",opt$project,".merge.sh"))
+  system(paste0("bash ",opt$out_dir,"/",opt$project,".merge.sh"))
+}
+
+
+fixMissingOptions <- function(config){
+  if(is.null(config$barcodes$automatic)){
+    if(is.null(config$barcodes$barcode_num) & is.null(config$barcodes$barcode_file)){
+      config$barcodes$automatic <- TRUE
+    }else{
+      config$barcodes$automatic <- FALSE
+    }
+  }
+
+  if(is.null(config$barcodes$BarcodeBinning)){
+    config$barcodes$BarcodeBinning <- 0
+  }
+  if(is.null(config$barcodes$nReadsperCell)){
+    config$barcodes$nReadsperCell <- 100
+  }
+
+  if(is.null(config$barcodes$demultiplex)){
+    config$barcodes$demultiplex <- FALSE
+  }
+
+  if(is.null(config$counting_opts$introns)){
+    config$counting_opts$introns <- TRUE
+  }
+
+  if(is.null(config$counting_opts$primaryHit)){
+    config$counting_opts$primaryHit <- TRUE
+  }
+
+  if(is.null(config$counting_opts$strand)){
+    config$counting_opts$strand <- 0
+  }
+
+  if(is.null(config$counting_opts$Ham_Dist)){
+    config$counting_opts$Ham_Dist <- 0
+  }
+
+  if(is.null(config$counting_opts$velocyto)){
+    config$counting_opts$velocyto <- FALSE
+  }
+
+  if(is.null(config$counting_opts$write_ham)){
+    config$counting_opts$write_ham <- FALSE
+  }
+
+  return(config)
 }

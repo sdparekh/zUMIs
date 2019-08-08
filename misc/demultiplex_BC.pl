@@ -38,7 +38,7 @@ foreach my $thisBC (@BClist) {
   #print $thisBC,"\n";
   #print $fn,"\n";
 
-  open my $fh, "| $samtoolsexc view -b -o ${demuxout}${name}.${thisBC}.demx.bam -";
+  open my $fh, "| $samtoolsexc view -b -@ 2 -o ${demuxout}${name}.${thisBC}.demx.bam -";
   $handles{$thisBC} = $fh;
 
   open HEAD,  "$samtoolsexc view -H $exbam | " || die "Couldn't open file $exbam.\n\n";
