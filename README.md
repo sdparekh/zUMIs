@@ -14,6 +14,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+09 Aug 2019: zUMIs2.5.4: zUMIs is now independent of the version of the Rsubread package. To improve code stability and reduce version-dependency, zUMIs now uses inbuilt precompiled Rsubread::featureCounts code.   
+
 08 Aug 2019: zUMIs2.5.3: optimizations in recently added features. Prevent Errors with missing options in YAML file ([see 130](https://github.com/sdparekh/zUMIs/issues/130#issuecomment-518840951)).
 
 02 Aug 2019: zUMIs2.5.2: Speed up hamming distance calculations. Fix [missing barcode detection plot](https://github.com/sdparekh/zUMIs/issues/128#issuecomment-517355261) when using automatic detection + whitelist.

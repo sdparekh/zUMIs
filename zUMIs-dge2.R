@@ -11,6 +11,7 @@ opt   <-read_yaml(myYaml)
 setwd(opt$out_dir)
 #try(unixtools::set.tempdir(opt$out_dir))
 source(paste0(opt$zUMIs_directory,"/runfeatureCountFUN.R"))
+source(paste0(opt$zUMIs_directory,"/misc/featureCounts.R"))
 source(paste0(opt$zUMIs_directory,"/UMIstuffFUN.R"))
 source(paste0(opt$zUMIs_directory,"/barcodeIDFUN.R"))
 options(datatable.fread.input.cmd.message=FALSE)
@@ -19,7 +20,8 @@ print(Sys.time())
 samtoolsexc <- opt$samtools_exec
 data.table::setDTthreads(threads=opt$num_threads)
 #Check the version of Rsubread
-checkRsubreadVersion()
+#checkRsubreadVersion()
+fcounts_clib <- paste0(opt$zUMIs_directory,"/misc/fcountsLib")
 
 opt <- fixMissingOptions(opt)
 #######################################################################
@@ -47,7 +49,8 @@ fnex<-.runFeatureCount(abamfile,
                        type="ex",
                        primaryOnly = opt$counting_opts$primaryHit,
                        cpu = opt$num_threads,
-                       mem = opt$mem_limit)
+                       mem = opt$mem_limit,
+                       fcounts_clib = fcounts_clib)
 ffiles<-fnex
 
 if(opt$counting_opts$introns){
@@ -57,7 +60,8 @@ if(opt$counting_opts$introns){
                            type="in",
                            primaryOnly = opt$counting_opts$primaryHit,
                            cpu = opt$num_threads,
-                           mem = opt$mem_limit)
+                           mem = opt$mem_limit,
+                           fcounts_clib = fcounts_clib)
   ffiles<-c(ffiles,fnin)
 }
 
