@@ -4,18 +4,18 @@ suppressWarnings(suppressMessages(require(GenomicFeatures)))
 suppressWarnings(suppressMessages(require(GenomicAlignments)))
 suppressWarnings(suppressMessages(require(AnnotationDbi)))
 
-checkRsubreadVersion<- function(){
-  if(length(grep("Rsubread",installed.packages()))==0){
-      print("I did not find Rsubread so I am installing it...")
-      BiocInstaller::biocLite("Rsubread",dependencies = TRUE, ask = FALSE)
-    }else{
-      if(all(as.numeric_version(packageVersion("Rsubread"))<'1.26.1')){
-          print("I need newer Rsubread so I am updating it...")
-          BiocInstaller::biocUpdatePackages("Rsubread", ask=FALSE)
-       }
-    }
-  suppressMessages(require("Rsubread"))
-}
+# checkRsubreadVersion<- function(){
+#   if(length(grep("Rsubread",installed.packages()))==0){
+#       print("I did not find Rsubread so I am installing it...")
+#       BiocInstaller::biocLite("Rsubread",dependencies = TRUE, ask = FALSE)
+#     }else{
+#       if(all(as.numeric_version(packageVersion("Rsubread"))<'1.26.1')){
+#           print("I need newer Rsubread so I am updating it...")
+#           BiocInstaller::biocUpdatePackages("Rsubread", ask=FALSE)
+#        }
+#     }
+#   suppressMessages(require("Rsubread"))
+# }
 
 .makeSAF<-function(gtf){
   print("Loading reference annotation from:")
@@ -70,9 +70,10 @@ checkRsubreadVersion<- function(){
   rm(se,gr.gene,intron,exon,intron.exon.red,intron.exon.dis,intron.only,ol.ex,ol.in,intron.saf,exon.saf)
   return(saf)
 }
-.runFeatureCount<-function(abamfile,RG,saf,strand,type,primaryOnly,cpu,mem){
+.runFeatureCount<-function(abamfile,RG,saf,strand,type,primaryOnly,cpu,mem,fcounts_clib){
   print(paste0("Assigning reads to features (",type,")"))
-  fc.stat<-Rsubread::featureCounts(files=abamfile,
+  #  fc.stat<-Rsubread::featureCounts(files=abamfile,
+     fc.stat <- featureCounts(files=abamfile,
                                    annot.ext=saf,
                                    isGTFAnnotationFile=F,
                                    primaryOnly=primaryOnly,
@@ -81,7 +82,8 @@ checkRsubreadVersion<- function(){
                                    reportReads="BAM",
                                    strandSpecific=strand,
                                    isPairedEnd=T,
-                                   countChimericFragments=F)$stat
+                                   countChimericFragments=F,
+                                   fcounts_clib = fcounts_clib)$stat
   fn<-paste0(abamfile,".featureCounts.bam")
   nfn<-paste0(abamfile,".",type,".featureCounts.bam")
 
