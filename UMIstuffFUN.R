@@ -166,15 +166,52 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL, molecule_mapping = FALSE ){
           , "n.2" := uc[col]$N ] #add in observed freq
 
       if(!is.null(opt$counting_opts$write_ham) && opt$counting_opts$write_ham == TRUE && molecule_mapping == TRUE){
-        umi_out <- umi[, .( falseUMI=ifelse( n.1>=n.2, col, row ), trueUMI = ifelse( n.1<n.2, col, row ) ) ]
-        umi_out[, falseUMI := uc[falseUMI]$us ][
-                , trueUMI  := uc[trueUMI ]$us][
-                , c("BC","GE") := tstrsplit(gbcid, "_") ]
-        #out_hams[[gbcid]] <<- umi_out
-        #fwrite(umi_out, file = paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/", opt$project, ".", gbcid , ".txt"), sep = "\t", quote = F, row.names = F)
+        umi_out <- umi
+
+        umi_out       [, falseUMI := ifelse( n.1>=n.2, col, row ) ][
+                       , trueUMI := ifelse( n.1<n.2, col, row ) ][
+                       , n.false := ifelse( n.1>=n.2, n.2, n.1 )][
+                       , n.true := ifelse( n.1<n.2, n.2, n.1 )][
+                       , falseUMI := uc[falseUMI]$us ][
+                       , trueUMI  := uc[trueUMI ]$us][
+                       , c("BC","GE") := tstrsplit(gbcid, "_") ][
+                       , c("row", "col", "value", "n.1", "n.2") := NULL]
+
+        dup_daughters <- unique(umi_out[which(duplicated(falseUMI))]$falseUMI)
+        if(length(dup_daughters>0)){
+          umi_out[,rem := FALSE]
+          setorder(umi_out, falseUMI, -n.true)
+          setkey(umi_out, falseUMI)
+            for(i in dup_daughters){
+              umi_out[ i, rem := TRUE ] #remove duplicates
+              umi_out[ i, mult = "first" , rem := FALSE] # keep the most frequent parent UMI
+            }
+          umi_out <- umi_out[rem == FALSE]
+          umi_out[, rem := NULL]
+        }
+
+
+        non_true_UMIs <- unique(umi_out[trueUMI %in% umi_out$falseUMI]$trueUMI)
+        real_true_UMIs <- unique(umi_out[!trueUMI %in% umi_out$falseUMI]$trueUMI)
+        if(length(dup_daughters>0)){
+          setkey(umi_out, falseUMI)
+          for(i in non_true_UMIs){
+            true_parent_UMI <- umi_out[i][!trueUMI %in% non_true_UMIs]$trueUMI
+            if(length(true_parent_UMI)==0){#find closest match in case there is no clear parent UMI!
+              true_parent_UMI <- real_true_UMIs[stringdist::amatch(umi_out[i][1]$trueUMI, real_true_UMIs, method = "hamming", maxDist=Inf)[1]]
+            }
+            if(length(true_parent_UMI)>1){ #take a random good parent UMI if more possibilities exist
+              true_parent_UMI <- true_parent_UMI[1]
+            }
+            umi_out[trueUMI == i, trueUMI := true_parent_UMI]
+          }
+        }
+        umi_out[, c("n.false","n.true") := NULL]
         return(umi_out)
       }
+
       umi <- unique(umi[, .(rem=ifelse( n.1>=n.2, col, row ))]) #discard the UMI with fewer reads
+
     }else{
       print( paste(gbcid," has more than 45,000 UMIs and thus escapes Hamming Distance collapsing."))
     }
