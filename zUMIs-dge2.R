@@ -66,12 +66,9 @@ if(opt$counting_opts$introns){
 }
 
 if(is.null(opt$mem_limit)){
-  mempercpu <- round(100/opt$num_threads/2,0)
+  mempercpu <- max(round(100/opt$num_threads/2,0),1)
 }else{
-  mempercpu <- round(opt$mem_limit/opt$num_threads/2,0)
-  if(mempercpu==0){
-    mempercpu <- 1
-  }
+  mempercpu <- max(round(opt$mem_limit/opt$num_threads/2,0),1)
 }
 
 system(paste0("for i in ",paste(ffiles,collapse=" ")," ; do ",samtoolsexc," sort -t BC -n -O 'BAM' -@ ",round(opt$num_threads/2,0)," -m ",mempercpu,"G -o $i $i.tmp & done ; wait"))
