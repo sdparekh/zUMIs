@@ -37,7 +37,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
 }
 
 ##cellbarcode ordering functions
-.FindBCcut <- function(bccount){
+.FindBCcut_mclust <- function(bccount){
   suppressMessages(require(mclust))
   tmp<-mclust::Mclust(log10(bccount$n), modelNames = c("E","V"))
   ss <- ifelse(tmp$modelName=="E",1,tmp$G)
@@ -45,6 +45,13 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   va<-tmp$parameters$variance$sigmasq[ss]
 
   cut<-10^(qnorm(0.01, m=mm,sd=sqrt(va)))
+  return(cut)
+}
+
+.FindBCcut <- function(bccount){
+  suppressMessages(require(inflection))
+  ntop<-uik(bccount$cellindex,bccount$cs/1000)
+  cut <- bccount[ntop,]$n
   return(cut)
 }
 
