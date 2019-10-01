@@ -173,7 +173,7 @@ then
   echo "Filtering..."
 
   f=`cut -d' ' -f1 <(echo $fqfiles)` # the first fastq file to determine gzip status
-  fullsize=`stat --printf="%s" $f`
+  fullsize=`stat -L --printf="%s" $f`
 
   tmpMerge=$outdir/zUMIs_output/.tmpMerge/
 
