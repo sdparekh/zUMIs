@@ -59,8 +59,10 @@ filter_cutoffs:
 barcodes:
   barcode_num: null
   barcode_file: null
-  BarcodeBinning: 0 #Hamming distance binning of close cell barcode sequences. ATTENTION! This option is currently not implemented!
+  automatic: yes #Give yes/no to this option. If the cell barcodes should be detected automatically. If the barcode file is given in combination with automatic barcode detection, the list of given barcodes will be used as whitelist.
+  BarcodeBinning: 1 #Hamming distance binning of close cell barcode sequences.
   nReadsperCell: 100 #Keep only the cell barcodes with atleast n number of reads.
+  demultiplex: no #produce per-cell demultiplexed bam files.
 
 #Options related to counting of reads towards expression profiles
 counting_opts:
@@ -68,7 +70,8 @@ counting_opts:
   downsampling: 0 #Number of reads to downsample to. This value can be a fixed number of reads (e.g. 10000) or a desired range (e.g. 10000-20000) Barcodes with less than <d> will not be reported. 0 means adaptive downsampling. Default: 0.
   strand: 0 #Is the library stranded? 0 = unstranded, 1 = positively stranded, 2 = negatively stranded
   Ham_Dist: 0 #Hamming distance collapsing of UMI sequences.
-  velocyto: no #Would you like velocyto-compatible counting of intron-exon spanning reads
+  write_ham: no #If hamming distance collapse of UMI sequences is performed, write out mapping tables & UB corrected bam files.
+  velocyto: no #Would you like velocyto to do counting of intron-exon spanning reads
   primaryHit: yes #Do you want to count the primary Hits of multimapping reads towards gene expression levels?
   twoPass: yes #perform basic STAR twoPass mapping
 
@@ -79,4 +82,10 @@ make_stats: yes
 #Start zUMIs from stage. Possible TEXT(Filtering, Mapping, Counting, Summarising). Default: Filtering.
 which_Stage: Filtering
 
-#below, the fqfilter will add a read_layout flag defining SE or PE
+#define dependencies program paths
+samtools_exec: samtools #samtools executable
+Rscript_exec: Rscript #Rscript executable
+STAR_exec: STAR #STAR executable
+pigz_exec: pigz #pigz executable
+
+#below, fqfilter will add a read_layout flag defining SE or PE

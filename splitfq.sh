@@ -8,7 +8,7 @@ function splitfq() {
 	fqfile=$1
   pexc=$2
   nthreads=$3
-  nreads==`expr $4 / 4`
+  nreads=$4
   t=$5
 	project=$6
 
@@ -17,9 +17,9 @@ function splitfq() {
 	nl=`expr $n \* 4`
   pref=`basename $fqfile`
   d=`dirname $fqfile`
-  split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' $d/$fqfile $t$pref
+  split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' $d/$fqfile $t$pref$project
 
-	ls $t$pref* | sed "s|$t$pref||" > $t/$project.listPrefix.txt
+	ls $t$pref$project* | sed "s|$t$pref$project||" > $t/$project.listPrefix.txt
 
 	exit 1
 }
@@ -27,7 +27,7 @@ function splitfqgz() {
 	fqfile=$1
   pexc=$2
   nthreads=$3
-  nreads=`expr $4 / 4`
+  nreads=$4
   t=$5
 	project=$6
 
@@ -36,9 +36,9 @@ function splitfqgz() {
   nl=`expr $n \* 4`
   pref=`basename $fqfile .gz`
   d=`dirname $fqfile`
-  $pexc -dc -p $nthreads $d/$pref.gz | split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' - $t$pref
+  $pexc -dc -p $nthreads $d/$pref.gz | split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' - $t$pref$project
 
-	ls $t$pref* | sed "s|$t$pref||" | sed 's/.gz//' > $t/$project.listPrefix.txt
+	ls $t$pref$project* | sed "s|$t$pref$project||" | sed 's/.gz//' > $t/$project.listPrefix.txt
 
 	exit 1
 }
@@ -49,13 +49,8 @@ num_threads=$3
 tmpMerge=$4
 fun=$5
 project=$6
-f=$7
+nreads=$7
 
 
-if [[ $f =~ \.gz$ ]]; then
-	nlines=`pigz -p $num_threads -d -c $f | wc -l`
-else
-	nlines=`wc -l $f | awk '{print $1}'`
-fi
 
-$fun "$i" "$pigzexc" "$num_threads" "$nlines" "$tmpMerge" "$project"
+$fun "$i" "$pigzexc" "$num_threads" "$nreads" "$tmpMerge" "$project"

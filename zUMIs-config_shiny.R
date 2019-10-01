@@ -42,7 +42,9 @@ ui <- fluidPage(
                             shinyBS::bsTooltip(id="nfiles", title="How many reads (including index reads) were obtained by your sequencing layout?", 
                                                placement = "bottom", trigger = "hover",options = list(container = "body")),
                             checkboxInput("patternsearch", "Search for sequence pattern in reads?", value = F),
-                            uiOutput("patternUI"), uiOutput("patternReadUI")
+                            checkboxInput("frameshiftsearch", "Correct for frameshift in barcode reads?", value = F),
+                            uiOutput("patternUI"), uiOutput("patternReadUI"),
+                            uiOutput("frameshiftUI"), uiOutput("frameshiftReadUI")
                           )),
                           column(8,wellPanel(
                             uiOutput("fqUI"),
@@ -137,7 +139,8 @@ ui <- fluidPage(
                             numericInput("HamDist","Hamming distance collapsing of UMI sequences:",value=0,min=0,max=5,step=1),
                             shinyBS::bsTooltip(id="HamDist", title="Note: Using this will considerably slow down the processing.", 
                                                placement = "top", trigger = "hover",options = list(container = "body")),
-                            checkboxInput("doVelocity",label="Generate velocyto-compatible counting of intron-exon spanning reads. ATTENTION! This option is currently not implemented!",value = F),
+                            checkboxInput("writeHam", label="Write hamming distance mappings to file?", value = F),
+                            checkboxInput("doVelocity",label="Generate RNA velocity counting of intron-exon spanning reads? Assumes velocyto is installed in path.",value = F),
                             checkboxInput("countPrimary",label="Count the primary Hits of multimapping reads towards gene expression levels?",value = T),
                             shinyBS::bsTooltip(id="countPrimary", title="Untick this box if you want to count uniquely aligned reads only.", 
                                                placement = "top", trigger = "hover",options = list(container = "body")),
@@ -149,9 +152,19 @@ ui <- fluidPage(
                             h4("Barcode options:"),
                             radioButtons(inputId = "barcodeChoice",label = "Type of barcode selection:",choices = c("Automatic","Number of top Barcodes","Barcode whitelist")),
                             uiOutput("barcodeUI"),
-                            numericInput("HamBC","Hamming distance collapsing of close cell barcode sequences. ATTENTION! This option is currently not implemented!",value=0,min=0,max=5,step=1),
-                            numericInput("nReadsBC","Keep only the cell barcodes with atleast n number of reads",value=100,min=1,max=5,step=1)
+                            numericInput("HamBC","Hamming distance collapsing of close cell barcode sequences.",value=1,min=0,max=5,step=1),
+                            numericInput("nReadsBC","Keep only the cell barcodes with atleast n number of reads",value=100,min=1,max=5,step=1),
+                            checkboxInput("demux", label = "Demultiplex into per-cell bam files?", value = F),
+                            shinyBS::bsTooltip(id="demux", title = "Output files will be stored in zUMIs_output/demultiplexed/ .", 
+                                               placement = "top", trigger = "hover",options = list(container = "body"))
 
+                          )),
+                          column(6,wellPanel(
+                            h4("Dependencies:"),
+                            textInput("r_exec","Rscript executable:", value = "Rscript"),
+                            textInput("samtools_exec","samtools executable:", value = "samtools"),
+                            textInput("pigz_exec","pigz executable:", value = "pigz"),
+                            textInput("star_exec","STAR executable:", value = "STAR")
                           ))
                         )
                ),
@@ -183,7 +196,8 @@ server <- function(input, output, session) {
 
   output$barcodeUI <- renderUI({
     switch(input$barcodeChoice,
-           "Automatic" = p(em("Intact barcodes will be detected automatically.")),
+           #"Automatic" = p(em("Intact barcodes will be detected automatically.")),
+           "Automatic" = textInput(inputId = "BCfile",label = "Optional: File to barcode whitelist to use for guiding automatic detection", value = NULL),
            "Number of top Barcodes" = numericInput(inputId = "BCnum",label = "Number of barcodes to consider:",value = 100, min = 10, step = 1),
            "Barcode whitelist" = textInput(inputId = "BCfile",label = "File to barcode whitelist to use:", value = "/fullpath/to/file.txt")
     )
@@ -191,6 +205,7 @@ server <- function(input, output, session) {
   
   output$patternUI <- renderUI({
     if(input$patternsearch==T){
+           updateCheckboxInput(session = session, inputId = "frameshiftsearch",value = F)
            textInput(inputId = "pattern", label = "Search for the following sequence:" , placeholder = "ACTGCTGC")
     }
   })
@@ -198,6 +213,19 @@ server <- function(input, output, session) {
   output$patternReadUI <- renderUI({
     if(input$patternsearch==T){
       selectInput(inputId = "patternRead", label = "Search for the pattern in this read:" ,choices = paste("Read",1:input$nfiles),selected = "Read 1")
+    }
+  })
+  
+  output$frameshiftUI <- renderUI({
+    if(input$frameshiftsearch==T){
+      updateCheckboxInput(session = session, inputId = "patternsearch",value = F)
+      textInput(inputId = "pattern", label = "Correct frameshifts using the following sequence:" , placeholder = "ACTGCTGC")
+    }
+  })
+  
+  output$frameshiftReadUI <- renderUI({
+    if(input$frameshiftsearch==T){
+      selectInput(inputId = "patternRead", label = "Correct for frameshift with pattern in this read:" ,choices = paste("Read",1:input$nfiles),selected = "Read 1")
     }
   })
 
@@ -292,7 +320,7 @@ server <- function(input, output, session) {
       bc_struc<-bc_struc[which( bc_struc != "" )]
       
       
-      if(input$patternsearch==F){
+      if(input$patternsearch==F & input$frameshiftsearch==F){
         seqf[[i]] <- list(
           "name" = input[[paste0("fqpath_",i)]],
           "base_definition" = paste0(names(bc_struc),"(",bc_struc,")")
@@ -305,10 +333,18 @@ server <- function(input, output, session) {
             "find_pattern" = input$pattern
           )  
         }else{
+          if(input$frameshiftsearch==T & substr(input$patternRead,6,6)==i){
+            seqf[[i]] <- list(
+              "name" = input[[paste0("fqpath_",i)]],
+              "base_definition" = paste0(names(bc_struc),"(",bc_struc,")"),
+              "correct_frameshift" = input$pattern
+            ) 
+          }else{
           seqf[[i]] <- list(
             "name" = input[[paste0("fqpath_",i)]],
             "base_definition" = paste0(names(bc_struc),"(",bc_struc,")")
           )
+          }
         }
       }
       
@@ -355,20 +391,27 @@ server <- function(input, output, session) {
       "barcodes" = list(
         "barcode_num" = input$BCnum,
         "barcode_file" = input$BCfile,
+        "automatic" = ifelse(input$barcodeChoice=="Automatic", TRUE, FALSE),
         "BarcodeBinning" = input$HamBC,
-        "nReadsperCell" = input$nReadsBC
+        "nReadsperCell" = input$nReadsBC,
+        "demultiplex" = input$demux
       ),
       "counting_opts" = list(
         "introns" = input$countIntrons,
         "downsampling" = input$downsamp,
         "strand" = as.integer(input$strand),
         "Ham_Dist" = input$HamDist,
+        "write_ham" = input$writeHam,
         "velocyto" = input$doVelocity,
         "primaryHit" = input$countPrimary,
         "twoPass" = input$twoPass
       ),
       "make_stats" = input$makeStats,
-      "which_Stage" = input$whichStage
+      "which_Stage" = input$whichStage,
+      "Rscript_exec" = input$r_exec,
+      "STAR_exec" = input$star_exec,
+      "pigz_exec" = input$pigz_exec,
+      "samtools_exec" = input$samtools_exec
     )
     return(y)
   }
@@ -431,7 +474,11 @@ server <- function(input, output, session) {
           updateSelectInput(session = session, inputId = "patternRead", choices = paste("Read",1:length(ya$sequence_files)), selected = paste("Read",i))
           updateTextInput(session = session, inputId = "pattern", value = ya$sequence_files[[i]]$find_pattern)
         }
-
+        if(length(ya$sequence_files[[i]]$correct_frameshift)==1){
+          updateCheckboxInput(session = session, inputId = "frameshiftsearch", value = T)
+          updateSelectInput(session = session, inputId = "patternRead", choices = paste("Read",1:length(ya$sequence_files)), selected = paste("Read",i))
+          updateTextInput(session = session, inputId = "pattern", value = ya$sequence_files[[i]]$correct_frameshift)
+        }
       }
 
       updateNumericInput(session = session, inputId = "BCbases", value = ya$filter_cutoffs$BC_filter$num_bases)
@@ -446,13 +493,15 @@ server <- function(input, output, session) {
       updateTextInput(session = session, inputId = "downsamp", value = ya$counting_opts$downsampling)
       updateSelectInput(session = session, inputId = "strand", selected = ya$counting_opts$strand)
       updateNumericInput(session = session, inputId = "HamDist", value = ya$counting_opts$Ham_Dist)
+      updateCheckboxInput(session = session, inputId = "writeHam", value = ya$counting_opts$write_ham)
       updateCheckboxInput(session = session, inputId = "doVelocity", value = ya$counting_opts$velocyto)
       updateCheckboxInput(session = session, inputId = "countPrimary", value = ya$counting_opts$primaryHit)
       updateCheckboxInput(session = session, inputId = "twoPass", value = ya$counting_opts$twoPass)
-      if (is.null(ya$barcodes$barcode_num) & is.null(ya$barcodes$barcode_file)) {
+      if (is.null(ya$barcodes$barcode_num) & ya$barcodes$automatic == TRUE) {
         updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Automatic")
+        updateTextInput(session = session, inputId = "BCfile", value = ya$barcodes$barcode_file)
       }
-      if (!is.null(ya$barcodes$barcode_file)){
+      if (!is.null(ya$barcodes$barcode_file) & ya$barcodes$automatic == FALSE){
         updateRadioButtons(session = session, inputId = "barcodeChoice", selected = "Barcode whitelist")
         updateTextInput(session = session, inputId = "BCfile", value = ya$barcodes$barcode_file)
       }
@@ -463,11 +512,16 @@ server <- function(input, output, session) {
 
       updateNumericInput(session = session, inputId = "HamBC", value = ya$barcodes$BarcodeBinning)
       updateNumericInput(session = session, inputId = "nReadsBC", value = ya$barcodes$nReadsperCell)
-
+      updateCheckboxInput(session = session, inputId = "demux", value = ya$barcodes$demultiplex)
+      
       if(!is.null(ya$read_layout)){
         updateSelectInput(session = session, inputId = "layout", selected = ya$read_layout)
       }
-
+      
+      updateTextInput(session = session, inputId = "r_exec", value = ya$Rscript_exec)
+      updateTextInput(session = session, inputId = "samtools_exec", value = ya$samtools_exec)
+      updateTextInput(session = session, inputId = "pigz_exec", value = ya$pigz_exec)
+      updateTextInput(session = session, inputId = "star_exec", value = ya$STAR_exec)
   }
 
 }

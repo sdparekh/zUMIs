@@ -11,20 +11,24 @@ sub makeFileHandles{
   $f = shift;
   $p = shift;
 	$fp = shift;
+	$cf = shift;
 
   @files = split(" ",$f);
   @pats = split(" ",$p);
 	@fpats = split(" ",$fp);
+	@cframes = split(" ",$cf);
 
   $j=0;
   for $file ( @files ) {
     $j++;
     $pat=$pats[$j-1];
 		$fpat=$fpats[$j-1];
+		$cframe=$cframes[$j-1];
+
     $fh="file".$j;
 
     if ( open $fh, '<', $file ) {
-      $file_handles{ $fh } = $file.":".$pat.":".$fpat;
+      $file_handles{ $fh } = $file.":".$pat.":".$fpat.":".$cframe;
       close $fh;
     }
     else {
@@ -40,12 +44,47 @@ sub checkPhred{
     return $offset;
 }
 
+sub correctFrameshift{
+	$read = shift;
+	$p = shift;
+	$pat = shift;
+
+	@arr = split(";", $p); #$p = BC(1-6,22-27,43-48);UMI(49-56)
+	($index) = grep { $arr[$_] =~ /BC/ } 0..$#arr;
+	($index2) = grep { $arr[$_] =~ /UMI/ } 0..$#arr;
+
+	@ranges = split(",",$arr[$index]);
+	$ranges[0] =~ m/(\d+)-(\d+)/;
+  $bc1length = $2;
+
+	$arr[$index2] =~ m/UMI\((\d+)-(\d+)\)/;
+  $fulllength = $2;
+
+    #@bla = split($pat,$read);
+     $read =~ m/(.*)($pat.*)/;
+     $before = $1;
+     $after = $2;
+
+		 #print $bc1length,"\t",$fulllength,"\n",length($before),"\t",length($after),"\n";
+
+     if((length($before) >= $bc1length) && ((length($after)+$bc1length) >= $fulllength)){
+       $st = length($before) - $bc1length;
+       $newread = substr($read, $st);
+     }
+		 else
+		 {
+			 $newread = "fail";
+		 }
+		return $newread;
+}
 
 sub makeSeqs{
   $arseq = shift;
   $aqseq = shift;
   $pf = shift;
 	$cdnacounter = shift;
+	$ss3 = shift; # especially to check if it is smart-seq3 pattern to retain reads without pattern as PE
+	
 
   @arr = split(";", $pf); #$p = BC(1-6);UMI(7-16)
   $abcseq="";
@@ -107,6 +146,10 @@ sub makeSeqs{
         $aubseq = substr($arseq,$us,$ul);
         $aubqseq = substr($aqseq,$us,$ul);
       }
+			if($ss3 eq "nopattern"){
+				$aubseq = "";
+        $aubqseq = "";
+			}
     }elsif($a=~m/^cDNA\((.*)\)/){
       $r = $1;
 			if($r=~m/\,/){ "cDNA read can not be in multiple ranges.\n\n"; last; }
@@ -114,23 +157,50 @@ sub makeSeqs{
 				$layout="PE";
 
 				@c = split("-",$r);
+				# If it is smart-seq3 pattern but not found in the read, consider full cDNA read
+					if($ss3 eq "nopattern"){
+						$c[0] = 1;
+					}
+
         $cs = $c[0] - 1;
         $cl = $c[1]-$c[0]+1;
-				if($cl > length($arseq)){ "Your range is longer than the read length.\n\n"; last; }
 
-        $acseq2 = substr($arseq,$cs,$cl);
-        $acqseq2 = substr($aqseq,$cs,$cl);
+				if($cl > length($arseq)){
+					$acseq2 = substr($arseq,$cs);
+	        $acqseq2 = substr($aqseq,$cs);
+				}else{
+					$acseq2 = substr($arseq,$cs,$cl);
+	        $acqseq2 = substr($aqseq,$cs,$cl);
+				}
+
+				chomp($acseq2);
+				chomp($acqseq2);
+
 			}else{
 				$cdnacounter++;
 
 				$layout="SE";
 				@c = split("-",$r);
+				# If it is smart-seq3 pattern but not found in the read, consider full cDNA read
+					if($ss3 eq "nopattern"){
+						$c[0] = 1;
+					}
+
         $cs = $c[0] - 1;
         $cl = $c[1]-$c[0]+1;
-				if($cl > length($arseq)){ "Your range is longer than the read length.\n\n"; last; }
 
-        $acseq = substr($arseq,$cs,$cl);
-        $acqseq = substr($aqseq,$cs,$cl);
+
+				if($cl > length($arseq)){
+					$acseq = substr($arseq,$cs);
+	        $acqseq = substr($aqseq,$cs);
+				}else{
+					$acseq = substr($arseq,$cs,$cl);
+	        $acqseq = substr($aqseq,$cs,$cl);
+				}
+
+				chomp($acseq);
+				chomp($acqseq);
+
 			}
     }
   }

@@ -4,18 +4,18 @@ suppressWarnings(suppressMessages(require(GenomicFeatures)))
 suppressWarnings(suppressMessages(require(GenomicAlignments)))
 suppressWarnings(suppressMessages(require(AnnotationDbi)))
 
-checkRsubreadVersion<- function(){
-  if(length(grep("Rsubread",installed.packages()))==0){
-      print("I did not find Rsubread so I am installing it...")
-      BiocInstaller::biocLite("Rsubread",dependencies = TRUE, ask = FALSE)
-    }else{
-      if(all(as.numeric_version(installed.packages()[grep("Rsubread",installed.packages()),"Version"])<'1.26.1')){
-          print("I need newer Rsubread so I am updating it...")
-          BiocInstaller::biocUpdatePackages("Rsubread", ask=FALSE)
-       }
-    }
-  suppressMessages(require("Rsubread"))
-}
+# checkRsubreadVersion<- function(){
+#   if(length(grep("Rsubread",installed.packages()))==0){
+#       print("I did not find Rsubread so I am installing it...")
+#       BiocInstaller::biocLite("Rsubread",dependencies = TRUE, ask = FALSE)
+#     }else{
+#       if(all(as.numeric_version(packageVersion("Rsubread"))<'1.26.1')){
+#           print("I need newer Rsubread so I am updating it...")
+#           BiocInstaller::biocUpdatePackages("Rsubread", ask=FALSE)
+#        }
+#     }
+#   suppressMessages(require("Rsubread"))
+# }
 
 .makeSAF<-function(gtf){
   print("Loading reference annotation from:")
@@ -63,38 +63,33 @@ checkRsubreadVersion<- function(){
 
   intron.saf<-dplyr::left_join(intron.saf,unique(exon.saf[,c("GeneID","Strand")]),by=c("GeneID"))
 
-  saf <- list(introns=intron.saf,exons=exon.saf)
+  saf <- list(introns=unique(intron.saf),exons=unique(exon.saf))
   print("Annotation loaded!")
 #  safout <- paste(out,"/zUMIs_output/expression/",sn,".annotationsSAF.rds",sep="")
 #  saveRDS(saf, file=safout)
   rm(se,gr.gene,intron,exon,intron.exon.red,intron.exon.dis,intron.only,ol.ex,ol.in,intron.saf,exon.saf)
   return(saf)
 }
-.runFeatureCount<-function(abamfile,RG,saf,strand,type,primaryOnly,cpu,mem){
+.runFeatureCount<-function(abamfile,RG,saf,strand,type,primaryOnly,cpu,mem,fcounts_clib){
   print(paste0("Assigning reads to features (",type,")"))
-  fc.stat<-Rsubread::featureCounts(files=abamfile,
+  #  fc.stat<-Rsubread::featureCounts(files=abamfile,
+     fc.stat <- featureCounts(files=abamfile,
                                    annot.ext=saf,
                                    isGTFAnnotationFile=F,
                                    primaryOnly=primaryOnly,
+                                   countMultiMappingReads=primaryOnly,
                                    nthreads=cpu,
                                    reportReads="BAM",
                                    strandSpecific=strand,
                                    isPairedEnd=T,
-                                   countChimericFragments=F)$stat
+                                   countChimericFragments=F,
+                                   fcounts_clib = fcounts_clib,
+                                   isIntronInput = ifelse(type == "in", 1, 0))$stat
   fn<-paste0(abamfile,".featureCounts.bam")
   nfn<-paste0(abamfile,".",type,".featureCounts.bam")
 
-  if(is.null(mem)){
-    mempercpu <- round(100/cpu,0)
-  }else{
-    mempercpu <- round(mem/cpu,0)
-    if(mempercpu==0){
-      mempercpu <- 1
-    }
-  }
+  system(paste0("mv ",fn," ",nfn,".tmp"))
 
-  system(paste("samtools sort -n -O 'BAM' -@",cpu,paste0("-m ",mempercpu,"G"),"-o",nfn,fn))
-  system(paste("rm",fn))
   invisible(suppressWarnings(suppressMessages(gc(verbose=F))))
   return(nfn)
 }
