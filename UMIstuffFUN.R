@@ -455,18 +455,36 @@ umi_tools_collapse <- function(opt, bamfile){
   #useIntrons = ifelse(opt$counting_opts$umi_tools == "exon", "--use-introns", "")
   useIntrons = ifelse(opt$counting_opts$introns, "--use-introns", "")
   setLayout = ifelse(opt$read_layout == "PE", "--paired", "")
-  #bamfile <- "/data/home/dietrich/outputNew/inex.sorted.bam"
 
-  #build command to start umi_tools:
-  group_script <- paste0(opt$zUMIs_directory,"/misc/umi-tools/group.py")
-  log_outfile <- paste0(opt$out_dir,"/",opt$project,".umi_tools_logfile.txt")
-  outfile <- paste0(opt$out_dir,"/",opt$project, ".filtered.tagged.Aligned.out.UMIcorrected.bam")
-  parameters <- paste("-I",bamfile,"--output-bam","-L",log_outfile ,useIntrons, "--extract-umi-method=tag", "--umi-tag=UB:Z:", "--cell-tag=BC:Z:", "--per-cell", "--umi-group-tag=XX", "--per-gene", "--gene-tag=GE:Z:", ">", outfile)
- #,"--unmapped-reads=output"
+  chroms_todo <- data.table::fread(cmd = paste(opt$samtools_exec,"idxstats",bamfile), header = F, select = 1)
+  chroms_todo <- chroms_todo[V1 != "*"]$V1
 
-  umi_tools_command <- paste(opt$python_exec, group_script, parameters)
-  #print(umi_tools_command)
-  system(umi_tools_command)
+  out_dir <- paste0(opt$out_dir,"/umitools/")
+  if(!dir.exists(out_dir)){
+    dir.create(out_dir)
+  }
+
+  umitool_bams <- parallel::mclapply(chroms_todo, function(chr){
+    #build command to start umi_tools:
+    group_script <- paste0(opt$zUMIs_directory,"/misc/umi-tools/group.py")
+    log_outfile <- paste0(out_dir,opt$project,".umi_tools_logfile.",chr,".txt")
+    outfile <- paste0(out_dir,opt$project, ".filtered.tagged.Aligned.out.UMIcorrected.",chr,".bam")
+    parameters <- paste("-I",bamfile,"--output-bam","-L",log_outfile,"--chrom", chr, useIntrons, "--extract-umi-method=tag", "--umi-tag=UB:Z:", "--cell-tag=BC:Z:", "--per-cell", "--umi-group-tag=XX", "--per-gene", "--gene-tag=GE:Z:", ">", outfile)
+   #,"--unmapped-reads=output"
+
+    umi_tools_command <- paste(opt$python_exec, group_script, parameters)
+    #print(umi_tools_command)
+    system(umi_tools_command)
+    return(outfile)
+  }, mc.preschedule = FALSE, mc.cores = opt$num_threads)
+
+  umitool_bams <- unlist(umitool_bams)
+  umitool_bams <- paste(umitool_bams, collapse=" ")
+  outfile <- paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.UMIcorrected.bam")
+
+  merge_cmd <- paste(opt$samtools_exec,"merge -f -@",opt$num_threads,outfile,umitool_bams)
+  system(merge_cmd)
+  system(paste("rm",umitool_bams))
 
   return (outfile)
 }
