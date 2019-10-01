@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=3.0beta
+vers=2.5.5
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -173,7 +173,7 @@ then
   echo "Filtering..."
 
   f=`cut -d' ' -f1 <(echo $fqfiles)` # the first fastq file to determine gzip status
-  fullsize=`stat --printf="%s" $f`
+  fullsize=`stat -L --printf="%s" $f`
 
   tmpMerge=$outdir/zUMIs_output/.tmpMerge/
 
@@ -255,8 +255,7 @@ if
 then
   if [[ "$isstats" == "yes" ]]; then
     echo "Descriptive statistics..."
-    echo "... are currently not implemented"
-      #$Rexc $zumisdir/zUMIs-stats2.R $yaml
+      $Rexc $zumisdir/zUMIs-stats2.R $yaml
   fi
   date
 fi
