@@ -57,7 +57,7 @@ if ( is.null(additional_fq[1]) | length(additional_fq)==0 ) {
 #check the first 100 reads to detect the read length of the cDNA read
 #filtered_bam <- paste(inp$out_dir,"/",inp$project,".filtered.tagged.bam",sep="")
 
-cDNA_peek <- data.table::fread(paste(samtools,"view",filtered_bams[1],"| cut -f10 | head -n 100"),stringsAsFactors = F,data.table = T, header = F)
+cDNA_peek <- data.table::fread(paste(samtools,"view",filtered_bams[1],"| cut -f10 | head -n 1000"),stringsAsFactors = F,data.table = T, header = F)
 
 getmode <- function(v) {
   uniqv <- unique(v)
@@ -97,7 +97,7 @@ samtools_output <- paste0(" | ",samtools," view -@ ",cores_samtools," -o ",inp$o
 STAR_command <- paste(STAR_command,samtools_output)
 
 #also merge the unmapped bam files:
-sammerge_command <- paste(samtools,"merge -@",cores_samtools,paste0(inp$out_dir,"/",inp$project,".filtered.tagged.unmapped.bam"),paste0(filtered_bams,collapse=" "))
+sammerge_command <- paste(samtools,"merge -f -@",cores_samtools,paste0(inp$out_dir,"/",inp$project,".filtered.tagged.unmapped.bam"),paste0(filtered_bams,collapse=" "))
 
 #finally, run STAR
 system(paste(STAR_command,"&",sammerge_command,"& wait"))
