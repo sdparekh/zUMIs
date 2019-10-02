@@ -246,11 +246,11 @@ ham_helper_fun <- function(x, molecule_mapping = FALSE){
   #join bc-wise total counts
   rcl<-reads[ftype %in% ft][bccount ,nomatch=0][  n>=nmin ] #
   if(nrow(rcl)>0)  {
-    return( rcl[ rcl[ ,exn:=.N,by=RG
-                      ][         , targetN:=exn  # use binomial to break down to exon sampling
-                                 ][ n> nmax, targetN:=rbinom(1,nmax,mean(exn)/mean(n) ), by=RG
-                                    ][targetN>exn, targetN:=exn][is.na(targetN),targetN :=0
-                                                                 ][ ,sample(.I , median(na.omit(targetN))),by = RG]$V1 ])
+    return( rcl[ unlist(rcl[ ,exn:=.N,by=RG
+                           ][         , targetN:=exn  # use binomial to break down to exon sampling
+                                      ][ n> nmax, targetN:=rbinom(1,nmax,mean(exn)/mean(n) ), by=RG
+                                      ][targetN>exn, targetN:=exn][is.na(targetN),targetN :=0
+                                                                 ][ ,list(list(sample(.I , targetN))),by = RG]$V1) ])
   }else{ return(NULL) }
 }
 
