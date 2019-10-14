@@ -14,6 +14,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+14 Oct 2019: zUMIs2.5.6: small fixes and optimization when using PE data. 
+
 02 Sep 2019: zUMIs2.5.5: new BC detection algorithm using the [inflection](https://cran.r-project.org/web/packages/inflection/index.html) R package. 
 
 09 Aug 2019: zUMIs2.5.4: zUMIs is now independent of the version of the Rsubread package. To improve code stability and reduce version-dependency, zUMIs now uses inbuilt precompiled Rsubread::featureCounts code.   

@@ -68,7 +68,8 @@ prep_samtools <- function(featfiles,bccount,cores,samtoolsexc){
   write(headerXX,"freadHeader")
 
   headercommand <- "cat freadHeader > "
-  samcommand <- paste(samtoolsexc," view -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -@")
+  layoutflag <- ifelse(opt$read_layout == "PE", "-f 0x0040", "")
+  samcommand <- paste(samtoolsexc," view -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS", layoutflag, "-@")
   grepcommand <- " | cut -f12,13,14 | sed 's/BC:Z://' | sed 's/UB:Z://' | sed 's/XT:Z://' | grep -F -f "
 
   outfiles_ex <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".ex.",1:nchunks,".txt")
@@ -135,9 +136,9 @@ reads2genes <- function(featfiles,chunkID){
   #system("rm freadHeader")
   system(paste("rm",samfile_ex))
 
-  if(opt$read_layout == "PE"){
-    reads <- reads[ seq(1,nrow(reads),2) ]
-  }
+  #if(opt$read_layout == "PE"){
+  #  reads <- reads[ seq(1,nrow(reads),2) ]
+  #}
   #if(opt$barcodes$BarcodeBinning > 0){
   #  reads[RG %in% binmap[,falseBC], RG := binmap[match(RG,binmap[,falseBC]),trueBC]]
   #}
@@ -167,6 +168,9 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL, molecule_mapping = FALSE ){
 
       if(!is.null(opt$counting_opts$write_ham) && opt$counting_opts$write_ham == TRUE && molecule_mapping == TRUE){
         umi_out <- umi
+        if(nrow(umi_out) == 0){
+          return(umi_out)
+        }
 
         umi_out       [, falseUMI := ifelse( n.1>=n.2, col, row ) ][
                        , trueUMI := ifelse( n.1<n.2, col, row ) ][
@@ -174,7 +178,9 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL, molecule_mapping = FALSE ){
                        , n.true := ifelse( n.1<n.2, n.2, n.1 )][
                        , falseUMI := uc[falseUMI]$us ][
                        , trueUMI  := uc[trueUMI ]$us][
-                       , c("BC","GE") := tstrsplit(gbcid, "_") ][
+                       , BC := tstrsplit(gbcid, "_", keep = 1)][
+                       , GE := substr(x = gbcid, start = (nchar(BC)+2), stop = nchar(gbcid))][
+                       #, c("BC","GE") := tstrsplit(gbcid, "_") ][ #can break in case of underscore in geneID!
                        , c("row", "col", "value", "n.1", "n.2") := NULL]
 
         dup_daughters <- unique(umi_out[which(duplicated(falseUMI))]$falseUMI)

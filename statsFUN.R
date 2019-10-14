@@ -50,7 +50,8 @@ prep_samtools_stats <- function(featfiles,bccount,cores,samtoolsexc){
   write(headerXX,"freadHeader")
 
   headercommand <- "cat freadHeader > "
-  samcommand <- paste(samtoolsexc," view -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB -@")
+  layoutflag <- ifelse(opt$read_layout == "PE", "-f 0x0040", "")
+  samcommand <- paste(samtoolsexc," view -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB",layoutflag," -@")
   grepcommand <- " | cut -f12,13,14 | sed 's/BC:Z://' | sed 's/XS:Z://' | sed 's/XT:Z://' | grep -F -f "
 
   outfiles_ex <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".ex.",1:nchunks,".txt")
