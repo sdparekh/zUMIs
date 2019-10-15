@@ -446,5 +446,9 @@ fixMissingOptions <- function(config){
     config$counting_opts$write_ham <- FALSE
   }
 
+  if(is.null(config$counting_opts$downsampling)){
+    config$counting_opts$downsampling <- "0"
+  }
+
   return(config)
 }
