@@ -106,13 +106,8 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   if(bcNumber <= nrow(bccount)){
     bccount[1:bcNumber,keep:=TRUE]
   }else{
-    print("Warning! The data contains fewer barcodes than requested so I will try to use top 100 cells!")
-    if(nrow(bccount)<100){
-      print("Less than 100 barcodes present, will continue with all barcodes...")
-      bccount[1:nrow(bccount),keep:=TRUE]
-    }else{
-      bccount[1:100,keep:=TRUE]
-    }
+    print("Warning! The data contains fewer barcodes than requested so I will try to use all barcodes!")
+    bccount[1:nrow(bccount),keep:=TRUE]
   }
 
   return(bccount[keep==TRUE,XC])
