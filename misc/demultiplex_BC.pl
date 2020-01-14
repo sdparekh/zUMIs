@@ -1,11 +1,11 @@
 #!/usr/bin/perl
 use warnings;
 
-if(@ARGV != 3)
+if(@ARGV != 4)
 {
 print
 "\n#####################################################################################
-Usage: perl $0 <output_folder> <project_name> <samtools-executable> \n
+Usage: perl $0 <output_folder> <project_name> <bam_file> <samtools-executable> \n
 Please drop your suggestions and clarifications to <christoph.ziegenhain\@ki.se>\n
 ######################################################################################\n\n";
 exit;
@@ -13,7 +13,8 @@ exit;
 BEGIN{
 $out=$ARGV[0];
 $name=$ARGV[1];
-$samtoolsexc=$ARGV[2];
+$bam=$ARGV[2];
+$samtoolsexc=$ARGV[3];
 }
 
 
@@ -25,7 +26,7 @@ close BC;
 
 #initialize output files with header
 $demuxout="${out}/zUMIs_output/demultiplexed/";
-$exbam="${out}/${name}.filtered.tagged.Aligned.out.bam.ex.featureCounts.bam";
+$exbam="$bam";
 
 unless ( -d $demuxout) {
     mkdir $demuxout;

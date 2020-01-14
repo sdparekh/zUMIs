@@ -47,7 +47,7 @@ while (<INBAM>) {
   }
 
   print BCBAM $read[0],"\t",$read[1],"\t",$read[2],"\t",$read[3],"\t",$read[4],"\t",$read[5],"\t",$read[6],"\t",$read[7],"\t",$read[8],"\t",
-        $read[9],"\t",$read[10],"\t","BX:Z:",$thisBC,"\t","BC:Z:",$correctBC,"\t",$read[12],"\n";
+        $read[9],"\t",$read[10],"\t","BX:Z:",$thisBC,"\t","BC:Z:",$correctBC,"\t",$read[12],"\t",$read[13],"\t",$read[14],"\n";
 
 }
 close INBAM;

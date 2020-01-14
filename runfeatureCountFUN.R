@@ -83,7 +83,8 @@ suppressWarnings(suppressMessages(require(AnnotationDbi)))
                                    strandSpecific=strand,
                                    isPairedEnd=T,
                                    countChimericFragments=F,
-                                   fcounts_clib = fcounts_clib)$stat
+                                   fcounts_clib = fcounts_clib,
+                                   isIntronInput = ifelse(type == "in", 1, 0))$stat
   fn<-paste0(abamfile,".featureCounts.bam")
   nfn<-paste0(abamfile,".",type,".featureCounts.bam")
 

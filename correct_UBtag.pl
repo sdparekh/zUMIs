@@ -45,12 +45,15 @@ while (<INBAM>) {
   $UXtag = $UXmatches[0];
   $UXtag =~ s/UX:Z://g;
 
-  my @GEmatches = grep { /XT:Z:/ } @readarr;
+  my @GEmatches = grep { /GE:Z:/ } @readarr;
+  if (@GEmatches == 0){ #if not exon, maybe there is an intron gene tag?
+    my @GEmatches = grep { /GI:Z:/ } @readarr;
+  }
 
   if (!@GEmatches == 0){
     #print "GE found";
     $GEtag = $GEmatches[0];
-    $GEtag =~ s/XT:Z://g;
+    $GEtag =~ s/G[EI]:Z://g;
 
     if (defined($ubmap{$GEtag})) {
       #print "GE found";

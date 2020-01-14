@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.5.6b
+vers=2.6.0
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -242,6 +242,8 @@ then
   echo "Counting..."
   $Rexc $zumisdir/zUMIs-dge2.R $yaml
   date
+  $Rexc $zumisdir/misc/rds2loom.R $yaml
+  date
   if [[ "$velo" == "yes" ]]; then
     $Rexc $zumisdir/runVelocyto.R $yaml
   fi
@@ -259,14 +261,3 @@ then
   fi
   date
 fi
-
-#convenience function
-#if grep -q 'find_pattern: ATTGCGCAATG' $yaml &&
-#   [[ "$whichStage" == "Filtering" ]]
-#  then
-#    cp $yaml $outdir/$project.allReads.yaml #copy yaml
-#    sed -i "s/project: "$project"/project: "$project"_allReads/" $outdir/$project.allReads.yaml
-#    sed -i '/find_pattern/d' $outdir/$project.allReads.yaml
-#    sed -i '/UMI(/d' $outdir/$project.allReads.yaml
-#    bash $zumisdir/zUMIs-master.sh -y $outdir/$project.allReads.yaml
-#fi

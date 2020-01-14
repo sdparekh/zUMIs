@@ -13,19 +13,27 @@ if(is.null(opt$mem_limit)){
 }else{
   mempercpu <- round(opt$mem_limit/opt$num_threads,0)
   if(mempercpu==0){
-    mempercpu <- 1
+        mempercpu <- 1
   }
 }
+
+featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam"),
+                     paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam"))
+
+featfile <- featfile_vector[which(file.exists(featfile_vector))[1]]
+
+
 ##########################
 
 print(Sys.time())
 #prepare the bam file for use with velocyto
 print("Preparing bam file for velocyto...")
-retag_cmd <- paste0(samtoolsexc," view -@ 2 -h ",paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam | sed 's/BC:Z:/CB:Z:/'"))
+retag_cmd <- paste0(samtoolsexc," view -@ 2 -h ",featfile," | sed 's/BC:Z:/CB:Z:/'")
 velobam <- paste0(opt$out_dir,"/",opt$project,".tagged.forVelocyto.bam")
-sort_cmd <- paste0(samtoolsexc," sort -m ",mempercpu,"G -O BAM -@ ",opt$num_threads," -o ",velobam )
-
-system(paste(retag_cmd,sort_cmd,sep=" | "))
+#sort_cmd <- paste0(samtoolsexc," sort -m ",mempercpu,"G -O BAM -@ ",opt$num_threads," -o ",velobam )
+out_cmd <- paste0(samtoolsexc," view -b -@ ",opt$num_threads," -o ",velobam," - " )
+#system(paste(retag_cmd,sort_cmd,sep=" | "))
+system(paste(retag_cmd,out_cmd,sep=" | "))
 
 print(Sys.time())
 

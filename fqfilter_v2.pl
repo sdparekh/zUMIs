@@ -277,10 +277,10 @@ while(<$fh1>){
       $bclist{$bcseq}++;
       #print $lay,"\n";
       if($lay eq "SE"){
-        print BCBAM $ridtmp,"\t4\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
+        print BCBAM $ridtmp,"\t4\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\tQB:Z:",$bcqseq,"\tQU:Z:",$ubqseq,"\n";
       }else{
-        print BCBAM $ridtmp,"\t77\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
-        print BCBAM $ridtmp,"\t141\t*\t0\t0\t*\t*\t0\t0\t",$cseqr2,"\t",$cqseqr2,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\n";
+        print BCBAM $ridtmp,"\t77\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\tQB:Z:",$bcqseq,"\tQU:Z:",$ubqseq,"\n";
+        print BCBAM $ridtmp,"\t141\t*\t0\t0\t*\t*\t0\t0\t",$cseqr2,"\t",$cqseqr2,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\tQB:Z:",$bcqseq,"\tQU:Z:",$ubqseq,"\n";
       }
     }
 }

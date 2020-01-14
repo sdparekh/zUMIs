@@ -32,9 +32,8 @@ splitRG_stats<-function(bccount,mem){
   return(bccount)
 }
 
-prep_samtools_stats <- function(featfiles,bccount,cores,samtoolsexc){
+prep_samtools_stats <- function(featfile,bccount,inex,cores,samtoolsexc){
   print("Extracting reads from bam file(s)...")
-  nfiles=length(featfiles)
   nchunks <- length(unique(bccount$chunkID))
   all_rgfiles <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".RGgroup.",1:nchunks,".txt")
 
@@ -43,7 +42,6 @@ prep_samtools_stats <- function(featfiles,bccount,cores,samtoolsexc){
     rgfile <- all_rgfiles[i]
     chunks <- bccount[chunkID==i]$XC
     write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
-
   }
 
   headerXX <- paste( c(paste0("V",1:3)) ,collapse="\t")
@@ -51,35 +49,33 @@ prep_samtools_stats <- function(featfiles,bccount,cores,samtoolsexc){
 
   headercommand <- "cat freadHeader > "
   layoutflag <- ifelse(opt$read_layout == "PE", "-f 0x0040", "")
-  samcommand <- paste(samtoolsexc," view -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB",layoutflag," -@")
-  grepcommand <- " | cut -f12,13,14 | sed 's/BC:Z://' | sed 's/XS:Z://' | sed 's/XT:Z://' | grep -F -f "
+  samcommand <- paste(samtoolsexc," view -x QB -x QU -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB -x XS -x UX -x EN -x IS -x IN",layoutflag," -@")
 
-  outfiles_ex <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".ex.",1:nchunks,".txt")
-  system(paste(headercommand,outfiles_ex,collapse = "; "))
 
-  if(length(featfiles)==1){
-    cpusperchunk <- round(cores/nchunks,0)
-    ex_cmd <- paste(samcommand,cpusperchunk,featfiles[1],grepcommand,all_rgfiles,">>",outfiles_ex," & ",collapse = " ")
+  outfiles <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".tmp.",1:nchunks,".txt")
+  system(paste(headercommand,outfiles,collapse = "; "))
+
+  cpusperchunk <- round(cores/nchunks,0)
+
+  if(inex == FALSE){
+    grepcommand <- " | cut -f12,13,14 | sed 's/BC:Z://' | sed 's/ES:Z://' | sed 's/GE:Z://' | grep -F -f "
+    ex_cmd <- paste(samcommand,cpusperchunk,featfile,grepcommand,all_rgfiles,">>",outfiles," & ",collapse = " ")
 
     system(paste(ex_cmd,"wait"))
   }else{
-    cpusperchunk <- round(cores/(2*nchunks),0)
-    ex_cmd <- paste(samcommand,cpusperchunk,featfiles[1],grepcommand,all_rgfiles,">>",outfiles_ex," & ",collapse = " ")
+    grepcommand <- " | cut -f12,13,14,15 | sed 's/BC:Z://' | sed 's/ES:Z://' | sed 's/Z://g' | grep -F -f "
+    inex_cmd <- paste(samcommand,cpusperchunk,featfile,grepcommand,all_rgfiles,">>",outfiles," & ",collapse = " ")
 
-    outfiles_in <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".in.",1:nchunks,".txt")
-    system(paste(headercommand,outfiles_in,collapse = "; "))
-
-    in_cmd <- paste(samcommand,cpusperchunk,featfiles[2],grepcommand,all_rgfiles,">>",outfiles_in," & ",collapse = " ")
-
-    system(paste(ex_cmd,in_cmd,"wait"))
+    system(paste(inex_cmd,"wait"))
   }
+
   system("rm freadHeader")
   system(paste("rm",all_rgfiles))
 
-  return(outfiles_ex)
+  return(outfiles)
 }
 
-sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile,samtoolsexc){
+sumstatBAM <- function(featfile,cores,outdir,user_seq,bc,inex,outfile,samtoolsexc){
   require(data.table)
   # chunk barcodes
   bccount_file <- paste0(opt$out_dir,"/", opt$project, ".BCstats.txt")
@@ -89,55 +85,63 @@ sumstatBAM <- function(featfiles,cores,outdir,user_seq,bc,outfile,samtoolsexc){
   }
   bccount <- splitRG_stats(bccount=bccount, mem= opt$mem_limit)
 
-  samouts <- prep_samtools_stats(featfiles = featfiles,
-                           bccount   = bccount,
-                           cores     = opt$num_threads,
-                           samtoolsexc=samtoolsexc)
+  samouts <- prep_samtools_stats(featfile = featfile,
+                           bccount    = bccount,
+                           inex       = inex,
+                           cores      = opt$num_threads,
+                           samtoolsexc= samtoolsexc)
 
 
   for(i in unique(bccount$chunkID)){
     print(paste("Working on chunk",i))
-    #rgfile    = paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".currentRGgroup.txt")
-    #chunks    = bccount[chunkID==i]$XC
-    #write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
 
-    ## minifunction for string operations
-    #headerXX<-paste( c(paste0("V",1:3)) ,collapse="\t")
-    #write(headerXX,paste(outdir,"freadHeader",sep="/"))
-    #samcommand<-paste("cat freadHeader; ",samtoolsexc," view -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x UB -@",cores)
-    samfile_ex <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".ex.",i,".txt")
-    if(grepl(pattern = ".filtered.tagged.Aligned.out.bam.in.featureCounts.bam",featfiles[2])){
-      samfile_in <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".in.",i,".txt")
-    }else{
-      samfile_in <- samfile_ex
-    }
+    samfile <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".tmp.",i,".txt")
 
-
-    #tmp<-data.table::fread(paste(samcommand,featfiles[1],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/XS:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile), na.strings=c(""),
-    tmp <- data.table::fread(samfile_ex, na.strings=c(""),
+    if(inex==FALSE){
+      tmp<-data.table::fread(samfile, na.strings=c(""),
                                select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","XS","GE") )[
-                                #,"GEin":=fread(paste(samcommand,featfiles[2],"| cut -f12,13,14 | sed 's/BC:Z://' | sed 's/XT:Z://' | grep -F -f ",rgfile),select=3,header=T,fill=T,na.strings=c(""),colClasses = "character")
-                                 ,"GEin":=fread(samfile_in,select=3,header=T,fill=T,na.strings=c(""),colClasses = "character")
-                                 ][ ,"ftype":="NA"
-                                 ][is.na(GEin)==F,ftype:="Intron"
-                                 ][is.na(GE)==F  ,ftype:="Exon"
-                                 ][is.na(GE)     ,GE:=GEin
-                                 ][ftype!="NA",   XS:=ftype
-                                 ][GE %in% user_seq[,V1], XS:="User"
-                                 ][,RG:=as.character(RG)
-                                 ][!(RG %in% bc[,XC]), RG:="bad"
-                                 ][ ,c("GEin","GE","ftype"):=NULL
-                                 ][,list(.N),by=c("RG","XS")
-                                 ][,type:=.rmUnassigned(XS)
-                                 ][type=="NoFeatures",type:="Intergenic"
-                                 ][,XS:=NULL]
-
+                               ,"ftype":="NA"
+                               ][is.na(GE)==F,  ftype:="Exon"
+                               ][ftype!="NA",   XS:=ftype
+                               ][GE %in% user_seq[,V1], XS:="User"
+                               ][,RG:=as.character(RG)
+                               ][!(RG %in% bc[,XC]), RG:="bad"
+                               ][ ,c("GEin","GE","ftype"):=NULL
+                               ][,list(.N),by=c("RG","XS")
+                               ][,type:=.rmUnassigned(XS)
+                               ][type=="NoFeatures",type:="Intergenic"
+                               ][,XS:=NULL]
+    }else{
+     tmp<-data.table::fread(samfile, na.strings=c(""),
+                              select=c(1,2,3,4),header=T,fill=T,colClasses = "character" , col.names = c("RG","XS","V3","V4") )[
+                                   ][ , V3_id := substr(V3,1,2)
+                                   ][ , V4_id := substr(V4,1,2)
+                                   ][ , V3 := substr(V3,4,nchar(V3))
+                                   ][ , V4 := substr(V4,4,nchar(V4))
+                                   ][ V3_id == "GE", GE := V3
+                                   ][ V3_id == "GI", GEin := V3
+                                   ][ V4_id == "GI", GEin := V4
+                                   ][ ,c("V3_id","V4_id","V3","V4") := NULL
+                                   ][ ,"ftype":="NA"
+                                   ][is.na(GEin)==F,ftype:="Intron"
+                                   ][is.na(GE)==F,  ftype:="Exon"
+                                   ][is.na(GE),GE:=GEin
+                                   ][ftype!="NA",   XS:=ftype
+                                   ][GE %in% user_seq[,V1], XS:="User"
+                                   ][,RG:=as.character(RG)
+                                   ][!(RG %in% bc[,XC]), RG:="bad"
+                                   ][ ,c("GE","ftype"):=NULL
+                                   ][,list(.N),by=c("RG","XS")
+                                   ][,type:=.rmUnassigned(XS)
+                                   ][type=="NoFeatures",type:="Intergenic"
+                                   ][,XS:=NULL]
+    }
     if(i==1){
       mapCount<-tmp
     }else{
       mapCount<-rbind(mapCount,tmp)
     }
-    system(paste("rm ",samfile_ex,samfile_in))
+    system(paste("rm ",samfile))
   }
     saveRDS(mapCount,file=outfile)
     #system(paste0("rm ",outdir,"/freadHeader"))

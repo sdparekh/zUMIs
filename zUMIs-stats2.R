@@ -33,6 +33,26 @@ user_seq<- getUserSeq(paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"))  #
 bc<-data.table::fread(paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt"),select = 1, header = T)
 AllCounts<-readRDS(paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".dgecounts.rds",sep=""))
 
+
+featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.bam"),
+                     paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam"))
+
+featfile <- featfile_vector[which(file.exists(featfile_vector))[1]]
+
+
+############### in case of smart3, check UMI fragment counts
+if(any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files)))){
+  print("Counting UMI fragments...")
+  script_filepath <- paste0(opt$zUMIs_directory,"/fqfilter_countUMI.pl")
+  bam_filepath <- featfile
+  if(opt$barcodes$BarcodeBinning > 0){
+    bc_filepath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes_binned.txt")
+  }else{
+    bc_filepath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
+  }
+  system(paste(script_filepath,bam_filepath,bc_filepath,"&"))
+}
+
 # GeneCounts --------------------------------------------------------------
 
 genecounts <- suppressWarnings(dplyr::bind_rows( lapply(names(AllCounts$readcount), function(i){
@@ -70,20 +90,13 @@ if(length(umicounts) > 0){
 try(ggsave(cp,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".geneUMIcounts.pdf",sep=""),width = 10,height = 5))
 
 ## Total number of reads per cell
-if(opt$counting_opts$introns==T){
-  featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.ex.featureCounts.bam"),
-                       paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.in.featureCounts.bam"))
-}else{
-  featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.ex.featureCounts.bam"),
-                       paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam.ex.featureCounts.bam"))
-}
 
-
-typeCount <- sumstatBAM( featfiles = featfile_vector,
+typeCount <- sumstatBAM( featfile = featfile,
                          cores = opt$num_threads,
                          outdir= opt$out_dir,
                          user_seq = user_seq,
                          bc = bc,
+                         inex = opt$counting_opts$introns,
                          outfile = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".bc.READcounts.rds"),
                          samtoolsexc=samtoolsexc)
 
@@ -92,21 +105,21 @@ tc<-data.frame(typeCount)
 tc$type<-factor(tc$type, levels=rev(c("Exon","Intron","Intergenic","Ambiguity","Unmapped","User")))
 write.table(tc,file = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".readspercell.txt",sep=""),sep="\t",row.names = F,col.names = T)
 
-if(length( unique(typeCount$RG))<=200  ){
-  p <- ggplot( tc, aes(x=reorder(RG,N), y=N,fill=type))+
-        geom_bar(stat = "identity",alpha=0.9,width=0.7) +
-        xlab("") +
-        ylab("log10(Number of reads)") +
-        scale_fill_manual(values=featColors[levels(tc$type)])+
-        scale_y_log10() +
-        theme_bw() +
-        coord_flip()+
-        theme(axis.text.y = element_text(size=5,family="Courier" ),
-           axis.title.y = element_text(size=20),
-           legend.title = element_blank())
-
-  ggsave(p,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".readspercell.pdf",sep=""),width = 10,height = 7)
-}
+# if(length( unique(typeCount$RG))<=200  ){
+#   p <- ggplot( tc, aes(x=reorder(RG,N), y=N,fill=type))+
+#         geom_bar(stat = "identity",alpha=0.9,width=0.7) +
+#         xlab("") +
+#         ylab("log10(Number of reads)") +
+#         scale_fill_manual(values=featColors[levels(tc$type)])+
+#         scale_y_log10() +
+#         theme_bw() +
+#         coord_flip()+
+#         theme(axis.text.y = element_text(size=5,family="Courier" ),
+#            axis.title.y = element_text(size=20),
+#            legend.title = element_blank())
+#
+#   ggsave(p,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".readspercell.pdf",sep=""),width = 10,height = 7)
+# }
 
 ##### Reads per cell based on their assignment type ###3
 ### total Barplot
@@ -124,18 +137,6 @@ d<-plot_grid(cp,bar,box,ncol = 1,rel_heights  = c(0.3,0.2,0.5))
 ggsave(d,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".features.pdf",sep=""),width = 12,height = 9)
 
 
-############### in case of smart3, check UMI fragment counts
-if(any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files)))){
-  print("Counting UMI fragments...")
-  script_filepath <- paste0(opt$zUMIs_directory,"/fqfilter_countUMI.pl")
-  bam_filepath <- paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam")
-  if(opt$barcodes$BarcodeBinning > 0){
-    bc_filepath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes_binned.txt")
-  }else{
-    bc_filepath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
-  }
-  system(paste(script_filepath,bam_filepath,bc_filepath))
-}
-
 ###############
+system("wait")
 gc()
