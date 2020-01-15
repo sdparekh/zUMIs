@@ -64,7 +64,11 @@ prep_samtools <- function(featfile,bccount,inex,cores,samtoolsexc){
     write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
   }
 
-  headerXX <- paste( c(paste0("V",1:3)) ,collapse="\t")
+  if(inex){
+    headerXX <- paste( c(paste0("V",1:4)) ,collapse="\t")
+  }else{
+    headerXX <- paste( c(paste0("V",1:3)) ,collapse="\t")
+  }
   write(headerXX,"freadHeader")
 
   headercommand <- "cat freadHeader > "
