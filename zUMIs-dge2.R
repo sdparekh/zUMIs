@@ -172,6 +172,12 @@ if(any(unlist(lapply(opt$sequence_files, function(x){grepl("UMI",x$base_definiti
   final<-list(readcount = convert2countM(allC,"readcount"))
 }
 
+#Make RPKM if necessary
+if(UMIcheck == "nonUMI" | any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files))) ){
+  tx_len <- .get_tx_lengths( paste0(opt$out_dir,"/",opt$project,".final_annot.gtf") )
+  rpkms <- RPKM.calc(final$readcount$exon$all, tx_len)
+  final$rpkm <- list(exon = list(all = rpkms))
+}
 
 saveRDS(final,file=paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".dgecounts.rds",sep=""))
 

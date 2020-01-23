@@ -404,3 +404,13 @@ fixMissingOptions <- function(config){
 
   return(config)
 }
+
+RPKM.calc <- function(exprmat, gene.length){
+  x <- as.matrix(exprmat)
+  gene.length <- gene.length[match(row.names(x),GeneID)]$tx_bp
+  gene.length.kb <- gene.length / 1000
+
+  lib.size <- 1e-6*colSums(x)
+  y <- t(t(x)/lib.size)
+  y/gene.length.kb
+}

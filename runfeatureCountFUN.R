@@ -93,3 +93,17 @@ suppressWarnings(suppressMessages(require(AnnotationDbi)))
   invisible(suppressWarnings(suppressMessages(gc(verbose=F))))
   return(nfn)
 }
+.get_tx_lengths <- function(gtf){
+  txdb <- suppressWarnings(suppressMessages(GenomicFeatures::makeTxDbFromGFF(file=gtf, format="gtf")))
+  exon <- GenomicFeatures::exonsBy(txdb, by="gene")
+  exon <- reduce(exon)
+  len <- lapply(exon, width)
+  len <- sapply(len, sum, USE.NAMES=T)
+  len_dt <- data.table(
+    GeneID = names(len),
+    tx_bp = as.numeric(len)
+  )
+  len_dt <- len_dt[,.(tx_bp = median(tx_bp)),by = GeneID]
+
+  return(len_dt)
+}

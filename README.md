@@ -14,6 +14,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+23 Jan 2020: zUMIs2.6.1: zUMIs now calculates RPKM for full-length read count data (eg. Smart-seq2 or Smart-seq3 internal reads)
+
 14 Jan 2020: [zUMIs2.6.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.6.0). Large update to the output bam file which is now always coordinate sorted for better compatibility with downstream tools. Please review the new [bam tags](https://github.com/sdparekh/zUMIs/wiki/Output#explanation-of-the-bam-tags-zumis-uses). UMI error correction by hamming distance now also gets added to the bam file. Faster processing speeds when downsampling and using UMI hamming distance.
 
 14 Oct 2019: zUMIs2.5.6: small fixes and optimization when using PE data.
