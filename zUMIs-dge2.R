@@ -30,6 +30,9 @@ UMIcheck <- check_nonUMIcollapse(opt$sequence_files)
 if(UMIcheck == "nonUMI"){
   opt$counting_opts$Ham_Dist <- 0
 }
+#is the data Smart-seq3?
+smart3_flag <- ifelse(any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files))), TRUE, FALSE)
+
 #######################################################################
 ##### Barcode handling & chunking
 
@@ -165,17 +168,28 @@ for(i in unique(bccount$chunkID)){
     }
 }
 
-if(any(unlist(lapply(opt$sequence_files, function(x){grepl("UMI",x$base_definition)} ))) ){
-  final<-list( umicount  = convert2countM(alldt=allC,what="umicount"),
-               readcount = convert2countM(allC,"readcount"))
+if( UMIcheck == "UMI"  ){
+  if(smart3_flag){
+    final<-list( umicount  = convert2countM(alldt=allC,what="umicount"),
+                 readcount = convert2countM(allC,"readcount"),
+                 readcount_internal = convert2countM(allC,"readcount_internal"))
+  }else{
+    final<-list( umicount  = convert2countM(alldt=allC,what="umicount"),
+                 readcount = convert2countM(allC,"readcount"))
+  }
 }else{
   final<-list(readcount = convert2countM(allC,"readcount"))
 }
 
 #Make RPKM if necessary
-if(UMIcheck == "nonUMI" | any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files))) ){
+if(UMIcheck == "nonUMI" | smart3_flag == TRUE ){
   tx_len <- .get_tx_lengths( paste0(opt$out_dir,"/",opt$project,".final_annot.gtf") )
-  rpkms <- RPKM.calc(final$readcount$exon$all, tx_len)
+  rpkms <- if(smart3_flag){
+    RPKM.calc(final$readcount_internal$exon$all, tx_len)
+  }else{
+    RPKM.calc(final$readcount$exon$all, tx_len)
+  }
+
   final$rpkm <- list(exon = list(all = rpkms))
 }
 

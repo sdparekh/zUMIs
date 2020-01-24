@@ -245,9 +245,18 @@ ham_helper_fun <- function(x){
 umiCollapseID<-function(reads,bccount,nmin=0,nmax=Inf,ftype=c("intron","exon"),...){
   retDF<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)
   if(!is.null(retDF)){
-    nret<-retDF[, list(umicount=length(unique(UB[!is.na(UB)])),
+    nret<-retDF[, list(umicount = length(unique(UB[!is.na(UB)])),
                        readcount =.N),
                 by=c("RG","GE") ]
+
+    nreads <- nrow(retDF)
+    n_nonUMI <- nrow(retDF[!is.na(UB)][!UB == ""])
+    if(n_nonUMI > 0 & n_nonUMI<nreads){ #detect mix of internal and UMI reads in Smartseq3
+      internaldt <- retDF[UB=="", list(readcount_internal =.N),
+                         by=c("RG","GE") ]
+      nret <- merge(nret, internaldt, by = c("RG","GE"))
+    }
+
     return(nret)
   }
 }
@@ -260,7 +269,15 @@ umiCollapseHam<-function(reads,bccount,HamDist=1){
   print("Splitting data for multicore hamming distance collapse...")
   readsamples_list <- split(x = readsamples, drop = T, by = c("RG"), sorted = T, keep.by = T)
   print("Setting up multicore cluster & generating molecule mapping tables ...")
-  out_mm <- mclapply(readsamples_list, function(x) ham_helper_fun(x), mc.cores = opt$num_threads, mc.preschedule = TRUE)
+  #this step is ram hungry, try to not go overboard too much:
+  max_cores <- ceiling(opt$mem_limit/5)
+  if(max_cores < opt$num_threads){
+    use_cores <- max_cores
+  }else{
+    use_cores <- opt$num_threads
+  }
+  #run:
+  out_mm <- mclapply(readsamples_list, function(x) ham_helper_fun(x), mc.cores = use_cores, mc.preschedule = TRUE)
   out_mm <- rbindlist(out_mm)
   write_molecule_mapping (bccount, out_mm)
 
