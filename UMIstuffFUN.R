@@ -280,7 +280,7 @@ umiCollapseHam<-function(reads,bccount,HamDist=1){
   #run:
   out_mm <- mclapply(readsamples_list, function(x) ham_helper_fun(x), mc.cores = use_cores, mc.preschedule = TRUE)
   out_mm <- rbindlist(out_mm)
-  write_molecule_mapping (bccount, out_mm)
+  write_molecule_mapping(out_mm)
 
   print("Finished multi-threaded hamming distances")
   gc(verbose = F)
@@ -341,9 +341,10 @@ convert2countM<-function(alldt,what){
   return(fmat)
 }
 
-write_molecule_mapping <- function(bccount, mm){
+write_molecule_mapping <- function(mm){
   mm_path <- paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/")
-  for(i in bccount$XC){
+  bcs <- unique(mm$BC)
+  for(i in bcs){
     data.table::fwrite(mm[BC == i], file = paste0(mm_path,opt$project,".",i,".txt"), quote = F, sep = "\t")
   }
 }
