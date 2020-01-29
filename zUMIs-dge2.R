@@ -102,14 +102,13 @@ if(opt$counting_opts$Ham_Dist == 0){
                         chunkID  = i )
     reads <- reads[!UB==""] #make sure only UMI-containing reads go further
     u <- umiCollapseHam(reads,bccount, HamDist=opt$counting_opts$Ham_Dist)
-    print("Demultiplexing output bam file by cell barcode...")
-    demux_cmd <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.pl ",opt$out_dir," ",opt$project, " ", outbamfile, " ", samtoolsexc )
-    system(demux_cmd)
-    print("Correcting UMI barcode tags...")
-    outbamfile <- correct_UB_tags(bccount, samtoolsexc)
-    sortbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
   }
-
+  print("Demultiplexing output bam file by cell barcode...")
+  demux_cmd <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.pl ",opt$out_dir," ",opt$project, " ", outbamfile, " ", samtoolsexc )
+  system(demux_cmd)
+  print("Correcting UMI barcode tags...")
+  outbamfile <- correct_UB_tags(bccount, samtoolsexc)
+  sortbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
 }
 paste("Coordinate sorting final bam file...")
 sort_cmd <- paste0(samtoolsexc," sort -O 'BAM' -@ ",opt$num_threads," -m ",mempercpu,"G -o ",sortbamfile," ",outbamfile)
