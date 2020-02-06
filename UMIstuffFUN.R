@@ -156,14 +156,14 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL){
       umi[, "n.1" := uc[row]$N ][
           , "n.2" := uc[col]$N ] #add in observed freq
 
-      umi_out <- umi
+      umi_out <- copy(umi)
       if(nrow(umi_out) == 0){
         return(umi_out)
       }
 
-      umi_out        [, falseUMI := ifelse( n.1>=n.2, col, row ) ][
+      umi_out        [, falseUMI := ifelse( n.1>n.2, col, row ) ][
                        , trueUMI := ifelse( n.1<n.2, col, row ) ][
-                       , n.false := ifelse( n.1>=n.2, n.2, n.1 )][
+                       , n.false := ifelse( n.1>n.2, n.2, n.1 )][
                        , n.true := ifelse( n.1<n.2, n.2, n.1 )][
                        , falseUMI := uc[falseUMI]$us ][
                        , trueUMI  := uc[trueUMI ]$us][
@@ -171,7 +171,8 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL){
                        , GE := substr(x = gbcid, start = (nchar(BC)+2), stop = nchar(gbcid))][
                        #, c("BC","GE") := tstrsplit(gbcid, "_") ][ #can break in case of underscore in geneID!
                        , c("row", "col", "value", "n.1", "n.2") := NULL]
-
+      umi_out <- umi_out[!falseUMI == trueUMI]
+      
       dup_daughters <- unique(umi_out[which(duplicated(falseUMI))]$falseUMI)
       if(length(dup_daughters>0)){
         umi_out[,rem := FALSE]
@@ -188,12 +189,12 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL){
 
       non_true_UMIs <- unique(umi_out[trueUMI %in% umi_out$falseUMI]$trueUMI)
       real_true_UMIs <- unique(umi_out[!trueUMI %in% umi_out$falseUMI]$trueUMI)
-      if(length(dup_daughters>0)){
+      if(length(non_true_UMIs>0)){
         setkey(umi_out, falseUMI)
         for(i in non_true_UMIs){
           true_parent_UMI <- umi_out[i][!trueUMI %in% non_true_UMIs]$trueUMI
           if(length(true_parent_UMI)==0){#find closest match in case there is no clear parent UMI!
-            true_parent_UMI <- real_true_UMIs[stringdist::amatch(umi_out[i][1]$trueUMI, real_true_UMIs, method = "hamming", maxDist=Inf)[1]]
+            true_parent_UMI <- real_true_UMIs[stringdist::amatch(umi_out[i][1]$trueUMI, real_true_UMIs, method = "hamming", maxDist=edit)[1]]
           }
           if(length(true_parent_UMI)>1){ #take a random good parent UMI if more possibilities exist
             true_parent_UMI <- true_parent_UMI[1]
@@ -201,7 +202,9 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL){
           umi_out[trueUMI == i, trueUMI := true_parent_UMI]
         }
       }
-      umi_out[, c("n.false","n.true") := NULL]
+      umi_out[,dist := stringdist::stringdist(falseUMI,trueUMI,method = "hamming")]
+      umi_out <- umi_out[dist <= edit]
+      umi_out[, c("n.false","n.true","dist") := NULL]
       return(umi_out)
 
 
