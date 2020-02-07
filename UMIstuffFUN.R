@@ -26,7 +26,9 @@ splitRG<-function(bccount,mem){
                   Proceeding anyway..."))
     }
     if(cs>=maxR){
-      chunkID=chunkID+1
+      if(i > 1){ #if the first BC exceeds the limit, keep chunkID 1
+        chunkID=chunkID+1 
+      }
       cs=bccount[i][,"n"]
     }
     bccount[i][,"chunkID"]=chunkID
