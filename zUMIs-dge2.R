@@ -18,7 +18,8 @@ options(datatable.fread.input.cmd.message=FALSE)
 print(Sys.time())
 
 samtoolsexc <- opt$samtools_exec
-data.table::setDTthreads(threads=opt$num_threads)
+data.table::setDTthreads(threads=1)
+
 #Check the version of Rsubread
 #checkRsubreadVersion()
 fcounts_clib <- paste0(opt$zUMIs_directory,"/misc/fcountsLib2")
@@ -104,8 +105,7 @@ if(opt$counting_opts$Ham_Dist == 0){
     u <- umiCollapseHam(reads,bccount, HamDist=opt$counting_opts$Ham_Dist)
   }
   print("Demultiplexing output bam file by cell barcode...")
-  demux_cmd <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.pl ",opt$out_dir," ",opt$project, " ", outbamfile, " ", samtoolsexc )
-  system(demux_cmd)
+  demultiplex_bam(opt, outbamfile, nBCs = length(unique(bccount$XC)))
   print("Correcting UMI barcode tags...")
   outbamfile <- correct_UB_tags(bccount, samtoolsexc)
   sortbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
@@ -119,6 +119,8 @@ system(paste0("rm ",outbamfile))
 
 ##########################################
 #set Downsampling ranges
+
+data.table::setDTthreads(threads=opt$num_threads)
 
 subS<-setDownSamplingOption( opt$counting_opts$downsampling,
                              bccount= bccount,
@@ -199,8 +201,7 @@ saveRDS(final,file=paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".d
 
 if(opt$counting_opts$Ham_Dist == 0 && opt$barcodes$demultiplex == TRUE ){ #otherwise its already demultiplexed!
   print("Demultiplexing output bam file by cell barcode...")
-  demux_cmd <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.pl ",opt$out_dir," ",opt$project, " ",sortbamfile, " ", samtoolsexc )
-  system(demux_cmd)
+  demultiplex_bam(opt, sortbamfile, nBCs = length(unique(bccount$XC)))
 }
 
 #################

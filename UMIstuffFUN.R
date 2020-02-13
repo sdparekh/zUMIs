@@ -27,7 +27,7 @@ splitRG<-function(bccount,mem){
     }
     if(cs>=maxR){
       if(i > 1){ #if the first BC exceeds the limit, keep chunkID 1
-        chunkID=chunkID+1 
+        chunkID=chunkID+1
       }
       cs=bccount[i][,"n"]
     }
@@ -174,7 +174,7 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL){
                        #, c("BC","GE") := tstrsplit(gbcid, "_") ][ #can break in case of underscore in geneID!
                        , c("row", "col", "value", "n.1", "n.2") := NULL]
       umi_out <- umi_out[!falseUMI == trueUMI]
-      
+
       dup_daughters <- unique(umi_out[which(duplicated(falseUMI))]$falseUMI)
       if(length(dup_daughters>0)){
         umi_out[,rem := FALSE]
@@ -375,6 +375,40 @@ correct_UB_tags <- function(bccount, samtoolsexc){
   write(merge_cmd, file = paste0(opt$out_dir,"/",opt$project,".merge.sh"))
   system(paste0("bash ",opt$out_dir,"/",opt$project,".merge.sh"))
   return(outbam)
+}
+
+demultiplex_bam <- function(opt, bamfile, nBCs){
+  installed_py <- system("pip3 freeze", intern = TRUE)
+
+  if(any(grepl("pysam==",installed_py))){
+    print("Using python implementation to demultiplex.")
+    print(Sys.time())
+    max_filehandles <- as.numeric(system("ulimit -n", intern = TRUE))
+    if(max_filehandles < nBCs){
+      print("Warning! You cannot open enough filehandles for demultiplexing! Increase ulimit -n")
+    }
+    threads_perBC <- floor(max_filehandles/nBCs)
+    if(threads_perBC > 2){
+      threads_perBC <- 2
+    }
+    threads_decompress <- opt$num_threads - threads_perBC
+    bclist <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
+    outstub <- paste0(opt$out_dir,"/zUMIs_output/demultiplexed/",opt$project,".")
+    py_script <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.py")
+    demux_cmd <- paste(
+      "python3", py_script,
+      "--bam", bamfile,
+      "--out", outstub,
+      "--bc", bclist,
+      "--pout", threads_perBC,
+      "--pin", threads_decompress
+    )
+  }else{
+    print("Using perl implementation to demultiplex.")
+    demux_cmd <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.pl ",opt$out_dir," ",opt$project, " ", bamfile, " ", samtoolsexc )
+  }
+  system(demux_cmd)
+  print(Sys.time())
 }
 
 

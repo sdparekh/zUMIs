@@ -14,6 +14,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+13 Feb 2020: zUMIs2.6.3: Faster demultiplexing using python/pysam. Made forking of UMI collapse worker threads more robust.
+
 06 Feb 2020: zUMIs2.6.2: Changes to the hamming distance UMI collapse to avoid overcollapsing of highly expressed genes.
 
 23 Jan 2020: zUMIs2.6.1: zUMIs now calculates RPKM for full-length read count data (eg. Smart-seq2 or Smart-seq3 internal reads)
