@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.6.3a
+vers=2.6.3b
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -154,13 +154,13 @@ fi
 #create output folders
 outdir=`grep 'out_dir' $yaml | awk '{print $2}'`
 #[ -d $outdir ] || mkdir $outdir
-[ -d $outdir/zUMIs_output/ ] || mkdir $outdir/zUMIs_output/
-[ -d $outdir/zUMIs_output/expression ] || mkdir $outdir/zUMIs_output/expression
-[ -d $outdir/zUMIs_output/stats ] || mkdir $outdir/zUMIs_output/stats
-[ -d $outdir/zUMIs_output/.tmpMerge ] || mkdir $outdir/zUMIs_output/.tmpMerge
+[ -d $outdir/zUMIs_output/ ] || mkdir -p $outdir/zUMIs_output/
+[ -d $outdir/zUMIs_output/expression ] || mkdir -p $outdir/zUMIs_output/expression
+[ -d $outdir/zUMIs_output/stats ] || mkdir -p $outdir/zUMIs_output/stats
+[ -d $outdir/zUMIs_output/.tmpMerge ] || mkdir -p $outdir/zUMIs_output/.tmpMerge
 
 if [[ ! -d $outdir ]]; then
-  mkdir $outdir
+  mkdir -p $outdir
   if [ $? -ne 0 ] ; then
       echo "Please provide a valide output directory path."
       exit 1
