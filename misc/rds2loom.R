@@ -16,11 +16,11 @@ rds_to_loom <- function(zUMIsRDS){
   for(type in names(rds)){
     for(quant in names(rds[[type]])){
       outfile <- paste0(opt$out_dir,"/zUMIs_output/expression/",opt$project,".",type,".",quant,".all.loom")
-      loomR::create(filename = outfile, data = as.matrix(rds[[type]][[quant]][["all"]]), transpose = TRUE,overwrite = TRUE)
+      loomR::create(filename = outfile, data = as.matrix(rds[[type]][[quant]][["all"]]), do.transpose = TRUE,overwrite = TRUE)
       
       for(d in names(rds[[type]][[quant]][["downsampling"]])){
         outfile <- paste0(opt$out_dir,"/zUMIs_output/expression/",opt$project,".",type,".",quant,".",d,".loom")
-        loomR::create(filename = outfile, data = as.matrix(rds[[type]][[quant]][["downsampling"]][[d]]), transpose = TRUE,overwrite = TRUE)
+        loomR::create(filename = outfile, data = as.matrix(rds[[type]][[quant]][["downsampling"]][[d]]), do.transpose = TRUE,overwrite = TRUE)
         
       }
     }

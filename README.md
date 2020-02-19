@@ -1,5 +1,20 @@
 # Welcome to zUMIs :wrench: :red_car::dash: :wrench:
 
+## Quickstart
+Nobody likes reading long README files so here is how you get going:
+Fetch zUMIs by cloning the repository:
+```
+git clone https://github.com/sdparekh/zUMIs.git`
+```
+Start anaylysing your data:
+```
+zUMIs/zUMIs-master.sh -c -y my_config.yaml
+```
+zUMIs now comes with its own [miniconda](https://docs.conda.io/en/latest/miniconda.html) environment, so you do not need to deal with dependencies or installations (use the -c flag to use conda).
+If you wish to use your own dependencies, head to the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/Installation#dependencies) to see what is required. 
+
+
+## Intro
 zUMIs is a fast and flexible pipeline to process RNA-seq data with (or without) UMIs.
 
 The input to this pipeline is simply fastq files. In the most common cases, you will have a read containing the cDNA sequence and other read(s) containing UMI and Cell Barcode information. Furthermore, you will need a STAR index for your genome and GTF annotation file.
@@ -11,9 +26,11 @@ You can read more about zUMIs in our [paper](https://doi.org/10.1093/gigascience
 ## Loom output
 The loom format is increasing in popularity and compatible with downstream analysis using python out of the box.
 We provide a script to convert zUMIs output into loom file automatically based on the [loomR package from the Satija lab](https://satijalab.org/loomR/loomR_tutorial.html). Please make sure you have loomR installed.
-To convert zUMIs output to loom, simply run `Rscript rds2loom.R myRun.yaml`.
+zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+19 Feb 2020: [zUMIs2.7.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.7.0): Simplify installation greatly by a cond-pack of miniconda with all dependencies. The conda environment is used with `zUMIs-master.sh -c`, with the old behavior staying as the default. 
+
 13 Feb 2020: zUMIs2.6.3: Faster demultiplexing using python/pysam. Made forking of UMI collapse worker threads more robust.
 
 06 Feb 2020: zUMIs2.6.2: Changes to the hamming distance UMI collapse to avoid overcollapsing of highly expressed genes.

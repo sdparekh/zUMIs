@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.6.3b
+vers=2.7.0
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -38,6 +38,10 @@ function usage () {
 ## Program path ##
 	-d  <zUMIs-dir>   	 : Directory containing zUMIs scripts.  Default: path to this script.
 
+## Miniconda environment
+
+  -c : Use zUMIs dependencies in the preinstalled conda enviroment.
+
 zUMIs version $vers
 
 EOF
@@ -46,10 +50,12 @@ EOF
 # Define the default variables #
 zumisdir=$(dirname `readlink -f $0`)
 
-while getopts ":y:d:h" options; do #Putting <:> between keys implies that they can not be called without an argument.
+
+while getopts ":y:d:ch" options; do #Putting <:> between keys implies that they can not be called without an argument.
   case $options in
   y ) yaml=$OPTARG;;
   d ) zumisdir=$OPTARG;;
+  c ) conda=true;;
   h ) usage
           exit 1;;
   \? ) echo -e "\n This key is not available! Please check the usage again: -$OPTARG"
@@ -107,6 +113,43 @@ if grep -q 'Rscript_exec:' $yaml
   else
     Rexc=Rscript
     echo "Rscript_exec: $Rexc" >> $yaml
+fi
+
+#check for conda usage!
+if [[ $conda = true ]]; then
+  echo "Using miniconda environment for zUMIs!"
+  samtoolsexc=samtools
+  if grep -q 'samtools_exec:' $yaml; then
+      sed -i '/samtools_exec:/d' $yaml
+  fi
+  echo "samtools_exec: $samtoolsexc" >> $yaml
+  pigzexc=pigz
+  if grep -q 'pigz_exec:' $yaml; then
+      sed -i '/pigz_exec:/d' $yaml
+  fi
+  echo "pigz_exec: $pigzexc" >> $yaml
+  starexc=STAR
+  if grep -q 'STAR_exec:' $yaml; then
+      sed -i '/STAR_exec:/d' $yaml
+  fi
+  echo "STAR_exec: $starexc" >> $yaml
+  Rexc=Rscript
+  if grep -q 'Rscript_exec:' $yaml; then
+      sed -i '/Rscript_exec:/d' $yaml
+  fi
+  echo "Rscript_exec: $Rexc" >> $yaml
+
+  zumisenv=$zumisdir/zUMIs-env
+  miniconda=$zumisdir/zUMIs-miniconda.tar.bz2
+  #check if zUMIs environment has been unpacked from tar
+  if [[ ! -d $zumisenv ]] || [[ $zumisdir/zUMIs-miniconda.partaa -nt $zumisenv ]] ; then
+    [ -d $zumisenv ] || mkdir -p $zumisenv
+    cat $zumisdir/zUMIs-miniconda.parta* > $miniconda
+    tar -xj --overwrite -f $miniconda -C $zumisenv
+  fi
+  #activate zUMIs environment!
+  source $zumisenv/bin/activate
+  conda-unpack
 fi
 
 if grep -q 'zUMIs_directory:' $yaml
@@ -260,4 +303,10 @@ then
       $Rexc $zumisdir/zUMIs-stats2.R $yaml
   fi
   date
+fi
+
+
+#close conda enviroment if necessary
+if [ $conda = true ]; then
+  source $zumisenv/bin/deactivate
 fi

@@ -382,7 +382,7 @@ demultiplex_bam <- function(opt, bamfile, nBCs){
     dir.create( paste0(opt$out_dir,"/zUMIs_output/demultiplexed/") )
   }
 
-  installed_py <- system("pip3 freeze", intern = TRUE)
+  installed_py <- system("pip freeze", intern = TRUE)
 
   if(any(grepl("pysam==",installed_py))){
     print("Using python implementation to demultiplex.")
