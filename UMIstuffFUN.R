@@ -251,7 +251,7 @@ ham_helper_fun <- function(x){
 umiCollapseID<-function(reads,bccount,nmin=0,nmax=Inf,ftype=c("intron","exon"),...){
   retDF<-.sampleReads4collapsing(reads,bccount,nmin,nmax,ftype)
   if(!is.null(retDF)){
-    nret<-retDF[, list(umicount = length(unique(UB[!is.na(UB)])),
+    nret<-retDF[, list(umicount = length(unique(UB[!is.na(UB) & UB!=""])),
                        readcount =.N),
                 by=c("RG","GE") ]
 
