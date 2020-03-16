@@ -417,6 +417,19 @@ demultiplex_bam <- function(opt, bamfile, nBCs){
   print(Sys.time())
 }
 
+split_bam <- function(bam, cpu, samtoolsexc){
+  UMIbam <- paste0(bam,".UMI.bam")
+  internalbam <- paste0(bam,".internal.bam")
+  cpus <- floor((cpu-4)/2)
+  if(cpus<1){
+    cpus <- 2
+  }
+  
+  cmd_umi <- paste(samtoolsexc, "view -h -@ 2", bam, " | grep -v -P 'UB:Z:\t' | ", samtoolsexc, "view -b -@",cpus,"-o",UMIbam,"&")
+  cmd_internal <- paste(samtoolsexc, "view -h -@ 2", bam, " | grep -v 'UB:Z:[A-Z]' | ", samtoolsexc, "view -b -@",cpus,"-o",internalbam,"&")
+  system(paste(cmd_umi,cmd_internal,"wait"))
+  return(c(internalbam,UMIbam))
+}
 
 fixMissingOptions <- function(config){
   if(is.null(config$barcodes$automatic)){

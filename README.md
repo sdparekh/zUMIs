@@ -29,6 +29,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+16 Mar 2020: zUMIs2.7.1: Smart-seq3 data can be run with the proper consideration of strand information. When setting `strand: 1`, UMI reads will use this strand while non-UMI reads will stay unstranded.
+
 19 Feb 2020: [zUMIs2.7.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.7.0): Simplify installation greatly by a cond-pack of miniconda with all dependencies. The conda environment is used with `zUMIs-master.sh -c`, with the old behavior staying as the default. 
 
 13 Feb 2020: zUMIs2.6.3: Faster demultiplexing using python/pysam. Made forking of UMI collapse worker threads more robust.
