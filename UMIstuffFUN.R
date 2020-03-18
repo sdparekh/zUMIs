@@ -366,14 +366,15 @@ correct_UB_tags <- function(bccount, samtoolsexc){
     UB_cmd <- paste(pl_path,bam,bamout,mm,samtoolsexc)
     UB_cmd_list[[i]] <- UB_cmd
   }
-  bla <- parallel::mclapply(UB_cmd_list, system ,mc.cores = opt$num_threads, mc.preschedule=F)
+  bla <- parallel::mclapply(UB_cmd_list, system, ignore.stderr = TRUE, mc.cores = opt$num_threads, mc.preschedule=F, mc.silent = TRUE)
   UB_cmd_list <- unlist(UB_cmd_list)
   UB_files <- as.character(data.frame(strsplit(UB_cmd_list," "),stringsAsFactors=F)[3,])
   #UB_files <- paste(UB_files, collapse = " ")
   UB_mergelist <- paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/",opt$project,"mergelist.txt")
   write(UB_files, file = UB_mergelist)
   outbam <- paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.bam")
-  merge_cmd <- paste(samtoolsexc,"merge -n -t BC -@",opt$num_threads,"-b",UB_mergelist,outbam)
+  #merge_cmd <- paste(samtoolsexc,"merge -n -t BC -@",opt$num_threads,"-b",UB_mergelist,outbam)
+  merge_cmd <- paste(samtoolsexc,"cat -b",UB_mergelist,"-o",outbam)
   write(merge_cmd, file = paste0(opt$out_dir,"/",opt$project,".merge.sh"))
   system(paste0("bash ",opt$out_dir,"/",opt$project,".merge.sh"))
   return(outbam)
@@ -390,15 +391,33 @@ demultiplex_bam <- function(opt, bamfile, nBCs){
     print("Using python implementation to demultiplex.")
     print(Sys.time())
     max_filehandles <- as.numeric(system("ulimit -n", intern = TRUE))
-    if(max_filehandles < nBCs){
-      print("Warning! You cannot open enough filehandles for demultiplexing! Increase ulimit -n")
-    }
     threads_perBC <- floor(max_filehandles/nBCs)
+    
+    if(max_filehandles < nBCs | nBCs > 10000){
+      #print("Warning! You cannot open enough filehandles for demultiplexing! Increase ulimit -n")
+      #break up in several demultiplexing runs to avoid choke
+      nchunks <- ifelse(max_filehandles < nBCs, no = ceiling(nBCs/10000), yes = ceiling(nBCs/(max_filehandles-100)))
+      if(nchunks == 1){nchunks = 2}
+      print(paste("Breaking up demultiplexing in",nchunks,"chunks. This may be because you have >10000 cells or a too low filehandle limit (ulimit -n)."))
+      
+      full_bclist <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
+      bcsplit_prefix <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,"kept_barcodes.")
+      
+      split_cmd <- paste0("split -a 3 -n l/",nchunks," ",full_bclist, " ", bcsplit_prefix)
+      system(split_cmd)
+      bclist <- list.files(path = paste0(opt$out_dir,"/zUMIs_output/"), pattern =  paste0(".",opt$project,"kept_barcodes."),all.files = TRUE, full.names = TRUE)
+      header_cmd <- paste('sed -i -e \'1s/^/XC,n,cellindex\\n/\'', bclist[-1], collapse = '; ', sep = ' ')
+      system(header_cmd)
+      
+      if(max_filehandles < nBCs){threads_perBC <- 1}
+    }else{
+      bclist <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
+    }
+    
     if(threads_perBC > 2){
       threads_perBC <- 2
     }
     threads_decompress <- opt$num_threads - threads_perBC
-    bclist <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
     outstub <- paste0(opt$out_dir,"/zUMIs_output/demultiplexed/",opt$project,".")
     py_script <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.py")
     demux_cmd <- paste(
@@ -408,7 +427,7 @@ demultiplex_bam <- function(opt, bamfile, nBCs){
       "--bc", bclist,
       "--pout", threads_perBC,
       "--pin", threads_decompress
-    )
+    , collapse = "; ")
   }else{
     print("Using perl implementation to demultiplex.")
     demux_cmd <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.pl ",opt$out_dir," ",opt$project, " ", bamfile, " ", samtoolsexc )
@@ -479,6 +498,10 @@ fixMissingOptions <- function(config){
     config$counting_opts$downsampling <- "0"
   }
 
+  if(config$counting_opts$downsampling == FALSE){
+    config$counting_opts$downsampling <- "0"
+  }
+  
   return(config)
 }
 

@@ -97,7 +97,7 @@ samtools_output <- paste0(" | ",samtools," view -@ ",cores_samtools," -o ",inp$o
 STAR_command <- paste(STAR_command,samtools_output)
 
 #also merge the unmapped bam files:
-sammerge_command <- paste(samtools,"merge -f -@",cores_samtools,paste0(inp$out_dir,"/",inp$project,".filtered.tagged.unmapped.bam"),paste0(filtered_bams,collapse=" "))
+sammerge_command <- paste(samtools,"cat -o",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.unmapped.bam"),paste0(filtered_bams,collapse=" "))
 
 #finally, run STAR
 system(paste(STAR_command,"&",sammerge_command,"& wait"))
