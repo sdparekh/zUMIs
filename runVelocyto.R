@@ -28,7 +28,7 @@ featfile <- featfile_vector[which(file.exists(featfile_vector))[1]]
 print(Sys.time())
 #prepare the bam file for use with velocyto
 print("Preparing bam file for velocyto...")
-retag_cmd <- paste0(samtoolsexc," view -@ 2 -h ",featfile," | sed 's/BC:Z:/CB:Z:/'")
+retag_cmd <- paste0(samtoolsexc," view -@ 2 -h ",featfile," | sed 's/BC:Z:/CB:Z:/' | sed 's/GE:Z:/GX:Z:/'")
 velobam <- paste0(opt$out_dir,"/",opt$project,".tagged.forVelocyto.bam")
 #sort_cmd <- paste0(samtoolsexc," sort -m ",mempercpu,"G -O BAM -@ ",opt$num_threads," -o ",velobam )
 out_cmd <- paste0(samtoolsexc," view -b -@ ",opt$num_threads," -o ",velobam," - " )
@@ -54,6 +54,7 @@ UMI_check <- lapply(opt$sequence_files,
        })
 
 umi_decision <- ifelse(length(unlist(UMI_check))>0,"","--without-umi")
+mm_decision <- ifelse(opt$counting_opts$primaryHit,"--multimap","")
 
 #run velocyto
 
@@ -62,7 +63,7 @@ velo_check <- suppressWarnings(system("which velocyto",intern =T))
 if(length(velo_check) == 0){
   print("No velocyto installation found in path. Please install it via pip.")
 }else{
-  velo_cmd <- paste(velo_check[1],"run -vv -b",bcpath,"-o",paste0(opt$out_dir,"/zUMIs_output/velocity/"),umi_decision, "-e",opt$project,"--samtools-threads",opt$num_threads,"--samtools-memory",mempercpu*1000,velobam,gtf,sep=" ")
+  velo_cmd <- paste(velo_check[1],"run -vv --umi-extension Gene -b",bcpath,"-o",paste0(opt$out_dir,"/zUMIs_output/velocity/"),umi_decision,mm_decision, "-e",opt$project,"--samtools-threads",opt$num_threads,"--samtools-memory",mempercpu*1000,velobam,gtf,sep=" ")
   
   try(system(paste0(velo_cmd," > ",opt$out_dir,"/",opt$project,".velocityo.log.out 2>&1")))
   print("RNA velocity done!")
