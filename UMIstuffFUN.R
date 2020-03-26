@@ -260,7 +260,8 @@ umiCollapseID<-function(reads,bccount,nmin=0,nmax=Inf,ftype=c("intron","exon"),.
     if(n_nonUMI > 0 & n_nonUMI<nreads){ #detect mix of internal and UMI reads in Smartseq3
       internaldt <- retDF[UB=="", list(readcount_internal =.N),
                          by=c("RG","GE") ]
-      nret <- merge(nret, internaldt, by = c("RG","GE"))
+      nret <- merge(nret, internaldt, by = c("RG","GE"), all.x = TRUE)
+      nret[is.na(readcount_internal), readcount_internal := 0]
     }
 
     return(nret)
