@@ -154,6 +154,7 @@ ui <- fluidPage(
                             uiOutput("barcodeUI"),
                             numericInput("HamBC","Hamming distance collapsing of close cell barcode sequences.",value=1,min=0,max=5,step=1),
                             numericInput("nReadsBC","Keep only the cell barcodes with atleast n number of reads",value=100,min=1,max=5,step=1),
+                            textInput("sharedBC",label = "Optional: Barcode Sharing (path to file):",value = NULL),
                             checkboxInput("demux", label = "Demultiplex into per-cell bam files?", value = F),
                             shinyBS::bsTooltip(id="demux", title = "Output files will be stored in zUMIs_output/demultiplexed/ .", 
                                                placement = "top", trigger = "hover",options = list(container = "body"))
@@ -391,6 +392,7 @@ server <- function(input, output, session) {
       "barcodes" = list(
         "barcode_num" = input$BCnum,
         "barcode_file" = input$BCfile,
+        "barcode_sharing" = input$sharedBC,
         "automatic" = ifelse(input$barcodeChoice=="Automatic", TRUE, FALSE),
         "BarcodeBinning" = input$HamBC,
         "nReadsperCell" = input$nReadsBC,
@@ -512,6 +514,7 @@ server <- function(input, output, session) {
 
       updateNumericInput(session = session, inputId = "HamBC", value = ya$barcodes$BarcodeBinning)
       updateNumericInput(session = session, inputId = "nReadsBC", value = ya$barcodes$nReadsperCell)
+      updateTextInput(session = session, inputId = "sharedBC", value = ya$barcodes$barcode_sharing)
       updateCheckboxInput(session = session, inputId = "demux", value = ya$barcodes$demultiplex)
       
       if(!is.null(ya$read_layout)){

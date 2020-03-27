@@ -12,6 +12,9 @@ setwd(opt$out_dir)
 source(paste0(opt$zUMIs_directory,"/barcodeIDFUN.R"))
 options(datatable.fread.input.cmd.message=FALSE)
 data.table::setDTthreads(threads=opt$num_threads)
+if(opt$barcodes$barcode_sharing == ""){
+  opt$barcodes$barcode_sharing <- NULL
+}
 
 #######################################################################
 #######################################################################
@@ -28,7 +31,7 @@ bccount<-cellBC(bcfile      = opt$barcodes$barcode_file,
 fwrite(bccount,file=paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt"))
 
 #check if binning of adjacent barcodes should be run
-if(opt$barcodes$BarcodeBinning > 0){
+if(opt$barcodes$BarcodeBinning > 0 | !is.null(opt$barcodes$barcode_sharing)){
   binmap <- BCbin(bccount_file = paste0(opt$out_dir,"/", opt$project, ".BCstats.txt"),
                   bc_detected  = bccount)
   fwrite(binmap,file=paste0(opt$out_dir,"/zUMIs_output/",opt$project,".BCbinning.txt"))
