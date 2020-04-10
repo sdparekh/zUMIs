@@ -81,6 +81,7 @@ mem_limit=`grep 'mem_limit:' $yaml | awk '{print $2}'`
 isstats=`grep 'make_stats:' $yaml | awk '{print $2}'`
 fqfiles=`grep 'name:' $yaml | awk '{print $2}'`
 velo=`grep 'velocyto:' $yaml | awk '{print $2}'`
+staridxdir=`grep 'STAR_index:' $yaml | awk '{print $2}'`
 
 
 if grep -q 'samtools_exec:' $yaml
@@ -148,6 +149,8 @@ if [[ $conda = true ]]; then
     tar -xj --overwrite -f $miniconda -C $zumisenv
   fi
   #activate zUMIs environment!
+  unset PYTHONPATH
+  unset PYTHONHOME
   source $zumisenv/bin/activate
   conda-unpack
 fi
@@ -192,6 +195,15 @@ if [[ -z "$sam_exc_check" ]] ||
  then
   echo "One or more of your executables were not found. Please check back."
   exit 1
+fi
+
+# Check if the STAR version used for mapping and the one in the provided STAR index are the same
+starver=`$starexc --version | sed 's/STAR_//g' | sed 's/\s+//g'`
+staridxver=`grep "versionGenome" $staridxdir/genomeParameters.txt | awk '{print $2}' | sed 's/\s+//g'`
+
+if [[ "$starver" != "$staridxver" ]]; then
+  echo "WARNING: The STAR version used for mapping is $starver and the STAR index is created using the version $staridxver. This might lead to error while mapping. If you encounter error at the mapping stage, please make sure to create the STAR index using STAR $staridxver."
+  #exit 1
 fi
 
 #create output folders
