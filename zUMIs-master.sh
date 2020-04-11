@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.7.2a
+vers=2.7.2b
 currentv=`curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/master/zUMIs-master.sh | grep '^vers=' | cut -f2 -d "="`
 if [ "$currentv" != "$vers" ]; then echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------"; fi
 
@@ -202,7 +202,7 @@ starver=`$starexc --version | sed 's/STAR_//g' | sed 's/\s+//g'`
 staridxver=`grep "versionGenome" $staridxdir/genomeParameters.txt | awk '{print $2}' | sed 's/\s+//g'`
 
 if [[ "$starver" != "$staridxver" ]]; then
-  echo "WARNING: The STAR version used for mapping is $starver and the STAR index is created using the version $staridxver. This might lead to error while mapping. If you encounter error at the mapping stage, please make sure to create the STAR index using STAR $staridxver."
+  echo "WARNING: The STAR version used for mapping is $starver and the STAR index was created using the version $staridxver. This may lead to an error while mapping. If you encounter any errors at the mapping stage, please make sure to create the STAR index using STAR $starver."
   #exit 1
 fi
 
@@ -319,6 +319,6 @@ fi
 
 
 #close conda enviroment if necessary
-if [ $conda = true ]; then
+if [[ $conda = true ]]; then
   source $zumisenv/bin/deactivate
 fi
