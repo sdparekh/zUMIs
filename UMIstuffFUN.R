@@ -494,6 +494,16 @@ fixMissingOptions <- function(config){
   if(is.null(config$counting_opts$write_ham)){
     config$counting_opts$write_ham <- FALSE
   }
+  
+  if(is.null(config$num_threads)){
+    config$num_threads <- 8
+  }
+  
+  if(is.null(config$mem_limit)){
+    config$mem_limit <- 100
+  }else if(config$mem_limit == 0){
+    config$mem_limit <- 100
+  }
 
   if(is.null(config$counting_opts$downsampling)){
     config$counting_opts$downsampling <- "0"

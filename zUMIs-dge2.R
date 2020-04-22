@@ -50,7 +50,12 @@ bccount<-splitRG(bccount=bccount, mem= opt$mem_limit)
 ##############################################################
 ##### featureCounts
 
+## gene annotation
 saf<-.makeSAF(paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"))
+try(gene_name_mapping <- .get_gene_names(gtf = paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"), threads = opt$num_threads), silent = TRUE)
+try(data.table::fwrite(gene_name_mapping, file = paste0(opt$out_dir,"/zUMIs_output/expression/",opt$project,".gene_names.txt"), sep ="\t", quote = FALSE), silent = TRUE)
+##
+
 abamfile<-paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam")
 outbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.bam")
 

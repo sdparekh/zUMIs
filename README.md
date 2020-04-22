@@ -29,6 +29,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+22 Apr 2020: zUMIs2.7.3: zUMIs will try to parse a geneID to gene name mapping file from the user provided GTF annotations.
+
 27 Mar 2020: zUMIs2.7.2: New barcode handling functionalities: When using intersection of automatic BC detection and BC whitelist and the full barcode is composed out of several barcode pieces (eg. RT barcode + illumina barcode), the whitelist can now also just be corresponding to just one of the barcode pieces (eg. RT barcode only whitelist). Furthermore, some scRNA-seq protocols may have several cell barcodes that belong to the same cell (eg. SPLiT-seq with oligo-dT/random-hex round 1 barcode; i7 barcode mix in 10x Genomics). zUMIs now supports internally combing the counts via the `barcode_sharing:` option. Please look at the [wiki for further details](https://github.com/sdparekh/zUMIs/wiki/Barcodes#barcode-sharing-feature) and at [examples for some protocols](https://github.com/sdparekh/zUMIs/wiki/Protocol-specific-setup).
  
 16 Mar 2020: zUMIs2.7.1: Smart-seq3 data can be run with the proper consideration of strand information. When setting `strand: 1`, UMI reads will use this strand while non-UMI reads will stay unstranded.

@@ -107,3 +107,19 @@ suppressWarnings(suppressMessages(require(AnnotationDbi)))
 
   return(len_dt)
 }
+.get_gene_names <- function(gtf, threads){
+  gtf.dt <- fread(gtf, sep="\t",header=F)
+  ge <- gtf.dt[V3 == "gene"]
+  gtf_info <- ge$V9
+  info_parsed <- parallel::mclapply(gtf_info, function(x){
+    dat <- data.table(V1=unlist(strsplit(x,"; ")))
+    dat[,c("name","value") := tstrsplit(V1, " ")][
+      ,V1 := NULL][
+        ,value := gsub(pattern = "\"", replacement = "", x = value)]
+    dat <- dat[name %in% c("gene_id","gene_name")]
+    dat <- dcast(dat, .~name, value.var = "value")
+    dat[,"." := NULL]
+  }, mc.cores = threads)
+  info_parsed <- rbindlist(info_parsed)
+  return( info_parsed[! (is.na(gene_name) | is.na(gene_id))] )
+}
