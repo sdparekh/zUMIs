@@ -18,7 +18,8 @@ splitRG<-function(bccount,mem){
   nc<-nrow(bccount)
   cs=0
   chunkID=1
-  bccount[,chunkID:=0]
+  bccount[,chunkID:=1]
+  if(sum(bccount$n) > maxR) {
   for(i in 1:nc){
     cs=cs+bccount[i]$n
     if(bccount[i]$n>maxR){
@@ -33,6 +34,7 @@ splitRG<-function(bccount,mem){
     }
     bccount[i][,"chunkID"]=chunkID
   }
+    }
   return(bccount)
 }
 
