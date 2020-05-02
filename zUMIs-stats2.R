@@ -89,6 +89,10 @@ if(length(umicounts) > 0){
 
 try(ggsave(cp,filename = paste(opt$out_dir,"/zUMIs_output/stats/",opt$project,".geneUMIcounts.pdf",sep=""),width = 10,height = 5))
 
+## Total number of reads per gene
+reads_per_gene <- sumGene(counts = AllCounts)
+data.table::fwrite(reads_per_gene, file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".reads_per_gene.txt"), quote = F, sep = "\t")
+
 ## Total number of reads per cell
 
 typeCount <- sumstatBAM( featfile = featfile,

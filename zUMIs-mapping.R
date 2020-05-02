@@ -12,7 +12,14 @@ STAR_exec <- inp$STAR_exec
 
 # collect filtered bam files ----------------------------------------------
 tmpfolder <- paste(inp$out_dir,"/zUMIs_output/.tmpMerge/",sep="")
-filtered_bams <- list.files(path = tmpfolder, pattern=paste(inp$project,".*.filtered.tagged.bam$",sep=""),full.names=T)
+if(inp$which_Stage == "Filtering"){
+  filtered_bams <- list.files(path = tmpfolder, pattern=paste(inp$project,".*.filtered.tagged.bam$",sep=""),full.names=T)
+  #also merge the unmapped bam files:
+  sammerge_command <- paste(samtools,"cat -o",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.unmapped.bam"),paste0(filtered_bams,collapse=" "))
+}else{
+  filtered_bams <- paste0(inp$out_dir,"/",inp$project,".filtered.tagged.unmapped.bam") # for resuming from mapping state using the merged unmapped bam
+}
+
 
 # GTF file setup ----------------------------------------------------------
 #in case of additional sequences, we need to create a custom GTF
@@ -96,10 +103,11 @@ samtools_output <- paste0(" | ",samtools," view -@ ",cores_samtools," -o ",inp$o
 
 STAR_command <- paste(STAR_command,samtools_output)
 
-#also merge the unmapped bam files:
-sammerge_command <- paste(samtools,"cat -o",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.unmapped.bam"),paste0(filtered_bams,collapse=" "))
-
 #finally, run STAR
-system(paste(STAR_command,"&",sammerge_command,"& wait"))
-system(paste0("rm ",tmpfolder,"/",inp$project,".*"))
+if(inp$which_Stage == "Filtering"){
+  system(paste(STAR_command,"&",sammerge_command,"& wait"))
+  system(paste0("rm ",tmpfolder,"/",inp$project,".*"))
+}else{
+  system(STAR_command)
+}
 q()

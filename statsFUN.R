@@ -248,3 +248,16 @@ totReadBoxplot<-function(typeCount,fillcol){
               axis.title.x=element_blank())
   return(box)
 }
+
+sumGene <- function(counts){
+  outlist <- lapply(names(counts$readcount), function(x){
+    res <- Matrix::rowSums(counts$readcount[[x]]$all)
+    out <- data.table(
+      GeneID = names(res),
+      nReads = as.numeric(res),
+      ftype = x
+    )
+  })
+  outdt <- rbindlist(outlist)
+  return(outdt)
+}

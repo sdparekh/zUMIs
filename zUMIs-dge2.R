@@ -50,28 +50,33 @@ bccount<-splitRG(bccount=bccount, mem= opt$mem_limit)
 ##############################################################
 ##### featureCounts
 
+abamfile<-paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam")
+outbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.bam")
+
 ## gene annotation
-saf<-.makeSAF(paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"))
+saf<-.makeSAF(gtf = paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"),
+              extension_var = opt$reference$exon_extension,
+              exon_extension = opt$reference$extension_length,
+              buffer_length = (opt$reference$extension_length / 2),
+              scaff_length = opt$reference$scaffold_length_min,
+              multi_overlap_var = opt$counting_opts$multi_overlap)
 try(gene_name_mapping <- .get_gene_names(gtf = paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"), threads = opt$num_threads), silent = TRUE)
 try(data.table::fwrite(gene_name_mapping, file = paste0(opt$out_dir,"/zUMIs_output/expression/",opt$project,".gene_names.txt"), sep ="\t", quote = FALSE), silent = TRUE)
 ##
 
-abamfile<-paste0(opt$out_dir,"/",opt$project,".filtered.tagged.Aligned.out.bam")
-outbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.bam")
-
 if(smart3_flag & opt$counting_opts$strand == 1){
   #split bam in UMU ends and internal
   tmp_bams <- split_bam(bam = abamfile, cpu = opt$num_threads, samtoolsexc=samtoolsexc)
-  
+
   #assign features with appropriate strand
-  fnex_int<-.runFeatureCount(tmp_bams[1], saf=saf$exons, strand=0, type="ex", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib)
-  fnex_umi<-.runFeatureCount(tmp_bams[2], saf=saf$exons, strand=1, type="ex", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib)
+  fnex_int<-.runFeatureCount(tmp_bams[1], saf=saf$exons, strand=0, type="ex", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap)
+  fnex_umi<-.runFeatureCount(tmp_bams[2], saf=saf$exons, strand=1, type="ex", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap)
   ffiles_int <- paste0(fnex_int,".tmp")
   ffiles_umi <- paste0(fnex_umi,".tmp")
-  
+
   if(opt$counting_opts$introns){
-    fnin_int<-.runFeatureCount(ffiles_int, saf=saf$introns, strand=0, type="in", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib)
-    fnin_umi<-.runFeatureCount(ffiles_umi, saf=saf$introns, strand=1, type="in", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib)
+    fnin_int<-.runFeatureCount(ffiles_int, saf=saf$introns, strand=0, type="in", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap)
+    fnin_umi<-.runFeatureCount(ffiles_umi, saf=saf$introns, strand=1, type="in", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap)
     ffiles_int <- paste0(fnin_int,".tmp")
     ffiles_umi <- paste0(fnin_umi,".tmp")
   }
@@ -86,9 +91,10 @@ if(smart3_flag & opt$counting_opts$strand == 1){
                          primaryOnly = opt$counting_opts$primaryHit,
                          cpu = opt$num_threads,
                          mem = opt$mem_limit,
-                         fcounts_clib = fcounts_clib)
+                         fcounts_clib = fcounts_clib,
+                         multi_overlap_var = opt$counting_opts$multi_overlap)
   ffiles<-paste0(fnex,".tmp")
-  
+
   if(opt$counting_opts$introns){
     fnin  <-.runFeatureCount(ffiles,
                              saf=saf$introns,
@@ -97,11 +103,12 @@ if(smart3_flag & opt$counting_opts$strand == 1){
                              primaryOnly = opt$counting_opts$primaryHit,
                              cpu = opt$num_threads,
                              mem = opt$mem_limit,
-                             fcounts_clib = fcounts_clib)
+                             fcounts_clib = fcounts_clib,
+                             multi_overlap_var = opt$counting_opts$multi_overlap)
     system(paste0("rm ",fnex,".tmp"))
     ffiles<-paste0(fnin,".tmp")
   }
-  
+
   system(paste("mv",ffiles,outbamfile))
 }
 
@@ -223,9 +230,28 @@ if(UMIcheck == "nonUMI" | smart3_flag == TRUE ){
 
 saveRDS(final,file=paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".dgecounts.rds",sep=""))
 
-#################
-#Accessory processing scripts
+################# #Accessory processing scripts
+#Intron Probability Score Calculation
+if(opt$counting_opts$intronProb == TRUE){
+  if(opt$counting_opts$introns == FALSE){
+    print("Intron information is needed to calculate Intron-Probability! Please change yaml settings counting_opts->introns to yes.\n Skipping probability calculation...")
+  }else{
+    library(extraDistr)
+    print("Starting Intron-Probability Calculations...")
 
+    # Extractingreads from sam files again, this could be sped up by integrating code further upstream of zUMIs-dge2
+    genesWithIntronProb<-.intronProbability(bccount=bccount,
+                                            featfile=sortbamfile,
+                                            inex=opt$counting_opts$introns,
+                                            cores=opt$num_threads,
+                                            samtoolsexc=samtoolsexc,
+                                            allC=allC,
+                                            saf=saf)
+    saveRDS(genesWithIntronProb, file = paste0(opt$out_dir,"/zUMIs_output/stats/",opt$project,".intronProbability.rds"))
+  }
+}
+
+#demultiplexing
 if(opt$counting_opts$Ham_Dist == 0 && opt$barcodes$demultiplex == TRUE ){ #otherwise its already demultiplexed!
   print("Demultiplexing output bam file by cell barcode...")
   demultiplex_bam(opt, sortbamfile, nBCs = length(unique(bccount$XC)))

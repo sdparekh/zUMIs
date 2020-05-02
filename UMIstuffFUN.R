@@ -102,7 +102,7 @@ prep_samtools <- function(featfile,bccount,inex,cores,samtoolsexc){
   return(outfiles)
 }
 
-reads2genes <- function(inex,chunkID){
+reads2genes <- function(inex,chunkID, keepUnassigned = FALSE){
 
   samfile <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".tmp.",chunkID,".txt")
 
@@ -140,7 +140,12 @@ reads2genes <- function(inex,chunkID){
 
   setkey(reads,RG)
 
-  return( reads[GE!="NA"] )
+  if(keepUnassigned){
+    return( reads )
+  }else{
+    return( reads[GE!="NA"] )
+  }
+
 }
 
 hammingFilter<-function(umiseq, edit=1, gbcid=NULL){
@@ -241,11 +246,16 @@ ham_helper_fun <- function(x){
 }
 
 .makewide <- function(longdf,type){
-  ge<-as.factor(longdf$GE)
-  xc<-as.factor(longdf$RG)
+  dt<-longdf[, list(GEu=unlist(strsplit(GE,","))), by=c("RG","GE",type)][ #this splits multioverlap gene lists by comma
+             , cnt := get(type) / (stringr::str_count(GE,",")+1) ][
+             , list(tot=sum(cnt)),by=c("RG","GEu")  ]
+
+  ge<-as.factor(dt$GEu)
+  xc<-as.factor(dt$RG)
+
   widedf <- Matrix::sparseMatrix(i=as.integer(ge),
                                  j=as.integer(xc),
-                                 x=as.numeric(unlist(longdf[,type,with=F])),
+                                 x=as.numeric(unlist(dt[,"tot",with=F])),
                                  dimnames=list(levels(ge), levels(xc)))
   return(widedf)
 }
@@ -388,35 +398,35 @@ demultiplex_bam <- function(opt, bamfile, nBCs){
     dir.create( paste0(opt$out_dir,"/zUMIs_output/demultiplexed/") )
   }
 
-  installed_py <- system("pip freeze", intern = TRUE)
+  installed_py <- try(system("pip freeze", intern = TRUE))
 
   if(any(grepl("pysam==",installed_py))){
     print("Using python implementation to demultiplex.")
     print(Sys.time())
     max_filehandles <- as.numeric(system("ulimit -n", intern = TRUE))
     threads_perBC <- floor(max_filehandles/nBCs)
-    
+
     if(max_filehandles < nBCs | nBCs > 10000){
       #print("Warning! You cannot open enough filehandles for demultiplexing! Increase ulimit -n")
       #break up in several demultiplexing runs to avoid choke
       nchunks <- ifelse(max_filehandles < nBCs, no = ceiling(nBCs/10000), yes = ceiling(nBCs/(max_filehandles-100)))
       if(nchunks == 1){nchunks = 2}
       print(paste("Breaking up demultiplexing in",nchunks,"chunks. This may be because you have >10000 cells or a too low filehandle limit (ulimit -n)."))
-      
+
       full_bclist <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
       bcsplit_prefix <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,"kept_barcodes.")
-      
+
       split_cmd <- paste0("split -a 3 -n l/",nchunks," ",full_bclist, " ", bcsplit_prefix)
       system(split_cmd)
       bclist <- list.files(path = paste0(opt$out_dir,"/zUMIs_output/"), pattern =  paste0(".",opt$project,"kept_barcodes."),all.files = TRUE, full.names = TRUE)
       header_cmd <- paste('sed -i -e \'1s/^/XC,n,cellindex\\n/\'', bclist[-1], collapse = '; ', sep = ' ')
       system(header_cmd)
-      
+
       if(max_filehandles < nBCs){threads_perBC <- 1}
     }else{
       bclist <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
     }
-    
+
     if(threads_perBC > 2){
       threads_perBC <- 2
     }
@@ -446,7 +456,7 @@ split_bam <- function(bam, cpu, samtoolsexc){
   if(cpus<1){
     cpus <- 2
   }
-  
+
   cmd_umi <- paste(samtoolsexc, "view -h -@ 2", bam, " | grep -v -P 'UB:Z:\t' | ", samtoolsexc, "view -b -@",cpus,"-o",UMIbam,"&")
   cmd_internal <- paste(samtoolsexc, "view -h -@ 2", bam, " | grep -v 'UB:Z:[A-Z]' | ", samtoolsexc, "view -b -@",cpus,"-o",internalbam,"&")
   system(paste(cmd_umi,cmd_internal,"wait"))
@@ -496,11 +506,11 @@ fixMissingOptions <- function(config){
   if(is.null(config$counting_opts$write_ham)){
     config$counting_opts$write_ham <- FALSE
   }
-  
+
   if(is.null(config$num_threads)){
     config$num_threads <- 8
   }
-  
+
   if(is.null(config$mem_limit)){
     config$mem_limit <- 100
   }else if(config$mem_limit == 0){
@@ -514,7 +524,27 @@ fixMissingOptions <- function(config){
   if(config$counting_opts$downsampling == FALSE){
     config$counting_opts$downsampling <- "0"
   }
-  
+
+  if(is.null(config$reference$exon_extension)){
+    config$reference$exon_extension <- FALSE
+  }
+
+  if(is.null(config$reference$extension_length)){
+    config$reference$extension_length <- 0
+  }
+
+  if(is.null(config$reference$scaffold_length_min)){
+    config$reference$scaffold_length_min <- 0
+  }
+
+  if(is.null(config$counting_opts$multi_overlap)){
+    config$counting_opts$multi_overlap <- FALSE
+  }
+
+  if(is.null(config$counting_opts$intronProb)){
+    config$counting_opts$intronProb <- FALSE
+  }
+
   return(config)
 }
 
@@ -526,4 +556,87 @@ RPKM.calc <- function(exprmat, gene.length){
   lib.size <- 1e-6*colSums(x)
   y <- t(t(x)/lib.size)
   y/gene.length.kb
+}
+
+
+.intronProbability<-function(featfile,bccount,inex,cores,samtoolsexc,saf, allC){
+  print("Fetching reads from bam files again to calculate intron scores...")
+  
+  nchunks <- length(unique(bccount$chunkID))
+  all_rgfiles <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".RGgroup.",1:nchunks,".txt")
+  
+  for(i in unique(bccount$chunkID)){
+    rgfile <- all_rgfiles[i]
+    chunks <- bccount[chunkID==i]$XC
+    write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
+  }
+  
+  headerXX <- paste( c(paste0("V",1:3)) ,collapse="\t")
+  write(headerXX,"freadHeader")
+  
+  headercommand <- "cat freadHeader > "
+  layoutflag <- ifelse(opt$read_layout == "PE", "-f 0x0040", "")
+  samcommand <- paste(samtoolsexc," view -x QB -x QU -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -x UX -x UB -x EN -x IN -x GE -x GI", layoutflag, "-@")
+  
+  outfiles <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".tmp.",1:nchunks,".txt")
+  system(paste(headercommand,outfiles,collapse = "; "))
+  
+  cpusperchunk <- round(cores/nchunks,0)
+  
+  grepcommand <- " | cut -f12,13,14 | sed 's/BC:Z://' | sed 's/ES:Z://g' | sed 's/IS:Z://g' | grep -F -f "
+  inex_cmd <- paste(samcommand,cpusperchunk,featfile,grepcommand,all_rgfiles,">>",outfiles," & ",collapse = " ")
+  
+  system(paste(inex_cmd,"wait"))
+  system("rm freadHeader")
+  system(paste("rm",all_rgfiles))
+  
+  #continue with reading the data in
+  for(i in unique(bccount$chunkID)){
+    print(paste("Working on barcode chunk", i, "out of", length(unique(bccount$chunkID))))
+    print(paste("Processing", length(bccount[chunkID == i]$XC), "barcodes in this chunk..."))
+    samfile <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".tmp.",i,".txt")
+    
+    reads<-data.table::fread(samfile, na.strings=c(""),
+                             select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","ES","IS") )
+    reads <- reads[ES == "Unassigned_NoFeatures" & IS == "Unassigned_NoFeatures"]
+    system(paste("rm",samfile))  
+    
+    scores_out<-.calculateProbabilityScores(reads = reads,
+                                            saf = saf,
+                                            bccount = bccount[chunkID == i],
+                                            allC = allC)
+    if(i == 1){
+      scores <- scores_out
+    }else{
+      scores <- rbind(scores, scores_out)
+    }
+  }
+  return (scores)
+}
+
+
+.calculateProbabilityScores<-function(reads,saf,bccount,allC){
+  #count number of intergenic reads per BC; use only intronic mapped reads
+  dt <-reads[,.(intergenicPerBC = .N), by = RG]
+
+  #get count values
+  tmp <- merge(x= allC$exon$all, y = allC$intron$all, by=c("GE","RG"),suffixes=c(".ex",".in"),all=T)
+  tmp <- tmp[,c("GE","RG","readcount.ex","readcount.in")]
+  tmp[is.na(tmp)]<-0
+  #tmp[readcount.in ==0,  readcount.in := 1] #??
+
+  #get intronic bp per gene
+  tmp<-merge(x=tmp,y=saf$intronsPerGene, by.x="GE", by.y="GeneID")
+  
+  
+  dt<-merge(x=dt,y=tmp, by="RG", all.x=T)
+
+
+  #lambda = (total number of intergenic reads in genome (per BC)/all intergenic bp in genome)*intronic bp per gene
+  dt<-dt[, lambda:= (intergenicPerBC/saf$intergenicBp) * IntronLengthPerGene,][
+         , prob:=ptpois(q=readcount.in ,lambda=lambda, lower.tail = F  ) , by= c("RG","GE")]
+
+  setorder(dt, GE, RG)
+
+  return (dt[,c("GE","RG","prob"), with = FALSE])
 }
