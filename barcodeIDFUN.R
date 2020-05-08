@@ -178,9 +178,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
 
 #bccount needs to be read
 cellBC<-function(bcfile, bcnum, bcauto, bccount_file, outfilename=NULL){
-  bccount<-data.table::fread( bccount_file )
-  names(bccount)<-c("XC","n")
-  bccount <- bccount[,list(n=sum(n)),by=XC]
+  bccount<-data.table::fread( bccount_file, header = FALSE, col.names = c("XC","n") )[, .(n = sum(n)), by = XC]
   bccount<-bccount[n>=opt$barcodes$nReadsperCell][order(-n)][,cellindex:=1:(.N)][,keep:=FALSE]
 
   if(is.null(bcfile)==FALSE & bcauto){
@@ -232,7 +230,7 @@ plotReadCountSelection<-function(bccount , mads, filename){
 
 BCbin <- function(bccount_file, bc_detected) {
   true_BCs <- bc_detected[,XC]
-  nocell_bccount<-data.table::fread( bccount_file, col.names = c("XC","n"))[
+  nocell_bccount<-data.table::fread( bccount_file, header = FALSE, col.names = c("XC","n"))[
                                                                             ,list(n=sum(n)),by=XC][
                                                                             n>=opt$barcodes$nReadsperCell][
                                                                             order(-n)][
