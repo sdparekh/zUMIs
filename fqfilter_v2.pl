@@ -21,7 +21,7 @@ $tmpPrefix=$ARGV[5];
 }
 use lib "$zumisdir";
 use distilReads;
-#use Approx;
+use Approx;
 
 open(YL,"$rscriptexc $zumisdir/readYaml4fqfilter.R $yml |");
 @arg=<YL>;
@@ -127,13 +127,13 @@ while(<$fh1>){
   # This block checks if smart-seq3 pattern is present and if it is found in the reads
   # If it is smart-seq3 pattern in the YAML file but not found in the read then the read is retained as full cDNA read where UMI is null.
   if($p2 eq "ATTGCGCAATG"){
-    if($mcrseq !~ m/^$checkpattern/){
-    $ss3 = "nopattern";
-    $checkpattern = $mcrseq;
-#    print "nopattern\n";
-    }else{
+    $a = substr($mcrseq,0,length($p2));
+    if(Approx::amatch($checkpattern, [ 1 ],$a)){
       $ss3 = "yespattern";
       $checkpattern = $p2;
+    }else{
+      $ss3 = "nopattern";
+      $checkpattern = $mcrseq;
     }
   }
 
@@ -192,13 +192,13 @@ while(<$fh1>){
       # This block checks if smart-seq3 pattern is present and if it is found in the reads
       # If it is smart-seq3 pattern in the YAML file but not found in the read then the read is retained as full cDNA read where UMI is null.
       if($pf eq "ATTGCGCAATG"){
-        if($mcrseq !~ m/^$checkpattern/){
-          $ss3 = "nopattern";
-          $checkpattern = $mcrseq;
-        #  print "nopattern\n";
-        }else{
+        $af = substr($mcrseq,0,length($pf));
+        if(Approx::amatch($checkpattern, [ 1 ],$af)){
           $ss3 = "yespattern";
           $checkpattern = $pf;
+        }else{
+          $ss3 = "nopattern";
+          $checkpattern = $mcrseq;
         }
       }
 
@@ -257,11 +257,28 @@ while(<$fh1>){
     $btmp = grep {$_ < $bcthres[1]} @bquals;
     $mtmp = grep {$_ < $umithres[1]} @mquals;
 
+## Check if it is a smartseq3 pattern. If so, allow for approximate match with 1 base distance. If it is not a smartseq3 pattern, check if the read starts with the pattern at all. The $goahead variable decides if the read passes the quality threshold of a pattern.
+# IF the read should not have any pattern, the $checkpattern is equal to $mcrseq so $goahead variable will stay "yes"
+    if($checkpattern eq "ATTGCGCAATG"){
+      $ac = substr($mcrseq,0,length($checkpattern));
+      if(Approx::amatch($checkpattern, [ 1 ],$ac)){
+        $goahead = "yes";
+      }else{
+        $goahead = "no";
+      }
+    }else{
+      if($mcrseq =~ m/^$checkpattern/){
+        $goahead = "yes";
+      }else{
+        $goahead = "no";
+      }
+    }
     # print out only if above the quality threshold
-     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ( Approx::amatch($checkpattern, [ 1 ],$mcrseq) ) && ($isPass ne "fail")){
-     if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ($mcrseq =~ m/^$checkpattern/) && ($isPass ne "fail")){
-     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0])){
 
+     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ( Approx::amatch($checkpattern, [ 1 ],$mcrseq) ) && ($isPass ne "fail")){
+     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ($mcrseq =~ m/^$checkpattern/) && ($isPass ne "fail")){
+     #if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0])){
+     if(($btmp < $bcthres[0]) && ($mtmp < $umithres[0]) && ($goahead eq "yes") && ($isPass ne "fail")){
       chomp($rid);
 
       if($rid =~ m/^\@.*\s/){

@@ -29,6 +29,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+15 May 2020: zUMIs2.8.1: Smart-seq3 UMI pattern detection now takes one hamming distance error into account.
+
 02 May 2020: zUMIs2.8.0: Ensure correct behaviour when resuming from mapping (`which_stage: Mapping`). It is now possible to fractionally count reads overlapping multiple features (on the same strand if strand-specificity is used) `multi_overlap: yes`. New function for parsing the gene annotations: Fixed a problem with genes completely within other another gene's intron & added the possibility to extend genomic interval of exons (this is useful for crossmapping species with poor annotations). Added a probability calculation to compare the occurance of intronic reads to an expectation generated from background intergenic mapping reads (`intronProb: yes`). Added statistics output for the total number of reads observed per gene.
 
 22 Apr 2020: zUMIs2.7.3: zUMIs will try to parse a geneID to gene name mapping file from the user provided GTF annotations.
