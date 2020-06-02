@@ -57,7 +57,7 @@ samples[, sample := tstrsplit(r1, file_delim_r1, keep = 1)][
 
 outfile_r1 <- paste0(opt$dir,"/reads_for_zUMIs.R1.fastq.gz")
 outfile_r2 <- paste0(opt$dir,"/reads_for_zUMIs.R2.fastq.gz")
-outfile_index <- paste0(opt$dir,"/reads_for_zUMIs.index.fastq")
+outfile_index <- paste0(opt$dir,"/reads_for_zUMIs.index.fastq.gz")
 
 for(i in seq(nrow(samples))){
   system(paste("cat", paste(opt$dir,samples[i]$r1,sep = "/"), ">>", outfile_r1))
