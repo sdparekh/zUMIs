@@ -55,19 +55,19 @@ if(mode == "PE") samples[,r2 := read2_files]
 samples[, sample := tstrsplit(r1, file_delim_r1, keep = 1)][
         , BC := stringi::stri_rand_strings(.N, 8, pattern = "[A-Z]")]
 
-outfile_r1 <- paste0(opt$dir,"/reads_for_zUMIs.R1.fastq")
-outfile_r2 <- paste0(opt$dir,"/reads_for_zUMIs.R2.fastq")
+outfile_r1 <- paste0(opt$dir,"/reads_for_zUMIs.R1.fastq.gz")
+outfile_r2 <- paste0(opt$dir,"/reads_for_zUMIs.R2.fastq.gz")
 outfile_index <- paste0(opt$dir,"/reads_for_zUMIs.index.fastq")
 
 for(i in seq(nrow(samples))){
-  system(paste("zcat", paste(opt$dir,samples[i]$r1,sep = "/"), ">>", outfile_r1))
-  if(mode == "PE") system(paste("zcat", paste(opt$dir,samples[i]$r2,sep = "/"), ">>", outfile_r2))
-  system(paste0("zcat ", paste(opt$dir,samples[i]$r1,sep = "/"), " | awk -v bc=\"",samples[i]$BC,"\" '{i++;if(i==1 || i==3){print;}if(i==2){print bc;}if(i==4){i=0;print \"AAAAAAAA\";}}' >> ",outfile_index))
+  system(paste("cat", paste(opt$dir,samples[i]$r1,sep = "/"), ">>", outfile_r1))
+  if(mode == "PE") system(paste("cat", paste(opt$dir,samples[i]$r2,sep = "/"), ">>", outfile_r2))
+  system(paste0(opt$pigz," -p2 -dc ", paste(opt$dir,samples[i]$r1,sep = "/"), " | awk -v bc=\"",samples[i]$BC,"\" '{i++;if(i==1 || i==3){print;}if(i==2){print bc;}if(i==4){i=0;print \"AAAAAAAA\";}}' | ",opt$pigz," -c -p",opt$threads," >> ",outfile_index))
 }
 
-system(paste(opt$pigz,"-p",opt$threads,outfile_r1))
-if(mode == "PE") system(paste(opt$pigz,"-p",opt$threads,outfile_r2))
-system(paste(opt$pigz,"-p",opt$threads,outfile_index))
+#system(paste(opt$pigz,"-p",opt$threads,outfile_r1))
+#if(mode == "PE") system(paste(opt$pigz,"-p",opt$threads,outfile_r2))
+#system(paste(opt$pigz,"-p",opt$threads,outfile_index))
 
 fwrite(samples, file =  paste0(opt$dir,"/reads_for_zUMIs.samples.txt"), quote = F, sep = "\t")
 write(samples$BC, file = paste0(opt$dir,"/reads_for_zUMIs.expected_barcodes.txt"))
