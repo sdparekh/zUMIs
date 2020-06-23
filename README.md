@@ -11,7 +11,7 @@ Start anaylysing your data:
 zUMIs/zUMIs-master.sh -c -y my_config.yaml
 ```
 zUMIs now comes with its own [miniconda](https://docs.conda.io/en/latest/miniconda.html) environment, so you do not need to deal with dependencies or installations (use the -c flag to use conda).
-If you wish to use your own dependencies, head to the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/Installation#dependencies) to see what is required. 
+If you wish to use your own dependencies, head to the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/Installation#dependencies) to see what is required.
 
 
 ## Intro
@@ -29,6 +29,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+23 June 2020: zUMIs2.8.3: Merged code contribution from @gringer: prevent errors by emitting SAM headers in chunked unmapped .bam file output of fqfilter. Changed call to STAR to prevent stalling of samtools pipe. 
+
 18 May 2020: zUMIs2.8.2: Added `merge_demultiplexed_fastq.R` to concatenate previously demultiplexed fastq files. For usage details see here: https://github.com/sdparekh/zUMIs/wiki/Starting-from-demultiplexed-fastq-files
 
 15 May 2020: zUMIs2.8.1: Smart-seq3 UMI pattern detection now takes one hamming distance error into account.
@@ -38,10 +40,10 @@ zUMIs will try to automatically do this, otherwise convert zUMIs output to loom 
 22 Apr 2020: zUMIs2.7.3: zUMIs will try to parse a geneID to gene name mapping file from the user provided GTF annotations.
 
 27 Mar 2020: zUMIs2.7.2: New barcode handling functionalities: When using intersection of automatic BC detection and BC whitelist and the full barcode is composed out of several barcode pieces (eg. RT barcode + illumina barcode), the whitelist can now also just be corresponding to just one of the barcode pieces (eg. RT barcode only whitelist). Furthermore, some scRNA-seq protocols may have several cell barcodes that belong to the same cell (eg. SPLiT-seq with oligo-dT/random-hex round 1 barcode; i7 barcode mix in 10x Genomics). zUMIs now supports internally combing the counts via the `barcode_sharing:` option. Please look at the [wiki for further details](https://github.com/sdparekh/zUMIs/wiki/Barcodes#barcode-sharing-feature) and at [examples for some protocols](https://github.com/sdparekh/zUMIs/wiki/Protocol-specific-setup).
- 
+
 16 Mar 2020: zUMIs2.7.1: Smart-seq3 data can be run with the proper consideration of strand information. When setting `strand: 1`, UMI reads will use this strand while non-UMI reads will stay unstranded.
 
-19 Feb 2020: [zUMIs2.7.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.7.0): Simplify installation greatly by a cond-pack of miniconda with all dependencies. The conda environment is used with `zUMIs-master.sh -c`, with the old behavior staying as the default. 
+19 Feb 2020: [zUMIs2.7.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.7.0): Simplify installation greatly by a cond-pack of miniconda with all dependencies. The conda environment is used with `zUMIs-master.sh -c`, with the old behavior staying as the default.
 
 13 Feb 2020: zUMIs2.6.3: Faster demultiplexing using python/pysam. Made forking of UMI collapse worker threads more robust.
 

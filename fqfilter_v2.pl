@@ -329,12 +329,12 @@ for (my $i=0; $i<=$#keys; $i++) {
   close $fhTmp;
 }
 
-if ($filtered == 0) {
-  print(STDERR "No reads emitted; please check the parameter file and the warnings above.\n");
-  exit;
-} else {
-  print(STDERR "reads kept: $filtered; reads discarded: $discarded\n");
-}
+#if ($filtered == 0) {
+#  print(STDERR "No reads emitted; please check the parameter file and the warnings above.\n");
+#  exit;
+#} else {
+#  print(STDERR "reads kept: $filtered; reads discarded: $discarded\n");
+#}
 
 open BCOUT, '>', $outbcstats || die "Couldn't open file ".$outbcstats.". Check permissions!\n";
 foreach my $bc (keys %bclist) {
