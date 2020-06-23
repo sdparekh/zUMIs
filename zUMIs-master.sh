@@ -75,7 +75,7 @@ check_opts "${yaml}" "YAML" "-y"
 
 # create temporary YAML file for corrected options
 yaml_orig=${yaml}
-yaml=$(basename ${yaml} .yaml).corrected.yaml
+yaml=$(dirname ${yaml})/$(basename ${yaml} .yaml).corrected.yaml
 cp ${yaml_orig} ${yaml}
 
 #now get some variables from YAML
