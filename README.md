@@ -4,7 +4,7 @@
 Nobody likes reading long README files so here is how you get going:
 Fetch zUMIs by cloning the repository:
 ```
-git clone https://github.com/sdparekh/zUMIs.git`
+git clone https://github.com/sdparekh/zUMIs.git
 ```
 Start anaylysing your data:
 ```
