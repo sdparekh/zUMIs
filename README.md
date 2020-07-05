@@ -8,7 +8,7 @@ git clone https://github.com/sdparekh/zUMIs.git`
 ```
 Start anaylysing your data:
 ```
-zUMIs/zUMIs-master.sh -c -y my_config.yaml
+zUMIs/zUMIs.sh -c -y my_config.yaml
 ```
 zUMIs now comes with its own [miniconda](https://docs.conda.io/en/latest/miniconda.html) environment, so you do not need to deal with dependencies or installations (use the -c flag to use conda).
 If you wish to use your own dependencies, head to the [zUMIs wiki](https://github.com/sdparekh/zUMIs/wiki/Installation#dependencies) to see what is required.
@@ -29,6 +29,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+05 July 2020: [zUMIs2.9.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.7.0): Speed up STAR read mapping by parallel instances if enough resources are available. Change the main zUMIs script to `zUMIs.sh`. Speed up and reduce clutter by loading reads from bam files using parallelised Rsamtools calls instead of printing temporary text files. Speed up counting by parallelising exon / intron / exon+intron counting as well as downsamplings. Speed up by parallelising creation of wide format count matrices. 
+
 23 June 2020: zUMIs2.8.3: Merged code contribution from @gringer: prevent errors by emitting SAM headers in chunked unmapped .bam file output of fqfilter. Changed call to STAR to prevent stalling of samtools pipe. 
 
 18 May 2020: zUMIs2.8.2: Added `merge_demultiplexed_fastq.R` to concatenate previously demultiplexed fastq files. For usage details see here: https://github.com/sdparekh/zUMIs/wiki/Starting-from-demultiplexed-fastq-files

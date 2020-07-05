@@ -3,6 +3,7 @@ library(methods)
 library(data.table)
 library(yaml)
 library(ggplot2)
+suppressPackageStartupMessages(library(Rsamtools))
 
 ##########################
 myYaml <- commandArgs(trailingOnly = T)
@@ -126,15 +127,22 @@ if(opt$counting_opts$Ham_Dist == 0){
     dir.create( paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/") )
   }
 
-  samouts <- prep_samtools(featfile  = outbamfile,
-                           bccount   = bccount,
-                           inex      = opt$counting_opts$introns,
-                           cores     = opt$num_threads,
-                           samtoolsexc=samtoolsexc)
+  tmpbamfile <- outbamfile
+  outbamfile <- paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam")
+  print("Coordinate sorting intermediate bam file...")
+  sort_cmd <- paste0(samtoolsexc," sort -O 'BAM' -@ ",opt$num_threads," -m ",mempercpu,"G -o ",outbamfile," ",tmpbamfile)
+  system(sort_cmd)
+  index_cmd <- paste(samtoolsexc,"index -@",opt$num_threads,outbamfile)
+  system(index_cmd)
+  system(paste0("rm ",tmpbamfile))
+  
   for(i in unique(bccount$chunkID)){
     print( paste( "Hamming distance collapse in barcode chunk", i, "out of",length(unique(bccount$chunkID)) ))
-    reads<-reads2genes( inex = opt$counting_opts$introns,
-                        chunkID  = i )
+    reads <- reads2genes_new(featfile = outbamfile,
+                             bccount  = bccount,
+                             inex     = opt$counting_opts$introns,
+                             chunk    = i,
+                             cores    = opt$num_threads)
     reads <- reads[!UB==""] #make sure only UMI-containing reads go further
     u <- umiCollapseHam(reads,bccount, HamDist=opt$counting_opts$Ham_Dist)
   }
@@ -144,7 +152,7 @@ if(opt$counting_opts$Ham_Dist == 0){
   outbamfile <- correct_UB_tags(bccount, samtoolsexc)
   sortbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
 }
-paste("Coordinate sorting final bam file...")
+print("Coordinate sorting final bam file...")
 sort_cmd <- paste0(samtoolsexc," sort -O 'BAM' -@ ",opt$num_threads," -m ",mempercpu,"G -o ",sortbamfile," ",outbamfile)
 system(sort_cmd)
 index_cmd <- paste(samtoolsexc,"index -@",opt$num_threads,sortbamfile)
@@ -177,18 +185,14 @@ if( opt$counting_opts$introns ){
 
 ########################## assign reads to UB & GENE
 
-samouts <- prep_samtools(featfile  = sortbamfile,
-                         bccount   = bccount,
-                         inex      = opt$counting_opts$introns,
-                         cores     = opt$num_threads,
-                         samtoolsexc=samtoolsexc)
-
 for(i in unique(bccount$chunkID)){
      print( paste( "Working on barcode chunk", i, "out of",length(unique(bccount$chunkID)) ))
      print( paste( "Processing",length(bccount[chunkID==i]$XC), "barcodes in this chunk..." ))
-     reads<-reads2genes( inex = opt$counting_opts$introns,
-                          chunkID  = i )
-
+     reads <- reads2genes_new(featfile = sortbamfile,
+                              bccount  = bccount,
+                              inex     = opt$counting_opts$introns,
+                              chunk    = i,
+                              cores    = opt$num_threads)
 
      tmp<-collectCounts(  reads =reads,
                           bccount=bccount[chunkID==i],

@@ -56,96 +56,55 @@ ham_mat <- function(umistrings) {
   nrow(X) - H
 }
 
-prep_samtools <- function(featfile,bccount,inex,cores,samtoolsexc){
-  print("Extracting reads from bam file(s)...")
 
-  nchunks <- length(unique(bccount$chunkID))
-  all_rgfiles <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".RGgroup.",1:nchunks,".txt")
-
-
-  for(i in unique(bccount$chunkID)){
-    rgfile <- all_rgfiles[i]
-    chunks <- bccount[chunkID==i]$XC
-    write.table(file=rgfile,chunks,col.names = F,quote = F,row.names = F)
-  }
-
+reads2genes_new <- function(featfile, bccount, inex, chunk, cores, keepUnassigned = FALSE){
+  chunk_bcs <- bccount[chunkID==chunk]$XC
+  idxstats <- Rsamtools::idxstatsBam(featfile)
+  taglist <- c("BC", "UB","GE")
   if(inex){
-    headerXX <- paste( c(paste0("V",1:4)) ,collapse="\t")
-  }else{
-    headerXX <- paste( c(paste0("V",1:3)) ,collapse="\t")
+    taglist <- c(taglist, "GI")
   }
-  write(headerXX,"freadHeader")
-
-  headercommand <- "cat freadHeader > "
-  layoutflag <- ifelse(opt$read_layout == "PE", "-f 0x0040", "")
-  samcommand <- paste(samtoolsexc," view -x QB -x QU -x BX -x NH -x AS -x nM -x HI -x IH -x NM -x uT -x MD -x jM -x jI -x XN -x XS -x UX -x ES -x EN -x IS -x IN", layoutflag, "-@")
-
-  outfiles <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".tmp.",1:nchunks,".txt")
-  system(paste(headercommand,outfiles,collapse = "; "))
-
-  cpusperchunk <- round(cores/nchunks,0)
-
-  if(inex == FALSE){
-    grepcommand <- " | cut -f12,13,14 | sed 's/BC:Z://' | sed 's/GE:Z://' | sed 's/UB:Z://' | grep -F -f "
-    ex_cmd <- paste(samcommand,cpusperchunk,featfile,grepcommand,all_rgfiles,">>",outfiles," & ",collapse = " ")
-
-    system(paste(ex_cmd,"wait"))
+  
+  rsamtools_reads <- mclapply(1:nrow(idxstats), function(x) {
+    if(opt$read_layout == "PE"){
+      parms <- ScanBamParam(tag=taglist, 
+                            what="pos", 
+                            flag = scanBamFlag(isFirstMateRead = TRUE),
+                            tagFilter = list(BC = chunk_bcs),
+                            which = GRanges(seqnames = idxstats[x,"seqnames"], ranges = IRanges(1,idxstats[x,"seqlength"])))
+    }else{
+      parms <- ScanBamParam(tag=taglist, 
+                            what="pos", 
+                            tagFilter = list(BC = chunk_bcs),
+                            which = GRanges(seqnames = idxstats[x,"seqnames"], ranges = IRanges(1,idxstats[x,"seqlength"])))
+    }
+    
+    dat <- scanBam(file = featfile, param = parms)
+    if(inex){
+      dt <- data.table(RG = dat[[1]]$tag$BC, UB = dat[[1]]$tag$UB, GE = dat[[1]]$tag$GE, GEin = dat[[1]]$tag$GI)
+    }else{
+      dt <- data.table(RG = dat[[1]]$tag$BC, UB = dat[[1]]$tag$UB, GE = dat[[1]]$tag$GE)
+    }
+    return(dt)
+  }, mc.cores = cores)
+  rsamtools_reads <- rbindlist(rsamtools_reads, fill = TRUE, use.names = TRUE)
+  if(inex){
+    rsamtools_reads[ , ftype :="NA"][
+       is.na(GEin)==F, ftype :="intron"][
+       is.na(GE)==F  , ftype:="exon"][
+       is.na(GE)     , GE:=GEin][ 
+                     ,GEin:=NULL ]
   }else{
-    grepcommand <- " | cut -f12,13,14,15 | sed 's/BC:Z://' | sed 's/Z://g' | grep -F -f "
-    inex_cmd <- paste(samcommand,cpusperchunk,featfile,grepcommand,all_rgfiles,">>",outfiles," & ",collapse = " ")
-
-    system(paste(inex_cmd,"wait"))
+    rsamtools_reads[, ftype :="NA"][
+        is.na(GE)==F, ftype :="exon"]
   }
-  system("rm freadHeader")
-  system(paste("rm",all_rgfiles))
-
-  return(outfiles)
-}
-
-reads2genes <- function(inex,chunkID, keepUnassigned = FALSE){
-
-  samfile <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,".tmp.",chunkID,".txt")
-
-   if(inex==FALSE){
-     reads<-data.table::fread(samfile, na.strings=c(""),
-                              select=c(1,2,3),header=T,fill=T,colClasses = "character" , col.names = c("RG","GE","UB") )[
-                              ,"ftype":="NA"
-                              ][is.na(GE)==F,  ftype:="exon"]
-  }else{
-    reads<-data.table::fread(samfile, na.strings=c(""),
-                             select=c(1,2,3,4),header=T,fill=T,colClasses = "character" , col.names = c("RG","V2","V3","V4") )[
-                                     , V2_id := substr(V2,1,2)
-                                  ][ , V3_id := substr(V3,1,2)
-                                  ][ , V4_id := substr(V4,1,2)
-                                  ][ , V2 := substr(V2,4,nchar(V2))
-                                  ][ , V3 := substr(V3,4,nchar(V3))
-                                  ][ , V4 := substr(V4,4,nchar(V4))
-                                  ][ V2_id == "GE", GE := V2
-                                  ][ V2_id == "GI", GEin := V2
-                                  ][ V2_id == "UB", UB := V2
-                                  ][ V3_id == "GE", GE := V3
-                                  ][ V3_id == "GI", GEin := V3
-                                  ][ V3_id == "UB", UB := V3
-                                  ][ V4_id == "UB", UB := V4
-                                  ][ V4_id == "GI", GEin := V4
-                                  ][ ,c("V2_id","V3_id","V4_id","V2","V3","V4") := NULL
-                                  ][ ,"ftype":="NA"
-                                  ][is.na(GEin)==F,ftype:="intron"
-                                  ][is.na(GE)==F,  ftype:="exon"
-                                  ][is.na(GE),GE:=GEin
-                                  ][ ,GEin:=NULL ]
-
-  }
-  system(paste("rm",samfile))
-
-  setkey(reads,RG)
-
+  setkey(rsamtools_reads,RG)
+  
   if(keepUnassigned){
-    return( reads )
+    return( rsamtools_reads )
   }else{
-    return( reads[GE!="NA"] )
+    return( rsamtools_reads[GE!="NA"] )
   }
-
 }
 
 hammingFilter<-function(umiseq, edit=1, gbcid=NULL){
@@ -322,19 +281,19 @@ check_nonUMIcollapse <- function(seqfiles){
 collectCounts<-function(reads,bccount,subsample.splits, mapList, ...){
   subNames<-paste("downsampled",rownames(subsample.splits),sep="_")
   umiFUN<-"umiCollapseID"
-  lapply(mapList,function(tt){
+  parallel::mclapply(mapList,function(tt){
     ll<-list( all=umiFUNs[[umiFUN]](reads=reads,
                                 bccount=bccount,
                                 ftype=tt),
-              downsampling=lapply( 1:nrow(subsample.splits) , function(i){
+              downsampling=parallel::mclapply( 1:nrow(subsample.splits) , function(i){
                 umiFUNs[[umiFUN]](reads,bccount,
                                   nmin=subsample.splits[i,1],
                                   nmax=subsample.splits[i,2],
-                                  ftype=tt)} )
+                                  ftype=tt)}, mc.cores = floor(opt$num_threads/length(mapList)) )
     )
     names(ll$downsampling)<-subNames
     ll
-  })
+  }, mc.cores = length(mapList))
 
 }
 
@@ -349,16 +308,18 @@ bindList<-function(alldt,newdt){
 }
 
 convert2countM<-function(alldt,what){
-  fmat<-alldt
+  fmat<-copy(alldt)
   for( i in 1:length(alldt)){
     fmat[[i]][[1]]<-.makewide(alldt[[i]][[1]],what)
-    for(j in names(alldt[[i]][[2]])){
-      fmat[[i]][[2]][[j]]<-.makewide(alldt[[i]][[2]][[j]],what)
-    }
+    fmat[[i]][[2]] <- fmat[[i]][[2]][sapply(fmat[[i]][[2]], function(x) nrow(x)>0)]
+    downsamp_names <- names(fmat[[i]][[2]])
+    fmat[[i]][[2]] <- parallel::mclapply(downsamp_names, function(x){
+      .makewide(alldt[[i]][[2]][[x]],what)
+    }, mc.cores = opt$num_threads)
+    names(fmat[[i]][[2]]) <- downsamp_names
   }
   return(fmat)
 }
-
 write_molecule_mapping <- function(mm){
   mm_path <- paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/")
   bcs <- unique(mm$BC)
