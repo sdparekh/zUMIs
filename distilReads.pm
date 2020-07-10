@@ -27,10 +27,9 @@ sub makeFileHandles{
 
     $fh="file".$j;
 
-    if ( open $fhTmp, '<', $file ) {
-      $file_handles{ $fh }{"id"} = $file.":".$pat.":".$fpat.":".$cframe;
-      $file_handles{ $fh }{"handle"} = $fhTmp;
-      close $fhTmp;
+    if ( open $fh, '<', $file ) {
+      $file_handles{ $fh } = $file.":".$pat.":".$fpat.":".$cframe;
+      close $fh;
     }
     else {
       warn "couldn't open $file for reading: $!\n";
@@ -40,13 +39,9 @@ sub makeFileHandles{
 }
 
 sub checkPhred{
-  my ($bqseq) = @_;
-  @quals = map {$_} unpack "C*", $bqseq;
-  my $offset = 33;
-  if (grep {$_ > 74} @quals) {
-    $offset = 64;
-  }
-  return $offset;
+    @quals = map {$_} unpack "C*", $bqseq;
+    if(grep {$_ > 74} @quals){$offset=64;}else{$offset=33;}
+    return $offset;
 }
 
 sub correctFrameshift{

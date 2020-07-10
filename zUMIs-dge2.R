@@ -129,12 +129,14 @@ if(opt$counting_opts$Ham_Dist == 0){
 
   tmpbamfile <- outbamfile
   outbamfile <- paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam")
+  print(Sys.time())
   print("Coordinate sorting intermediate bam file...")
   sort_cmd <- paste0(samtoolsexc," sort -O 'BAM' -@ ",opt$num_threads," -m ",mempercpu,"G -o ",outbamfile," ",tmpbamfile)
   system(sort_cmd)
   index_cmd <- paste(samtoolsexc,"index -@",opt$num_threads,outbamfile)
   system(index_cmd)
   system(paste0("rm ",tmpbamfile))
+  print(Sys.time())
   
   for(i in unique(bccount$chunkID)){
     print( paste( "Hamming distance collapse in barcode chunk", i, "out of",length(unique(bccount$chunkID)) ))
@@ -152,12 +154,15 @@ if(opt$counting_opts$Ham_Dist == 0){
   outbamfile <- correct_UB_tags(bccount, samtoolsexc)
   sortbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
 }
+print(Sys.time())
 print("Coordinate sorting final bam file...")
 sort_cmd <- paste0(samtoolsexc," sort -O 'BAM' -@ ",opt$num_threads," -m ",mempercpu,"G -o ",sortbamfile," ",outbamfile)
 system(sort_cmd)
 index_cmd <- paste(samtoolsexc,"index -@",opt$num_threads,sortbamfile)
 system(index_cmd)
 system(paste0("rm ",outbamfile))
+print(Sys.time())
+
 
 ##########################################
 #set Downsampling ranges

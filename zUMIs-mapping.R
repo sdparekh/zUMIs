@@ -110,7 +110,7 @@ if(inp$counting_opts$twoPass==TRUE){
 #finally, run STAR
 if(num_star_instances>1 & inp$which_Stage == "Filtering"){
   map_tmp_dir <- paste0(inp$out_dir,"/zUMIs_output/.tmpMap/")
-  dir.create(path = map_tmp_dir)
+  dir.create(path = map_tmp_dir,showWarnings = FALSE)
   input_split <- split(filtered_bams, ceiling(seq_along(filtered_bams) / ceiling(length(filtered_bams) / num_star_instances)))
   input_split <- sapply(input_split, paste0, collapse = ",")
   STAR_preset <- STAR_command
@@ -130,7 +130,7 @@ if(num_star_instances>1 & inp$which_Stage == "Filtering"){
   out_txbams <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.Aligned.toTranscriptome.out.bam"), full = TRUE)
   merge_txbams <- paste(inp$samtools_exec,"cat -o",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.toTranscriptome.out.bam"),paste(out_txbams, collapse = " "))
   system(paste(merge_logs,"&",merge_bams,"&",merge_txbams,"& wait"))
-  system(paste0("rm ", map_tmp_dir, "tmp.", inp$project, ".*"))
+  system(paste0("rm -r ", map_tmp_dir, "tmp.", inp$project, ".*"))
 }else{
   STAR_command <- paste(STAR_command,
     "--readFilesIn",paste0(filtered_bams,collapse=","),
