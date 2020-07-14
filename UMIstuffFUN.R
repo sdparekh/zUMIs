@@ -1,16 +1,19 @@
 
-splitRG<-function(bccount,mem){
+splitRG<-function(bccount,mem,hamdist){
   if(is.null(mem) || mem==0){
     maxR<- Inf
   }else{
     maxR<- floor( mem*1000 * 4500 )
   }
-  if( (maxR > 2e+09 & opt$read_layout == "SE") | (maxR > 1e+09 & opt$read_layout == "PE") ){
-    maxR <- ifelse(opt$read_layout == "SE",2e+09,1e+09)
+  #if( (maxR > 2e+09 & opt$read_layout == "SE") | (maxR > 1e+09 & opt$read_layout == "PE") ){
+  #  maxR <- ifelse(opt$read_layout == "SE",2e+09,1e+09)
+  #}
+  if(maxR > 2e+09){
+    maxR <- 2e+09
   }
-  if(opt$counting_opts$Ham_Dist>0){ #multicore hamming distance takes a lot of memory
+  if(hamdist>0){ #multicore hamming distance takes a lot of memory
     #ram_factor <- ifelse(opt$num_threads>10, 5, 2)
-    ram_factor <- 2
+    ram_factor <- 3
     maxR <- floor( maxR/ram_factor )
   }
 
@@ -283,19 +286,22 @@ collectCounts<-function(reads,bccount,subsample.splits, mapList, ...){
   umiFUN<-"umiCollapseID"
   parallel::mclapply(mapList,function(tt){
     ll<-list( all=umiFUNs[[umiFUN]](reads=reads,
-                                bccount=bccount,
-                                ftype=tt),
-              downsampling=parallel::mclapply( 1:nrow(subsample.splits) , function(i){
+                                    bccount=bccount,
+                                    ftype=tt),
+              #downsampling=parallel::mclapply( 1:nrow(subsample.splits) , function(i){
+              downsampling=lapply( 1:nrow(subsample.splits) , function(i){
                 umiFUNs[[umiFUN]](reads,bccount,
                                   nmin=subsample.splits[i,1],
                                   nmax=subsample.splits[i,2],
-                                  ftype=tt)}, mc.cores = floor(opt$num_threads/length(mapList)) )
+                                  ftype=tt)} )
+                                  #ftype=tt)}, mc.cores = floor(opt$num_threads/length(mapList)) )
     )
     names(ll$downsampling)<-subNames
     ll
   }, mc.cores = length(mapList))
-
+  
 }
+
 
 bindList<-function(alldt,newdt){
   for( i in names(alldt)){
@@ -340,86 +346,129 @@ correct_UB_tags <- function(bccount, samtoolsexc){
     UB_cmd <- paste(pl_path,bam,bamout,mm,samtoolsexc)
     UB_cmd_list[[i]] <- UB_cmd
   }
-  bla <- parallel::mclapply(UB_cmd_list, system, ignore.stderr = TRUE, mc.cores = opt$num_threads, mc.preschedule=F, mc.silent = TRUE)
+  bla <- parallel::mclapply(UB_cmd_list, system, ignore.stderr = TRUE, mc.cores = ceiling(opt$num_threads/2), mc.preschedule=F, mc.silent = TRUE)
   UB_cmd_list <- unlist(UB_cmd_list)
   UB_files <- as.character(data.frame(strsplit(UB_cmd_list," "),stringsAsFactors=F)[3,])
   #UB_files <- paste(UB_files, collapse = " ")
   UB_mergelist <- paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/",opt$project,"mergelist.txt")
   write(UB_files, file = UB_mergelist)
-  outbam <- paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.bam")
-  #merge_cmd <- paste(samtoolsexc,"merge -n -t BC -@",opt$num_threads,"-b",UB_mergelist,outbam)
-  merge_cmd <- paste(samtoolsexc,"cat -b",UB_mergelist,"-o",outbam)
+  outbam <- paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
+  print("Creating sorted final bam file...")
+  merge_cmd <- paste(samtoolsexc,"merge -f -@",opt$num_threads,"-b",UB_mergelist,outbam)
+  #merge_cmd <- paste(samtoolsexc,"cat -b",UB_mergelist,"-o",outbam)
   write(merge_cmd, file = paste0(opt$out_dir,"/",opt$project,".merge.sh"))
   system(paste0("bash ",opt$out_dir,"/",opt$project,".merge.sh"))
   return(outbam)
 }
 
-demultiplex_bam <- function(opt, bamfile, nBCs){
+demultiplex_bam <- function(opt, bamfile, nBCs, samtoolsexc, bccount){
   if(!dir.exists( paste0(opt$out_dir,"/zUMIs_output/demultiplexed/") )){
     dir.create( paste0(opt$out_dir,"/zUMIs_output/demultiplexed/") )
   }
-
+  
   installed_py <- try(system("pip freeze", intern = TRUE))
-
+  
   if(any(grepl("pysam==",installed_py))){
     print("Using python implementation to demultiplex.")
     print(Sys.time())
     max_filehandles <- as.numeric(system("ulimit -n", intern = TRUE))
     threads_perBC <- floor(max_filehandles/nBCs)
-
+    
     if(max_filehandles < nBCs | nBCs > 10000){
       #print("Warning! You cannot open enough filehandles for demultiplexing! Increase ulimit -n")
       #break up in several demultiplexing runs to avoid choke
       nchunks <- ifelse(max_filehandles < nBCs, no = ceiling(nBCs/10000), yes = ceiling(nBCs/(max_filehandles-100)))
       if(nchunks == 1){nchunks = 2}
       print(paste("Breaking up demultiplexing in",nchunks,"chunks. This may be because you have >10000 cells or a too low filehandle limit (ulimit -n)."))
-
+      
       full_bclist <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
       bcsplit_prefix <- paste0(opt$out_dir,"/zUMIs_output/.",opt$project,"kept_barcodes.")
-
+      
       split_cmd <- paste0("split -a 3 -n l/",nchunks," ",full_bclist, " ", bcsplit_prefix)
       system(split_cmd)
       bclist <- list.files(path = paste0(opt$out_dir,"/zUMIs_output/"), pattern =  paste0(".",opt$project,"kept_barcodes."),all.files = TRUE, full.names = TRUE)
       header_cmd <- paste('sed -i -e \'1s/^/XC,n,cellindex\\n/\'', bclist[-1], collapse = '; ', sep = ' ')
       system(header_cmd)
-
+      
       if(max_filehandles < nBCs){threads_perBC <- 1}
     }else{
       bclist <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
     }
-
+    
     if(threads_perBC > 2){
       threads_perBC <- 2
     }
     threads_decompress <- opt$num_threads - threads_perBC
-    outstub <- paste0(opt$out_dir,"/zUMIs_output/demultiplexed/",opt$project,".")
     py_script <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.py")
-    demux_cmd <- paste(
-      "python3", py_script,
-      "--bam", bamfile,
-      "--out", outstub,
-      "--bc", bclist,
-      "--pout", threads_perBC,
-      "--pin", threads_decompress
-    , collapse = "; ")
+    print("Demultiplexing zUMIs bam file...")
+    
+    if(threads_decompress > 10){ #if capacity is there, do demultiplexing parallelised per chromosome
+      collect_demultiplex = TRUE #set a flag to remember to collect the output chunks later
+      demux_cmd <- "sleep 1" #set a decoy system command
+      threads_decompress = 10
+      threads_chromosomes = ceiling(opt$num_threads/threads_decompress)
+      if(threads_chromosomes > 10){
+        threads_chromosomes <- 10 #prevent mayhem
+      }
+      chromosomes_todo <- Rsamtools::seqinfo(Rsamtools::BamFile(bamfile))
+      chromosomes_todo <- c(seqnames(chromosomes_todo), "zunmapped") #don't forget the unmapped reads :)
+      tmp_outdir <- paste0(opt$out_dir,"/zUMIs_output/demultiplexed/",opt$project,"/")
+      dir.create(tmp_outdir, showWarnings = FALSE)
+      xyz <- parallel::mclapply(chromosomes_todo, function(chr){
+        pysam_cmd <- paste(
+          "python3", py_script,
+          "--bam", bamfile,
+          "--out", tmp_outdir,
+          "--bc", bclist,
+          "--pout", threads_perBC,
+          "--pin", threads_decompress,
+          "--chr", chr
+          , collapse = "; ")
+        system(pysam_cmd)
+      }, mc.cores = threads_chromosomes)
+      
+    }else{
+      outstub <- paste0(opt$out_dir,"/zUMIs_output/demultiplexed/",opt$project,".")
+      demux_cmd <- paste(
+        "python3", py_script,
+        "--bam", bamfile,
+        "--out", outstub,
+        "--bc", bclist,
+        "--pout", threads_perBC,
+        "--pin", threads_decompress,
+        "--chr", "allreads"
+        , collapse = "; ")
+    }
+    
   }else{
     print("Using perl implementation to demultiplex.")
     demux_cmd <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.pl ",opt$out_dir," ",opt$project, " ", bamfile, " ", samtoolsexc )
   }
   system(demux_cmd)
+  if(collect_demultiplex){
+    xyz <- parallel::mclapply(bccount$XC, function(x){
+      cell_files <- paste0(tmp_outdir,x,".",chromosomes_todo,".demx.bam", collapse = " ")
+      output_file <- paste0(opt$out_dir,"/zUMIs_output/demultiplexed/",opt$project,".",x,".demx.bam")
+      cat_cmd <- paste(samtoolsexc, "cat", "-o", output_file, cell_files)
+      system(cat_cmd)
+    }, mc.cores = opt$num_threads)
+    #remove the temp folder
+    system(paste("rm -r", tmp_outdir))
+  }
+  print("Demultiplexing complete.")
   print(Sys.time())
 }
 
 split_bam <- function(bam, cpu, samtoolsexc){
   UMIbam <- paste0(bam,".UMI.bam")
   internalbam <- paste0(bam,".internal.bam")
-  cpus <- floor((cpu-4)/2)
+  cpus <- floor((cpu-10)/2)
   if(cpus<1){
     cpus <- 2
   }
 
-  cmd_umi <- paste(samtoolsexc, "view -h -@ 2", bam, " | grep -v -P 'UB:Z:\t' | ", samtoolsexc, "view -b -@",cpus,"-o",UMIbam,"&")
-  cmd_internal <- paste(samtoolsexc, "view -h -@ 2", bam, " | grep -v 'UB:Z:[A-Z]' | ", samtoolsexc, "view -b -@",cpus,"-o",internalbam,"&")
+  cmd_umi <- paste(samtoolsexc, "view -h -@ 5", bam, " | grep -v -P 'UB:Z:\t' | ", samtoolsexc, "view -b -@",cpus,"-o",UMIbam,"&")
+  cmd_internal <- paste(samtoolsexc, "view -h -@ 5", bam, " | grep -v 'UB:Z:[A-Z]' | ", samtoolsexc, "view -b -@",cpus,"-o",internalbam,"&")
   system(paste(cmd_umi,cmd_internal,"wait"))
   return(c(internalbam,UMIbam))
 }
@@ -600,4 +649,10 @@ RPKM.calc <- function(exprmat, gene.length){
   setorder(dt, GE, RG)
 
   return (dt[,c("GE","RG","prob"), with = FALSE])
+}
+
+check_read_layout <- function(bamfile){
+  isbamPE <- suppressMessages(Rsamtools::testPairedEndBam(bamfile))
+  found_read_layout <- ifelse(isbamPE == TRUE, "PE", "SE")
+  return(found_read_layout)
 }

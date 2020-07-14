@@ -46,7 +46,7 @@ if(opt$barcodes$BarcodeBinning > 0){
 }else{
   bccount <- fread(paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt"))
 }
-bccount<-splitRG(bccount=bccount, mem= opt$mem_limit)
+bccount<-splitRG(bccount=bccount, mem= opt$mem_limit, hamdist = opt$counting_opts$Ham_Dist)
 
 ##############################################################
 ##### featureCounts
@@ -67,6 +67,8 @@ try(data.table::fwrite(gene_name_mapping, file = paste0(opt$out_dir,"/zUMIs_outp
 
 if(smart3_flag & opt$counting_opts$strand == 1){
   #split bam in UMU ends and internal
+  print("Preparing Smart-seq3 data for stranded gene assignment...")
+  print(Sys.time())
   tmp_bams <- split_bam(bam = abamfile, cpu = opt$num_threads, samtoolsexc=samtoolsexc)
 
   #assign features with appropriate strand
@@ -119,8 +121,13 @@ if(is.null(opt$mem_limit)){
   mempercpu <- max(round(opt$mem_limit/opt$num_threads,0),1)
 }
 
+
 if(opt$counting_opts$Ham_Dist == 0){
   sortbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam")
+  print(Sys.time())
+  print("Coordinate sorting final bam file...")
+  sort_cmd <- paste0(samtoolsexc," sort -O 'BAM' -@ ",opt$num_threads," -m ",mempercpu,"G -o ",sortbamfile," ",outbamfile)
+  system(sort_cmd)
 }else{
   #run hamming distance collapsing here and write output into bam file
   if(!dir.exists( paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/") )){
@@ -138,6 +145,11 @@ if(opt$counting_opts$Ham_Dist == 0){
   system(paste0("rm ",tmpbamfile))
   print(Sys.time())
   
+  #check if PE / SE flag is set correctly
+  if(is.null(opt$read_layout)){
+    opt$read_layout <- check_read_layout(outbamfile)
+  }
+  
   for(i in unique(bccount$chunkID)){
     print( paste( "Hamming distance collapse in barcode chunk", i, "out of",length(unique(bccount$chunkID)) ))
     reads <- reads2genes_new(featfile = outbamfile,
@@ -149,20 +161,21 @@ if(opt$counting_opts$Ham_Dist == 0){
     u <- umiCollapseHam(reads,bccount, HamDist=opt$counting_opts$Ham_Dist)
   }
   print("Demultiplexing output bam file by cell barcode...")
-  demultiplex_bam(opt, outbamfile, nBCs = length(unique(bccount$XC)))
+  demultiplex_bam(opt, outbamfile, nBCs = length(unique(bccount$XC)), bccount = bccount, samtoolsexc = samtoolsexc)
   print("Correcting UMI barcode tags...")
-  outbamfile <- correct_UB_tags(bccount, samtoolsexc)
-  sortbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
+  sortbamfile <- correct_UB_tags(bccount, samtoolsexc)
+  #sortbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
+  bccount<-splitRG(bccount=bccount, mem= opt$mem_limit, hamdist = 0) # allow more reads to be in RAM fur subsequent steps
 }
-print(Sys.time())
-print("Coordinate sorting final bam file...")
-sort_cmd <- paste0(samtoolsexc," sort -O 'BAM' -@ ",opt$num_threads," -m ",mempercpu,"G -o ",sortbamfile," ",outbamfile)
-system(sort_cmd)
 index_cmd <- paste(samtoolsexc,"index -@",opt$num_threads,sortbamfile)
 system(index_cmd)
 system(paste0("rm ",outbamfile))
 print(Sys.time())
 
+#check if PE / SE flag is set correctly
+if(is.null(opt$read_layout)){
+  opt$read_layout <- check_read_layout(sortbamfile)
+}
 
 ##########################################
 #set Downsampling ranges
@@ -263,7 +276,7 @@ if(opt$counting_opts$intronProb == TRUE){
 #demultiplexing
 if(opt$counting_opts$Ham_Dist == 0 && opt$barcodes$demultiplex == TRUE ){ #otherwise its already demultiplexed!
   print("Demultiplexing output bam file by cell barcode...")
-  demultiplex_bam(opt, sortbamfile, nBCs = length(unique(bccount$XC)))
+  demultiplex_bam(opt, sortbamfile, nBCs = length(unique(bccount$XC)), bccount = bccount, samtoolsexc = samtoolsexc)
 }
 
 #################

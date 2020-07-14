@@ -29,6 +29,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+14 July 2020: [zUMIs2.9.2](https://github.com/sdparekh/zUMIs/releases/tag/2.9.2): Several bug fixes: Prevent RAM from ballooning, issues with resuming from different stage. Speed up demultiplexing further by chrosome-wise operations. Remove need for second bam file sorting after hamming collapse by keeping sort order.
+
 10 July 2020: [zUMIs2.9.1](https://github.com/sdparekh/zUMIs/releases/tag/2.9.1): Revert changes from pull request #194 (commit  #ff7e879) that introduced a bug when using PE reads.
 
 05 July 2020: [zUMIs2.9.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.9.0): Speed up STAR read mapping by parallel instances if enough resources are available. Change the main zUMIs script to `zUMIs.sh`. Speed up and reduce clutter by loading reads from bam files using parallelised Rsamtools calls instead of printing temporary text files. Speed up counting by parallelising exon / intron / exon+intron counting as well as downsamplings. Speed up by parallelising creation of wide format count matrices. 

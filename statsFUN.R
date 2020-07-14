@@ -261,3 +261,9 @@ sumGene <- function(counts){
   outdt <- rbindlist(outlist)
   return(outdt)
 }
+
+check_read_layout <- function(bamfile){
+  isbamPE <- suppressMessages(Rsamtools::testPairedEndBam(bamfile))
+  found_read_layout <- ifelse(isbamPE == TRUE, "PE", "SE")
+  return(found_read_layout)
+}

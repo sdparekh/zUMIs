@@ -9,6 +9,7 @@ library(yaml)
 library(ggplot2)
 library(Matrix)
 suppressMessages(library(dplyr))
+suppressMessages(library(Rsamtools))
 suppressMessages(library(cowplot))
 options(datatable.fread.input.cmd.message=FALSE)
 ##########################
@@ -26,7 +27,6 @@ source(paste0(opt$zUMIs_directory,"/statsFUN.R"))
 #splitRG <- function(x) {0}
 #suppressMessages(insertSource(paste0(opt$zUMIs_directory,"/UMIstuffFUN.R"), functions="splitRG"))
 
-
 data.table::setDTthreads(threads=opt$num_threads)
 
 user_seq<- getUserSeq(paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"))  # find a way to read from end of file or grep the last
@@ -34,11 +34,15 @@ bc<-data.table::fread(paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barc
 AllCounts<-readRDS(paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".dgecounts.rds",sep=""))
 
 
-featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.bam"),
+featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam"),
                      paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam"))
 
 featfile <- featfile_vector[which(file.exists(featfile_vector))[1]]
 
+#check if PE / SE flag is set correctly
+if(is.null(opt$read_layout)){
+  opt$read_layout <- check_read_layout(featfile)
+}
 
 ############### in case of smart3, check UMI fragment counts
 if(any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files)))){

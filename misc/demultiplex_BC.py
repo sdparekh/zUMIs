@@ -12,15 +12,26 @@ def read_cellBCs (bcfile):
     bclist.pop(0)
     return(bclist)
 
-def demultiplex_bam (bamfile, bcdict, outpath, pout, pin):
+def demultiplex_bam (bamfile, bcdict, outpath, pout, pin, chr):
     inbam = pysam.AlignmentFile(bamfile, 'rb', threads = pin)
+    
+    if chr == 'zunmapped':
+      label = 'zunmapped'
+      chr = '*'
+    elif chr == 'allreads':
+      chr = None
+    else:
+      label = chr
 
     bcfilehandles = {}
     for bc in bcdict:
-        path = outpath + bc + '.demx.bam'
+        if chr is None:
+          path = outpath + bc + '.demx.bam'
+        else: 
+          path = outpath + bc + "." + label + '.demx.bam'
         bcfilehandles[bc] = pysam.AlignmentFile(path, "wb", template=inbam, threads = pout)
 
-    for read in inbam:
+    for read in inbam.fetch(contig=chr):
         thisBC = read.get_tag("BC")
         if thisBC in bcfilehandles:
             bcfilehandles[thisBC].write(read)
@@ -41,18 +52,21 @@ def main():
     parser.add_argument('--pout', type=int,
                         help='Number of processes for output bams')
     parser.add_argument('--pin', type=int,
-                        help='Number of processes for input bam')
+                        help='Number of processes for input bam'),
+    parser.add_argument('--chr', type=str,
+                        help='Chromosome to use')
     args = parser.parse_args()
 
-    print("Demultiplexing zUMIs bam file...")
+    #print("Demultiplexing zUMIs bam file...")
     bc_whitelist = read_cellBCs(args.bc)
     demultiplex_bam(
         bamfile = args.bam,
         bcdict = bc_whitelist,
         outpath = args.out,
         pout = args.pout,
-        pin = args.pin)
-    print("Demultiplexing complete.")
+        pin = args.pin,
+        chr = args.chr)
+    #print("Demultiplexing complete.")
 
 if __name__ == "__main__":
     main()
