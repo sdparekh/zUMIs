@@ -9,6 +9,8 @@ if [ "$currentv" != "$vers" ] ; then
     echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------";
 fi
 
+set -e # abort if *any* commands exist with a nonzero return value
+
 function check_opts() {
     value=$1
     name=$2
@@ -170,6 +172,8 @@ fi
 
 ${Rexc} ${zumisdir}/checkyaml.R ${yaml} > ${project}.zUMIs_YAMLerror.log
 iserror=$(tail ${project}.zUMIs_YAMLerror.log -n1 | awk '{print $2}')
+
+${Rexc} ${zumisdir}/checkRequirements.R
 
 if [[ ${iserror} -eq 1 ]] ; then
     echo "YAML file has an error. Look at the zUMIs_YAMLerror.log or contact developers."
