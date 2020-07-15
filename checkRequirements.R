@@ -7,8 +7,8 @@ neededPackages <-
       "foreach", "GenomicAlignments", "GenomicFeatures",
       "GenomicRanges", "ggplot2", "ggrastr", "inflection", "Matrix", "mclust",
       "methods", "parallel", "plyranges", "Rsamtools", "Rsubread",
-      "shiny", "shinyBS", "shinythemes", "stringdist", "stringr", "table",
-      "tibble", "unixtools", "yaml");
+      "shiny", "shinyBS", "shinythemes", "stringdist", "stringr",
+      "tibble", "yaml");
 
 cat("Checking R packages... ");
 
