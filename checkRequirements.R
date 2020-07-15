@@ -1,12 +1,14 @@
 #!/usr/bin/env Rscript
 
 ## hard-coded list of required packages
+## [found by looking for require, library and "::" in R code]
 neededPackages <-
     c("AnnotationDbi", "cowplot", "data.table", "dplyr", "extraDistr",
       "foreach", "GenomicAlignments", "GenomicFeatures",
-      "GenomicRanges", "ggplot2", "inflection", "Matrix", "mclust",
+      "GenomicRanges", "ggplot2", "ggrastr", "inflection", "Matrix", "mclust",
       "methods", "parallel", "plyranges", "Rsamtools", "Rsubread",
-      "shiny", "shinyBS", "yaml");
+      "shiny", "shinyBS", "shinythemes", "stringdist", "stringr", "table",
+      "tibble", "unixtools", "yaml");
 
 cat("Checking R packages... ");
 

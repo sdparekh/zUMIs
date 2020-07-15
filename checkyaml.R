@@ -121,6 +121,10 @@ cat(" finished file path check\n")
 
 ## Some other variable's validity check
 cat("Checking additional variables... ")
+if(is.null(inp$barcodes$nReadsperCell)) {
+  errorCode <- 1
+  cat("Minimum number of reads per cell [barcodes/nReadsperCell] is not specified.\n")
+}
 if(!is.numeric(inp$num_threads)) {
   errorCode <- 1
   cat("Number of threads should be a number.\n")

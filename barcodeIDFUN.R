@@ -4,7 +4,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   if(down!="0"){
     subsample=TRUE
 
-    if(grepl(pattern = ",",x = down)==TRUE){
+    if(grepl(pattern = ",",x = down)){
       subsample.splits <- t(sapply(strsplit(down,split = ",")[[1]],
                                    function(x){
                                      if(grepl("-",x)){
@@ -13,7 +13,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
                                    }))
     }else{
 
-      if(grepl(pattern = "-",x = down)==TRUE){
+      if(grepl(pattern = "-",x = down)){
         subsample.splits <- t(as.numeric(strsplit(down,split="-")[[1]]))
       }else{
         subn=as.numeric(down)
@@ -22,7 +22,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
       rownames(subsample.splits) <- down
     }
     if(any(subsample.splits[,1] > max(bccount$n))){
-      print("Warning! None of the barcodes had enough reads for the following requested downsampling:")
+      cat("Warning! None of the barcodes had enough reads for the following requested downsampling:\n")
       print(row.names(subsample.splits)[which(subsample.splits[,1] > max(bccount$n))])
       subsample.splits <- subsample.splits[which(subsample.splits[,1] <= max(bccount$n)),]
     }
@@ -84,18 +84,18 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   cut <- .FindBCcut(bccount)
   nkeep<-bccount[n>=cut][,list(s=.N)]
   if(nkeep<10){
-    print("Warning! Adaptive BC selection gave < 10 cells so I will try to use the top 100 cells!")
+    cat("Warning: Adaptive BC selection gave < 10 cells so I will try to use the top 100 cells!\n")
     if(nrow(bccount)<100){
-      print("Less than 100 barcodes present, will continue with all barcodes...")
+      cat("Less than 100 barcodes present, will continue with all barcodes...\n")
       bccount[1:nrow(bccount),keep:=TRUE]
     }else{
       bccount[1:100,keep:=TRUE]
     }
   }else{
     bccount[n>=cut,keep:=TRUE]
-    print(paste(nkeep," barcodes detected.",sep=""))
+    cat(paste0(nkeep," barcodes detected.\n"))
   }
-  if(is.null(outfilename)==FALSE){
+  if(!is.null(outfilename)){
     .barcode_plot(bccount,outfilename)
   }
 
@@ -106,7 +106,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   if(bcNumber <= nrow(bccount)){
     bccount[1:bcNumber,keep:=TRUE]
   }else{
-    print("Warning! The data contains fewer barcodes than requested so I will try to use all barcodes!")
+    cat("Warning: The data contains fewer barcodes than requested so I will try to use all barcodes!\n")
     bccount[1:nrow(bccount),keep:=TRUE]
   }
 
@@ -114,16 +114,19 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
 }
 .cellBarcode_known   <- function( bccount, bcfile ){
 
+  if(nrow(bccount) == 0){
+      stop("no barcodes found in the count file");
+  }
   bc<-read.table(bcfile,header = F,stringsAsFactors = F)$V1
   if( any( bc %in% bccount$XC ) ){
     bccount[XC %in% bc,keep:=TRUE]
   }else{
-    print("Warning! None of the annotated barcodes were detected.")
+    cat(sprintf("Warning: None of the %d annotated barcodes were detected.\n", nrow(bccount)))
     if(nrow(bccount)<100){
-      print("Less than 100 barcodes present, will continue with all barcodes...")
+      cat("Less than 100 barcodes present, will continue with all barcodes...\n")
       bccount[1:nrow(bccount),keep:=TRUE]
     }else{
-      print("Continuing with top 100 barcodes instead...")
+      cat("Continuing with top 100 barcodes instead...\n")
       bccount[1:100,keep:=TRUE]
     }
   }
@@ -138,25 +141,25 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   cut <- .FindBCcut(bccount)
   nkeep<-bccount[n>=cut][,list(s=.N)]
   if(nkeep<10){
-    print("Warning! Adaptive BC selection gave < 10 cells so I will try to use the top 100 cells!")
+    cat("Warning: Adaptive BC selection gave < 10 cells so I will try to use the top 100 cells!\n")
     if(nrow(bccount)<100){
-      print("Less than 100 barcodes present, will continue with all barcodes...")
+      cat("Less than 100 barcodes present, will continue with all barcodes...\n")
       bccount[1:nrow(bccount),keep:=TRUE]
     }else{
       bccount[1:100,keep:=TRUE]
     }
   }else{
     bccount[n>=cut,keep:=TRUE]
-    print(paste(nkeep," barcodes detected automatically.",sep=""))
+    cat(paste0(nkeep," barcodes detected automatically.\n"))
   }
 
   #Plotting
-  if(is.null(outfilename)==FALSE){
+  if(!is.null(outfilename)){
     .barcode_plot(bccount,outfilename)
   }
 
   if(nchar(bccount[keep==TRUE,XC][1]) != nchar(bc_wl[1])){
-    print("length of barcodes not equal to given barcode list, trying to match up...")
+    cat("length of barcodes not equal to given barcode list, trying to match up...\n")
     search_vector <-  bccount[keep==TRUE,XC]
     bc_matched <- parallel::mcmapply(function(x) grep(pattern = x, x =search_vector), bc_wl, mc.cores = opt$num_threads, mc.preschedule = TRUE)
     bc_matched <- unlist(bc_matched)
@@ -167,33 +170,37 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   }else if(sum(bccount[keep==TRUE,XC] %in% bc_wl)>0){
     bccount[ !(XC %in% bc_wl),keep:=FALSE]
   }else{
-    warning("None of the frequent barcodes is present in the whitelist. Keep all automatically detected BCs.")
+    cat("None of the frequent barcodes is present in the whitelist. Keep all automatically detected BCs.\n")
   }
   kbc<- sum(bccount$keep)
 
-  print(paste("Keeping", kbc,"Barcodes."))
+  cat(paste("Keeping", kbc,"Barcodes.\n"))
   bccount[,cs:=NULL]
   return( bccount[keep==TRUE,XC] )
 }
 
 #bccount needs to be read
 cellBC<-function(bcfile, bcnum, bcauto, bccount_file, outfilename=NULL){
-  bccount<-data.table::fread( bccount_file, header = FALSE, col.names = c("XC","n") )[, .(n = sum(n)), by = XC]
+  bccount<-data.table::fread(bccount_file, header = FALSE, col.names = c("XC","n") )[, .(n = sum(n)), by = XC]
   bccount<-bccount[n>=opt$barcodes$nReadsperCell][order(-n)][,cellindex:=1:(.N)][,keep:=FALSE]
-
-  if(is.null(bcfile)==FALSE & bcauto){
-    print("Using intersection between automatic and whitelist.")
-    bc <- .cellBarcode_expect(bccount , bcfile=bcfile, outfilename = outfilename)
-  }else if( is.null(bcfile)==FALSE & bcauto==F ){
-    bc <- .cellBarcode_known( bccount, bcfile=bcfile )
-  }else if (is.null(bcnum)==FALSE){
-    bc <- .cellBarcode_number(bccount ,bcNumber=bcnum )
-  }else{
-    bc <- .cellBarcode_unknown( bccount, outfilename = outfilename )
+  ## this can happen if all counts are filtered out, e.g. due to reads per cell not being specified
+  if(nrow(bccount) == 0){
+      stop(sprintf("no barcodes found in the count file '%s'", bccount_file));
   }
-  bc[is.na(bc)==F]
-  noReads<-bccount[,list(sum(n)),by=keep][keep==FALSE,V1]
-  print(paste(noReads, "reads were assigned to barcodes that do not correspond to intact cells." ))
+
+  if(!is.null(bcfile) && bcauto){
+    cat("Using intersection between automatic and whitelist.\n")
+    bc <- .cellBarcode_expect(bccount, bcfile=bcfile, outfilename = outfilename)
+  } else if(!is.null(bcfile) & !bcauto ){
+    bc <- .cellBarcode_known(bccount, bcfile=bcfile)
+  }else if (!is.null(bcnum)){
+    bc <- .cellBarcode_number(bccount, bcNumber=bcnum)
+  }else{
+    bc <- .cellBarcode_unknown(bccount, outfilename = outfilename)
+  }
+  bc[!is.na(bc)]
+  noReads <- bccount[,list(sum(n)),by=keep][keep==FALSE,V1]
+  cat(paste(noReads, "reads were assigned to barcodes that do not correspond to intact cells.\n" ))
   return(bccount[XC %in% bc][,keep:=NULL][order(-n)])
 }
 
@@ -206,24 +213,24 @@ calcMADS<-function(bccount){
   if(MAD_low<0){
     MAD_low <- 0
   }
-  MAD_up  <- round(MAD_up,digits = 0)
-  MAD_low <- round(MAD_low,digits = 0)
+  MAD_up  <- round(MAD_up, digits = 0)
+  MAD_low <- round(MAD_low, digits = 0)
 
-  retmat<-matrix( c(MAD_low,MAD_up),1,2)
+  retmat<-matrix(c(MAD_low, MAD_up), 1, 2)
 
-  colnames(retmat)<-c("minR","maxR")
+  colnames(retmat)<-c("minR", "maxR")
   rownames(retmat)<-"MADs"
   return(retmat)
 }
 
-plotReadCountSelection<-function(bccount , mads, filename){
-  MAD_up=mads[1,2]
-  MAD_low=mads[1,1]
+plotReadCountSelection<-function(bccount, mads, filename){
+  MAD_up=mads[1, 2]
+  MAD_low=mads[1, 1]
   pdf(file=filename)
   barplot(bccount$n,ylab="Number of reads",xlab="Cell Barcodes",
-          ylim = c(0,1.1*max(c(bccount$n,MAD_up))))
-  abline(h=MAD_low,col="red")
-  abline(h=MAD_up,col="red")
+          ylim = c(0, 1.1*max(c(bccount$n,MAD_up))))
+  abline(h=MAD_low, col="red")
+  abline(h=MAD_up, col="red")
   dev.off()
 }
 
@@ -231,20 +238,20 @@ plotReadCountSelection<-function(bccount , mads, filename){
 BCbin <- function(bccount_file, bc_detected) {
   true_BCs <- bc_detected[,XC]
   nocell_bccount<-data.table::fread( bccount_file, header = FALSE, col.names = c("XC","n"))[
-                                                                            ,list(n=sum(n)),by=XC][
+                                                                            ,list(n=sum(n)), by=XC][
                                                                             n>=opt$barcodes$nReadsperCell][
                                                                             order(-n)][
                                                                             !( XC %in% true_BCs )   ]
   nocell_BCs <- nocell_bccount[,XC]
-  
+
   if(opt$barcodes$BarcodeBinning>0){
     #break up in pieces of 1000 real BCs in case the hamming distance calculation gets too large!
     true_chunks <- split(true_BCs, ceiling(seq_along(true_BCs)/1000))
     for(i in 1:length(true_chunks)){
-      dists <- stringdist::stringdistmatrix(true_chunks[[i]],nocell_BCs,method="hamming", nthread = opt$num_threads)
+      dists <- stringdist::stringdistmatrix(true_chunks[[i]],nocell_BCs, method="hamming", nthread = opt$num_threads)
       dists <- setDT(data.frame(dists))
       colnames(dists) <- nocell_BCs
-      dists <- suppressWarnings(data.table::melt(dists,variable.factor = F,variable.name="falseBC", value.name="hamming"))
+      dists <- suppressWarnings(data.table::melt(dists, variable.factor = F, variable.name="falseBC", value.name="hamming"))
       dists <- dists[, trueBC := rep(true_chunks[[i]],length(nocell_BCs))][
             hamming<=opt$barcodes$BarcodeBinning,]
       if(i==1){
@@ -266,24 +273,24 @@ BCbin <- function(bccount_file, bc_detected) {
   }else{
     binmap <- data.table()
   }
-  
+
   if(!is.null(opt$barcodes$barcode_sharing)){
     share_table <- data.table::fread( opt$barcodes$barcode_sharing, header = F, skip = 1)
     if(ncol(share_table) > 2){ #flatten table more if necessary
       share_table <- data.table::melt(share_table, id.vars = "V1")[,variable := NULL]
     }
     setnames(share_table, c("main_bc","shared_bc"))
-    
+
     share_mode <- data.table::fread( opt$barcodes$barcode_sharing, header = F, nrows = 1)$V1
     share_mode <- as.numeric(unlist(strsplit(gsub(pattern = "#",replacement = "", x = share_mode),"-")))
-    
+
     if(nrow(binmap)>0){ #first fix the noisy BC assignments so that they dont go into share barcodes
-      binmap[, partial_bc := substr(trueBC,start = share_mode[1], stop = share_mode[2])] 
+      binmap[, partial_bc := substr(trueBC,start = share_mode[1], stop = share_mode[2])]
       binmap <- merge(binmap, share_table, all.x = TRUE, by.x = "partial_bc", by.y = "shared_bc")
       substr(binmap[!is.na(main_bc)]$trueBC,start = share_mode[1], stop = share_mode[2]) <- binmap[!is.na(main_bc)]$main_bc #replace to main barcode string
       binmap[,c("partial_bc", "main_bc") := NULL]
     }
-    
+
     #now check for merging detected barcodes
     bc_detected[, partial_bc := substr(XC,start = share_mode[1], stop = share_mode[2])]
     bc_detected <- merge(bc_detected, share_table, all.x = TRUE, by.x = "partial_bc", by.y = "shared_bc")
@@ -293,19 +300,19 @@ BCbin <- function(bccount_file, bc_detected) {
     setnames(share_map,"XC","falseBC")
     share_map[,c("partial_bc","main_bc","cellindex") := NULL][,hamming := 0]
     share_map <- share_map[,c("falseBC","hamming","trueBC","n"), with = FALSE]
-    
+
     #messy move the shorter true bc list to the main R script
     bc_detected <- bc_detected[is.na(main_bc)]
     bc_detected[,c("partial_bc","main_bc") := NULL]
     bccount <<- bc_detected
-    
+
     if(nrow(binmap)>0){
       binmap <- rbind(binmap, share_map)
     }else{
       binmap <- share_map
     }
   }
-  print(paste("Found",nrow(binmap),"daughter barcodes that can be binned into",length(unique(binmap[,trueBC])),"parent barcodes."))
-  print(paste("Binned barcodes correspond to",sum(binmap[,n]),"reads."))
+  cat(paste("Found",nrow(binmap),"daughter barcodes that can be binned into",length(unique(binmap[,trueBC])),"parent barcodes.\n"))
+  cat(paste("Binned barcodes correspond to",sum(binmap[,n]),"reads.\n"))
   return(binmap)
 }
