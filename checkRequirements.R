@@ -37,5 +37,3 @@ if(length(neededPackages) > 0){
 } else {
     cat("Great, all required R packages have been installed!\n");
 }
-
-quit(status=1, save="no");
