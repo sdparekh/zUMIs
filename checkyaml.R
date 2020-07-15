@@ -108,6 +108,15 @@ if(!is.null(inp$barcodes$barcode_file)) {
         cat("Please check barcode list file path.\n")
   }
 }
+if(is.null(inp$out_dir)) {
+    errorCode <- 1
+    cat("Output directory needs to be specified [out_dir].\n")
+} else {
+    if(!dir.exists(inp$out_dir)) {
+        errorCode <- 1
+        cat(sprintf("Output directory '%s' does not exist.\n", inp$out_dir))
+  }
+}
 cat(" finished file path check\n")
 
 ## Some other variable's validity check
