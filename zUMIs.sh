@@ -173,13 +173,12 @@ fi
 ${Rexc} ${zumisdir}/checkyaml.R ${yaml} > ${project}.zUMIs_YAMLerror.log
 iserror=$(tail ${project}.zUMIs_YAMLerror.log -n1 | awk '{print $2}')
 
-${Rexc} ${zumisdir}/checkRequirements.R
-
 if [[ ${iserror} -eq 1 ]] ; then
-    echo "YAML file has an error. Look at the zUMIs_YAMLerror.log or contact developers."
+    echo "YAML file has an error. Look at '${project}.zUMIs_YAMLerror.log' or contact developers."
     exit 1
 fi
 
+${Rexc} ${zumisdir}/checkRequirements.R
 
 echo -e "\n\n You provided these parameters:
  YAML file:	${yaml_orig}
