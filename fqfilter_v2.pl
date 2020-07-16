@@ -11,6 +11,9 @@ Please drop your suggestions and clarifications to <sparekh\@age.mpg.de>\n
 ######################################################################################\n\n";
 exit;
 }
+
+$argLine = join(" ", @ARGV);
+
 BEGIN{
 $yml=$ARGV[0];
 $samtoolsexc=$ARGV[1];
@@ -23,6 +26,8 @@ use lib "$zumisdir";
 use distilReads;
 use Approx;
 
+$zumisversion = `cat $zumisdir/zUMIs.sh | grep '^vers=' | cut -f2 -d "="`;
+print $zumisversion;
 open(YL,"$rscriptexc $zumisdir/readYaml4fqfilter.R $yml |");
 @arg=<YL>;
 close YL;
@@ -46,7 +51,7 @@ $pattern = distilReads::argClean($argHash{"find_pattern"});
 $frameshift = distilReads::argClean($argHash{"correct_frameshift"});
 
 
-#/data/share/htp/Project_mcSCRB-seqPaper/PEG_May2017/demult_HEK_r1.fq.gz; /data/share/htp/Project_mcSCRB-seqPaper/PEG_May2017/demult_HEK_r2.fq.gz;ACTGCTGTA
+#demult_HEK_r1.fq.gz; demult_HEK_r2.fq.gz;ACTGCTGTA
 #if find_pattern exists, readYaml4fqfilter returns  "ATTGCGCAATG character(0) character(0)"
 
 chomp($f);
@@ -58,6 +63,7 @@ chomp($BCfilter);
 chomp($UMIfilter);
 chomp($pattern);
 chomp($frameshift);
+chomp($zumisversion);
 $isPass="pass";
 
 $outbcstats = "$outdir/zUMIs_output/.tmpMerge/$StudyName.$tmpPrefix.BCstats.txt";
@@ -97,11 +103,14 @@ $filtered = 0;
 %bclist;
 
 open(BCBAM,"| $samtoolsexc view -Sb - > $outbam");
+print(BCBAM join("\t", ("@"."PG","ID:zUMIs-fqfilter","PN:zUMIs-fqfilter", "VN:$zumisversion","CL:fqfilter_v2.pl ${argLine}")) . "\n");
 
 # First file handle to start the while loop for the first file
 $fh1 = $keys[0];
 @fp1 = split(":",$file_handles{$fh1});
 $count = 0;
+#$bamhead = 0;
+
 # reading the first file while others are processed in parallel within
 while(<$fh1>){
   $total++;
@@ -113,6 +122,7 @@ while(<$fh1>){
   $p2 = $fp1[2];
   $p3 = $fp1[3];
   $ss3 = "yespattern";
+
 #$flag = 0;
 #This block checks if the read should have certian pattern
   if($p2 =~ /^character/){
@@ -292,7 +302,7 @@ while(<$fh1>){
 
       $filtered++;
       $bclist{$bcseq}++;
-      #print $lay,"\n";
+
       if($lay eq "SE"){
         print BCBAM $ridtmp,"\t4\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\tQB:Z:",$bcqseq,"\tQU:Z:",$ubqseq,"\n";
       }else{
