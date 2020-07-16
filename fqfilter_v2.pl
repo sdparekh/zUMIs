@@ -102,6 +102,7 @@ open(BCBAM,"| $samtoolsexc view -Sb - > $outbam");
 $fh1 = $keys[0];
 @fp1 = split(":",$file_handles{$fh1});
 $count = 0;
+my $printedHeader = 0; # false
 # reading the first file while others are processed in parallel within
 while(<$fh1>){
   $total++;
@@ -292,7 +293,11 @@ while(<$fh1>){
 
       $filtered++;
       $bclist{$bcseq}++;
-      #print $lay,"\n";
+      if(!$printedHeader){
+        print(BCBAM join("\t", ("@"."PG","ID:zUMIs-fqfilter","PN:zUMIs-fqfilter", "VN:2",
+                                "CL:fqfilter_v2.pl ${argLine}")) . "\n");
+        $printedHeader = 1; # true
+      }
       if($lay eq "SE"){
         print BCBAM $ridtmp,"\t4\t*\t0\t0\t*\t*\t0\t0\t",$cseqr1,"\t",$cqseqr1,"\tBC:Z:",$bcseq,"\tUB:Z:",$ubseq,"\tQB:Z:",$bcqseq,"\tQU:Z:",$ubqseq,"\n";
       }else{
