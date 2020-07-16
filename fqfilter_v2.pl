@@ -27,7 +27,6 @@ use distilReads;
 use Approx;
 
 $zumisversion = `cat $zumisdir/zUMIs.sh | grep '^vers=' | cut -f2 -d "="`;
-print $zumisversion;
 open(YL,"$rscriptexc $zumisdir/readYaml4fqfilter.R $yml |");
 @arg=<YL>;
 close YL;
