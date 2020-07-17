@@ -29,6 +29,9 @@ if(inp$which_Stage == "Filtering"){
 
 genome_size <- system(command = paste("du -sh",inp$reference$STAR_index,"| cut -f1"), intern = TRUE)
 genome_size <- as.numeric(gsub(pattern = "G",replacement = "", x = genome_size))
+if(is.na(genome_size)){
+  genome_size <- 25 #set average genome size if there was a problem detecting
+}
 num_star_instances <- floor(inp$mem_limit/genome_size)
 
 # GTF file setup ----------------------------------------------------------
