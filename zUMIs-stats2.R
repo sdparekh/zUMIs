@@ -34,10 +34,11 @@ bc<-data.table::fread(paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barc
 AllCounts<-readRDS(paste(opt$out_dir,"/zUMIs_output/expression/",opt$project,".dgecounts.rds",sep=""))
 
 
-featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam"),
-                     paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam"))
-
-featfile <- featfile_vector[which(file.exists(featfile_vector))[1]]
+#featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam"),
+#                     paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam"))
+#
+#featfile <- featfile_vector[which(file.exists(featfile_vector))[1]]
+featfile <- paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam")
 
 #check if PE / SE flag is set correctly
 if(is.null(opt$read_layout)){

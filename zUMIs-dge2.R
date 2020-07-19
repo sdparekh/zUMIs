@@ -128,6 +128,7 @@ if(opt$counting_opts$Ham_Dist == 0){
   print("Coordinate sorting final bam file...")
   sort_cmd <- paste0(samtoolsexc," sort -O 'BAM' -@ ",opt$num_threads," -m ",mempercpu,"G -o ",sortbamfile," ",outbamfile)
   system(sort_cmd)
+  system(paste0("rm ",outbamfile))
 }else{
   #run hamming distance collapsing here and write output into bam file
   if(!dir.exists( paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/") )){
@@ -169,7 +170,6 @@ if(opt$counting_opts$Ham_Dist == 0){
 }
 index_cmd <- paste(samtoolsexc,"index -@",opt$num_threads,sortbamfile)
 system(index_cmd)
-system(paste0("rm ",outbamfile))
 print(Sys.time())
 
 #check if PE / SE flag is set correctly
