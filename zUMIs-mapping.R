@@ -10,7 +10,9 @@ additional_fq <- inp$reference$additional_files
 samtools <- inp$samtools_exec
 STAR_exec <- inp$STAR_exec
 
-if(is.null(inp$mem_limit) | inp$mem_limit == 0){
+if(is.null(inp$mem_limit)){
+  inp$mem_limit <- 100
+}else if(inp$mem_limit == 0){
   inp$mem_limit <- 100
 }
 
@@ -149,6 +151,6 @@ if(num_star_instances>1 & inp$which_Stage == "Filtering"){
 
 #clean up chunked bam files
 if(inp$which_Stage == "Filtering"){
-  system(paste0("rm ",tmpfolder,"/",inp$project,".*"))
+#  system(paste0("rm ",tmpfolder,"/",inp$project,".*"))
 }
 q()
