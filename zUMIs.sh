@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.9.3b
+vers=2.9.3c
 currentv=$(curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/main/zUMIs.sh | grep '^vers=' | cut -f2 -d "=")
 if [ "$currentv" != "$vers" ] ; then
     echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------";
@@ -176,6 +176,14 @@ if [[ ${iserror} -eq 1 ]] ; then
     exit 1
 fi
 
+#create main output folder if it didn't exist
+if [[ ! -d ${outdir} ]] ; then
+  mkdir -p ${outdir}
+  if [ $? -ne 0 ] ; then
+      echo "Please provide a valid output directory path."
+      exit 1
+  fi
+fi
 
 echo -e "\n\n You provided these parameters:
  YAML file:	${yaml_orig}
@@ -219,13 +227,6 @@ outdir=$(grep 'out_dir' ${yaml} | awk '{print $2}')
 [ -d ${outdir}/zUMIs_output/stats ] || mkdir -p ${outdir}/zUMIs_output/stats
 [ -d ${outdir}/zUMIs_output/.tmpMerge ] || mkdir -p ${outdir}/zUMIs_output/.tmpMerge
 
-if [[ ! -d ${outdir} ]] ; then
-  mkdir -p ${outdir}
-  if [ $? -ne 0 ] ; then
-      echo "Please provide a valide output directory path."
-      exit 1
-  fi
-fi
 
 if [[ "${whichStage}" == "Filtering" ]] ; then
   echo "Filtering..."
