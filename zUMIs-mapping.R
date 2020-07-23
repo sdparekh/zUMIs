@@ -35,6 +35,12 @@ if(is.na(genome_size)){
   genome_size <- 25 #set average genome size if there was a problem detecting
 }
 num_star_instances <- floor(inp$mem_limit/genome_size)
+if(num_star_instances < 1){
+  num_star_instances = 1 #set the number of STAR instances to 1 if it is 0
+}
+if(num_star_instances > inp$num_threads){
+  num_star_instances = inp$num_threads
+} 
 
 # GTF file setup ----------------------------------------------------------
 #in case of additional sequences, we need to create a custom GTF
@@ -99,6 +105,7 @@ if(inp$which_Stage == "Filtering"){
 if(avail_cores < 2){
   avail_cores = 1
 }
+
 
 param_defaults <- paste("--readFilesCommand ",samtools," view -@",samtools_load_cores," --outSAMmultNmax 1 --outFilterMultimapNmax 50 --outSAMunmapped Within --outSAMtype BAM Unsorted --quantMode TranscriptomeSAM")
 param_misc <- paste("--genomeDir",inp$reference$STAR_index,
