@@ -366,7 +366,10 @@ demultiplex_bam <- function(opt, bamfile, nBCs, samtoolsexc, bccount){
     dir.create( paste0(opt$out_dir,"/zUMIs_output/demultiplexed/") )
   }
   
-  installed_py <- try(system("pip freeze", intern = TRUE))
+  installed_py <- try(system("pip freeze", intern = TRUE, ignore.stderr = TRUE), silent = TRUE)
+  if(grepl('Error', installed_py)){
+    installed_py <- try(system("pip3 freeze", intern = TRUE, ignore.stderr = TRUE), silent = TRUE)
+  }
   
   if(any(grepl("pysam==",installed_py))){
     print("Using python implementation to demultiplex.")
@@ -443,6 +446,7 @@ demultiplex_bam <- function(opt, bamfile, nBCs, samtoolsexc, bccount){
   }else{
     print("Using perl implementation to demultiplex.")
     demux_cmd <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.pl ",opt$out_dir," ",opt$project, " ", bamfile, " ", samtoolsexc )
+    collect_demultiplex = FALSE
   }
   system(demux_cmd)
   if(collect_demultiplex){

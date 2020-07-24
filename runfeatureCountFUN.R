@@ -329,7 +329,7 @@ get_gr <- function(y){GenomicRanges::makeGRangesFromDataFrame(y,
   intron.saf <- dplyr::left_join(intron.saf, unique(exon.saf[,c("GeneID","Strand")]), by = c("GeneID"))
 
   #get intronic bp per gene and intronic reads per gene
-  intronGenes <- intron.saf %>% group_by(GeneID) %>% summarize(IntronLengthPerGene = sum(Len), intronsPerGene = length(GeneID))
+  intronGenes <- intron.saf %>% group_by(GeneID) %>% summarize(IntronLengthPerGene = sum(Len), intronsPerGene = length(GeneID), .groups = "drop")
 
   saf <- list(introns = unique(intron.saf), exons = unique(exon.saf), intronsPerGene = intronGenes,intergenicBp = intergenicBp)
 

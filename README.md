@@ -23,6 +23,8 @@ You can read more about zUMIs in our [paper](https://doi.org/10.1093/gigascience
 
 [YAML config Rshiny application](http://shiny.bio.lmu.de:3838/zUMIs-config/)
 
+Note: zUMIs is compatible with R release 4.0!
+
 ## Loom output
 The loom format is increasing in popularity and compatible with downstream analysis using python out of the box.
 We provide a script to convert zUMIs output into loom file automatically based on the [loomR package from the Satija lab](https://satijalab.org/loomR/loomR_tutorial.html). Please make sure you have loomR installed.
