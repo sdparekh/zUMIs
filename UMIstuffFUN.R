@@ -367,9 +367,9 @@ demultiplex_bam <- function(opt, bamfile, nBCs, samtoolsexc, bccount){
   }
   
   installed_py <- try(system("pip freeze", intern = TRUE, ignore.stderr = TRUE), silent = TRUE)
-  if(grepl('Error', installed_py)){
+  suppressWarnings(if(grepl('Error', installed_py)){
     installed_py <- try(system("pip3 freeze", intern = TRUE, ignore.stderr = TRUE), silent = TRUE)
-  }
+  })
   
   if(any(grepl("pysam==",installed_py))){
     print("Using python implementation to demultiplex.")
