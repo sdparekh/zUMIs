@@ -405,7 +405,7 @@ demultiplex_bam <- function(opt, bamfile, nBCs, samtoolsexc, bccount){
     py_script <- paste0(opt$zUMIs_directory,"/misc/demultiplex_BC.py")
     print("Demultiplexing zUMIs bam file...")
     
-    if(threads_decompress > 10){ #if capacity is there, do demultiplexing parallelised per chromosome
+    if(threads_decompress > 10 & nBCs < 2500){ #if capacity is there, do demultiplexing parallelised per chromosome
       collect_demultiplex = TRUE #set a flag to remember to collect the output chunks later
       demux_cmd <- "sleep 1" #set a decoy system command
       threads_decompress = 10
