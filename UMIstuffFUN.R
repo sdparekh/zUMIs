@@ -431,6 +431,7 @@ demultiplex_bam <- function(opt, bamfile, nBCs, samtoolsexc, bccount){
       }, mc.cores = threads_chromosomes)
       
     }else{
+      collect_demultiplex = FALSE
       outstub <- paste0(opt$out_dir,"/zUMIs_output/demultiplexed/",opt$project,".")
       demux_cmd <- paste(
         "python3", py_script,
