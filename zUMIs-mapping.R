@@ -158,6 +158,6 @@ if(num_star_instances>1 & inp$which_Stage == "Filtering"){
 
 #clean up chunked bam files
 if(inp$which_Stage == "Filtering"){
-#  system(paste0("rm ",tmpfolder,"/",inp$project,".*"))
+  system(paste0("rm ",tmpfolder,"/",inp$project,".*"))
 }
 q()
