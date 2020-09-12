@@ -96,19 +96,6 @@ def main():
 
     args = parser.parse_args()
 
-####
-#bcs = load_bcs('zUMIs_output/hSkinkept_barcodes.txt')
-#mols = load_dict('zUMIs_output/molecule_mapping/hSkin.', bcs)
-#bam = 'hSkin.filtered.Aligned.GeneTagged.sorted.bam'
-#chrs = pysam.idxstats(bam).split('\n')
-#chrs = [c.split('\t')[0] for c in chrs[:-1]]
-#pysam_workers = 3
-#n_jobs = 10
-#pool = mp.Pool(n_jobs)
-#results = [pool.apply_async(correct_tags, (bam,pysam_workers,chr, )) for chr in chrs]
-####
-
-
     bcs = load_bcs(args.bcs)
     print("Loading molecule correction dictionary...")
     global mols
