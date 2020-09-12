@@ -161,10 +161,12 @@ if(opt$counting_opts$Ham_Dist == 0){
     reads <- reads[!UB==""] #make sure only UMI-containing reads go further
     u <- umiCollapseHam(reads,bccount, HamDist=opt$counting_opts$Ham_Dist)
   }
-  print("Demultiplexing output bam file by cell barcode...")
-  demultiplex_bam(opt, outbamfile, nBCs = length(unique(bccount$XC)), bccount = bccount, samtoolsexc = samtoolsexc)
+  #print("Demultiplexing output bam file by cell barcode...")
+  #demultiplex_bam(opt, outbamfile, nBCs = length(unique(bccount$XC)), bccount = bccount, samtoolsexc = samtoolsexc)
   print("Correcting UMI barcode tags...")
-  sortbamfile <- correct_UB_tags(bccount, samtoolsexc)
+  sortbamfile <- correct_UB_tags_new(outbamfile, opt$project)
+  file.remove(outbamfile)
+  #sortbamfile <- correct_UB_tags(bccount, samtoolsexc)
   #sortbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
   bccount<-splitRG(bccount=bccount, mem= opt$mem_limit, hamdist = 0) # allow more reads to be in RAM fur subsequent steps
 }
@@ -274,7 +276,7 @@ if(opt$counting_opts$intronProb == TRUE){
 }
 
 #demultiplexing
-if(opt$counting_opts$Ham_Dist == 0 && opt$barcodes$demultiplex == TRUE ){ #otherwise its already demultiplexed!
+if(opt$barcodes$demultiplex){
   print("Demultiplexing output bam file by cell barcode...")
   demultiplex_bam(opt, sortbamfile, nBCs = length(unique(bccount$XC)), bccount = bccount, samtoolsexc = samtoolsexc)
 }

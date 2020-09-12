@@ -85,7 +85,7 @@ if ( is.null(additional_fq[1]) | length(additional_fq)==0 ) {
 #check the first 100 reads to detect the read length of the cDNA read
 #filtered_bam <- paste(inp$out_dir,"/",inp$project,".filtered.tagged.bam",sep="")
 
-cDNA_peek <- data.table::fread(paste(samtools,"view",filtered_bams[1],"| cut -f10 | head -n 1000"),stringsAsFactors = F,data.table = T, header = F)
+cDNA_peek <- data.table::fread(cmd = paste(samtools,"view",filtered_bams[1],"| cut -f10 | head -n 1000"),stringsAsFactors = F,data.table = T, header = F)
 
 getmode <- function(v) {
   uniqv <- unique(v)

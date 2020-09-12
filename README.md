@@ -31,6 +31,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+12 Sept 2020: [zUMIs2.9.4](https://github.com/sdparekh/zUMIs/releases/tag/2.9.4): Speed writing of error-corrected UMI tags to bam file up significantly. Prevent potential crash when no cells meet any user-defined downsampling criteria. 
+
 19 July 2020: [zUMIs2.9.3](https://github.com/sdparekh/zUMIs/releases/tag/2.9.3): Add zUMIs version number to header of unmapped bam files. Several bug fixes: prevent error during mapping with memory handling; incorrect Smart-seq3 UMI-fragment counting.
 
 14 July 2020: [zUMIs2.9.2](https://github.com/sdparekh/zUMIs/releases/tag/2.9.2): Several bug fixes: Prevent RAM from ballooning, issues with resuming from different stage. Speed up demultiplexing further by chrosome-wise operations. Remove need for second bam file sorting after hamming collapse by keeping sort order.
