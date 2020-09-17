@@ -31,7 +31,9 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
-12 Sept 2020: [zUMIs2.9.4](https://github.com/sdparekh/zUMIs/releases/tag/2.9.4): Speed writing of error-corrected UMI tags to bam file up significantly. Prevent potential crash when no cells meet any user-defined downsampling criteria. 
+17 Sept 2020: zUMIs.2.9.4b: Fix Smart-seq3 UMI read counting
+
+12 Sept 2020: [zUMIs2.9.4](https://github.com/sdparekh/zUMIs/releases/tag/2.9.4): Speed writing of error-corrected UMI tags to bam file up significantly. Prevent potential crash when no cells meet any user-defined downsampling criteria.
 
 19 July 2020: [zUMIs2.9.3](https://github.com/sdparekh/zUMIs/releases/tag/2.9.3): Add zUMIs version number to header of unmapped bam files. Several bug fixes: prevent error during mapping with memory handling; incorrect Smart-seq3 UMI-fragment counting.
 
@@ -39,9 +41,9 @@ zUMIs will try to automatically do this, otherwise convert zUMIs output to loom 
 
 10 July 2020: [zUMIs2.9.1](https://github.com/sdparekh/zUMIs/releases/tag/2.9.1): Revert changes from pull request #194 (commit  #ff7e879) that introduced a bug when using PE reads.
 
-05 July 2020: [zUMIs2.9.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.9.0): Speed up STAR read mapping by parallel instances if enough resources are available. Change the main zUMIs script to `zUMIs.sh`. Speed up and reduce clutter by loading reads from bam files using parallelised Rsamtools calls instead of printing temporary text files. Speed up counting by parallelising exon / intron / exon+intron counting as well as downsamplings. Speed up by parallelising creation of wide format count matrices. 
+05 July 2020: [zUMIs2.9.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.9.0): Speed up STAR read mapping by parallel instances if enough resources are available. Change the main zUMIs script to `zUMIs.sh`. Speed up and reduce clutter by loading reads from bam files using parallelised Rsamtools calls instead of printing temporary text files. Speed up counting by parallelising exon / intron / exon+intron counting as well as downsamplings. Speed up by parallelising creation of wide format count matrices.
 
-23 June 2020: zUMIs2.8.3: Merged code contribution from @gringer: prevent errors by emitting SAM headers in chunked unmapped .bam file output of fqfilter. Changed call to STAR to prevent stalling of samtools pipe. 
+23 June 2020: zUMIs2.8.3: Merged code contribution from @gringer: prevent errors by emitting SAM headers in chunked unmapped .bam file output of fqfilter. Changed call to STAR to prevent stalling of samtools pipe.
 
 18 May 2020: zUMIs2.8.2: Added `merge_demultiplexed_fastq.R` to concatenate previously demultiplexed fastq files. For usage details see here: https://github.com/sdparekh/zUMIs/wiki/Starting-from-demultiplexed-fastq-files
 
