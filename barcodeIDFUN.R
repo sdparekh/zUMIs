@@ -162,8 +162,29 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
   if(nchar(bccount[keep==TRUE,XC][1]) != nchar(bc_wl[1])){
     print("length of barcodes not equal to given barcode list, trying to match up...")
     search_vector <-  bccount[keep==TRUE,XC]
-    bc_matched <- parallel::mcmapply(function(x) grep(pattern = x, x =search_vector), bc_wl, mc.cores = opt$num_threads, mc.preschedule = TRUE)
-    bc_matched <- unlist(bc_matched)
+    
+    #first check if a partial barcode matches the length of the whitelist
+    bc_definition <- sapply(opt$sequence_files, function(x) grep("BC", x$base_definition, value = T))
+    if(length(bc_definition)>1){ #this only makes sense if there are at least 2 BC pieces defined
+      bc_definition <- sapply(bc_definition, function(x) substr(x = x, start = 4, stop = nchar(x)-1))
+      bc_len_mat <- t(matrix(as.numeric(unlist(strsplit(bc_definition, "-"))), ncol = length(bc_definition)))
+      bc_lens <- bc_len_mat[,2] - bc_len_mat[,1] + 1 #parse barcode definition to get length of barcode pieces
+      if(sum(bc_lens == nchar(bc_wl[1])) == 1){ #if one piece matches exactly the whitelist bc length
+        match_piece <- which(bc_lens == nchar(bc_wl[1]))
+        sub_start = 1
+        sub_stop = bc_lens[match_piece]
+        if(match_piece > 1){
+          sub_start = sub_start + bc_lens[1:(match_piece-1)]
+          sub_stop = sub_stop + bc_lens[1:(match_piece-1)]
+        }
+        XC_vector_substring <- substr(search_vector, start = sub_start, stop = sub_stop)
+        bc_matched <- which(XC_vector_substring %in% bc_wl)
+      }
+    }else{
+      bc_matched <- parallel::mcmapply(function(x) grep(pattern = x, x =search_vector), bc_wl, mc.cores = opt$num_threads, mc.preschedule = TRUE)
+      bc_matched <- unlist(bc_matched)
+    }
+
     if(length(bc_matched)>0){
       to_remove <- search_vector[-bc_matched]
       bccount[XC %in% to_remove,keep:=FALSE]
@@ -242,8 +263,8 @@ BCbin <- function(bccount_file, bc_detected) {
   nocell_BCs <- nocell_bccount[,XC]
 
   if(opt$barcodes$BarcodeBinning>0){
-    #break up in pieces of 1000 real BCs in case the hamming distance calculation gets too large!
-    true_chunks <- split(true_BCs, ceiling(seq_along(true_BCs)/1000))
+    #break up in pieces of 2000 real BCs in case the hamming distance calculation gets too large!
+    true_chunks <- split(true_BCs, ceiling(seq_along(true_BCs)/2000))
     for(i in 1:length(true_chunks)){
       dists <- stringdist::stringdistmatrix(true_chunks[[i]],nocell_BCs,method="hamming", nthread = opt$num_threads)
       dists <- setDT(data.frame(dists))

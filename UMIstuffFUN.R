@@ -282,32 +282,43 @@ check_nonUMIcollapse <- function(seqfiles){
 }
 
 collectCounts<-function(reads,bccount,subsample.splits, mapList, ...){
-  subNames<-paste("downsampled",rownames(subsample.splits),sep="_")
   umiFUN<-"umiCollapseID"
-  parallel::mclapply(mapList,function(tt){
-    ll<-list( all=umiFUNs[[umiFUN]](reads=reads,
-                                    bccount=bccount,
-                                    ftype=tt),
-              #downsampling=parallel::mclapply( 1:nrow(subsample.splits) , function(i){
-              downsampling=lapply( 1:nrow(subsample.splits) , function(i){
-                umiFUNs[[umiFUN]](reads,bccount,
-                                  nmin=subsample.splits[i,1],
-                                  nmax=subsample.splits[i,2],
-                                  ftype=tt)} )
-                                  #ftype=tt)}, mc.cores = floor(opt$num_threads/length(mapList)) )
-    )
-    names(ll$downsampling)<-subNames
-    ll
-  }, mc.cores = length(mapList))
-
+  
+  if(nrow(subsample.splits)>0){
+    subNames<-paste("downsampled",rownames(subsample.splits),sep="_")
+    parallel::mclapply(mapList,function(tt){
+      ll<-list( all=umiFUNs[[umiFUN]](reads=reads,
+                                      bccount=bccount,
+                                      ftype=tt),
+                #downsampling=parallel::mclapply( 1:nrow(subsample.splits) , function(i){
+                downsampling=lapply( 1:nrow(subsample.splits) , function(i){
+                  umiFUNs[[umiFUN]](reads,bccount,
+                                    nmin=subsample.splits[i,1],
+                                    nmax=subsample.splits[i,2],
+                                    ftype=tt)} )
+                #ftype=tt)}, mc.cores = floor(opt$num_threads/length(mapList)) )
+      )
+      names(ll$downsampling)<-subNames
+      ll
+    }, mc.cores = length(mapList))
+  }else{
+    parallel::mclapply(mapList,function(tt){
+      ll<-list( all=umiFUNs[[umiFUN]](reads=reads,
+                                      bccount=bccount,
+                                      ftype=tt))
+      ll
+    }, mc.cores = length(mapList))
+  }
 }
 
 
 bindList<-function(alldt,newdt){
   for( i in names(alldt)){
     alldt[[i]][[1]]<-rbind(alldt[[i]][[1]], newdt[[i]][[1]] )
-    for(j in names(alldt[[i]][[2]])){
-      alldt[[i]][[2]][[j]]<-rbind(alldt[[i]][[2]][[j]],newdt[[i]][[2]][[j]])
+    if("downsampling" %in% names(newdt[[i]])){
+      for(j in names(alldt[[i]][[2]])){
+        alldt[[i]][[2]][[j]]<-rbind(alldt[[i]][[2]][[j]],newdt[[i]][[2]][[j]])
+      }
     }
   }
   return(alldt)
