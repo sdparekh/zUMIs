@@ -31,7 +31,7 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
-18 Sept 2020: zUMIs.2.9.4b/c: Fix Smart-seq3 UMI read counting. Prevent crash when a chunk of cell BCs does not match any downsampling. Speed up barcode detection steps for some cases.
+18 Sept 2020: zUMIs.2.9.4b/c/d: Fix & speed up Smart-seq3 UMI read counting. Prevent crash when a chunk of cell BCs does not match any downsampling. Speed up barcode detection steps for some cases. Prevent too much CPU usage in UMI error correction.
 
 12 Sept 2020: [zUMIs2.9.4](https://github.com/sdparekh/zUMIs/releases/tag/2.9.4): Speed writing of error-corrected UMI tags to bam file up significantly. Prevent potential crash when no cells meet any user-defined downsampling criteria.
 

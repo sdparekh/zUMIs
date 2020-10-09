@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import pysam
 import argparse
+import multiprocessing as mp
 
 def load_bcs(bcpath):
     with open(bcpath) as f:
@@ -12,15 +13,14 @@ def load_bcs(bcpath):
             bc.append(l[0])
     return(bc)
 
-def count_UMItags(inpath, bcs, threads, outpath):
+def count_UMItags(inpath, bcs, chr):
     bccounts = {}
     for b in bcs:
         bccounts[b] = {}
         bccounts[b]['umi'] = 0
         bccounts[b]['int'] = 0
-
-    inp = pysam.AlignmentFile(inpath, 'rb', threads = threads)
-    for read in inp:
+    inp = pysam.AlignmentFile(inpath, 'rb')
+    for read in inp.fetch(chr):
         bc = read.get_tag('BC')
         if bc in bcs:
             ub = read.get_tag('UB')
@@ -28,8 +28,15 @@ def count_UMItags(inpath, bcs, threads, outpath):
                 bccounts[bc]['int'] += 1
             else:
                  bccounts[bc]['umi'] += 1
-
     inp.close()
+    return(bccounts)
+
+
+def collect_write_stats(chrcounts, outpath):
+    bccounts = chrcounts.pop(0) #get first dict
+    for b in bccounts: #for every cell collect counts
+        bccounts[b]['umi'] += sum( [chrcounts[i][b]['umi'] for i in range(len(chrcounts))] )
+        bccounts[b]['int'] += sum( [chrcounts[i][b]['int'] for i in range(len(chrcounts))] )
     with open(outpath, 'w') as out:
         out.write('XC\tnNontagged\tnUMItag\n')
         for bc in bccounts:
@@ -50,7 +57,21 @@ def main():
 
     bcs = load_bcs(args.bcs)
 
-    count_UMItags(inpath = args.bam, bcs = bcs, threads = args.p, outpath = args.bcs+".BCUMIstats.txt")
+    inp = pysam.AlignmentFile(args.bam, 'rb')
+    chrs = list(inp.references)
+    chrs.append('*') #don't forget unmapped reads
+    inp.close()
+
+    if(args.p > len(chrs)):
+        num_threads = len(chrs)
+    else:
+        num_threads = args.p
+
+    pool = mp.Pool(num_threads)
+    results = [pool.apply_async(count_UMItags, (args.bam, bcs, chr, )) for chr in chrs]
+    x = [r.get() for r in results]
+
+    collect_write_stats(x, args.bcs+".BCUMIstats.txt")
 
 if __name__ == "__main__":
     main()

@@ -185,6 +185,7 @@ hammingFilter<-function(umiseq, edit=1, gbcid=NULL){
 }
 
 ham_helper_fun <- function(x){
+    setDTthreads(1)
     x[, gbcid := paste(RG,GE,sep="_")]
     x_list <- split(x = x, drop = T, by = c("gbcid"), sorted = T, keep.by = T)
     out_list <- lapply(x_list, function(x) hammingFilter(x[!is.na(UB)]$UB, edit=opt$counting_opts$Ham_Dist, gbcid=unique(x$gbcid)) )
@@ -283,7 +284,7 @@ check_nonUMIcollapse <- function(seqfiles){
 
 collectCounts<-function(reads,bccount,subsample.splits, mapList, ...){
   umiFUN<-"umiCollapseID"
-  
+
   if(nrow(subsample.splits)>0){
     subNames<-paste("downsampled",rownames(subsample.splits),sep="_")
     parallel::mclapply(mapList,function(tt){

@@ -165,6 +165,7 @@ setDownSamplingOption<-function( down ,bccount, filename=NULL){
     
     #first check if a partial barcode matches the length of the whitelist
     bc_definition <- sapply(opt$sequence_files, function(x) grep("BC", x$base_definition, value = T))
+    bc_definition <- bc_definition[which(sapply(bc_definition, length)>0)]
     if(length(bc_definition)>1){ #this only makes sense if there are at least 2 BC pieces defined
       bc_definition <- sapply(bc_definition, function(x) substr(x = x, start = 4, stop = nchar(x)-1))
       bc_len_mat <- t(matrix(as.numeric(unlist(strsplit(bc_definition, "-"))), ncol = length(bc_definition)))
