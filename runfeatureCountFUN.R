@@ -18,8 +18,8 @@ suppressWarnings(suppressMessages(require(AnnotationDbi)))
 # }
 
 # reads information from Bam file on lengths and names of chromosomes/scaffolds. Can exclude scaffolds based on their size if desired.
-.chromLengthFilter <- function(abamfile, keep_chr_minLength =0){
-  bread<- paste("samtools view -H ", abamfile , "| grep '^@SQ' | cut -f2,3 ")
+.chromLengthFilter <- function(abamfile, keep_chr_minLength =0, samtoolsexc){
+  bread<- paste(samtoolsexc,"view -H ", abamfile , "| grep '^@SQ' | cut -f2,3 ")
   chr<-data.table::fread(bread,col.names = c("chr","len"), header = F)[
                               , chr2 :=gsub("SN:","",chr)][ 
                               , len2 :=gsub("LN:","",len)][
@@ -212,7 +212,7 @@ get_gr <- function(y){GenomicRanges::makeGRangesFromDataFrame(y,
 }
 
 #new version of makeSAF by Chris Alford
-.makeSAF<-function(gtf, extension_var=FALSE, exon_extension=0, buffer_length=100, scaff_length=0,multi_overlap_var=FALSE){
+.makeSAF<-function(gtf, extension_var=FALSE, exon_extension=0, buffer_length=100, scaff_length=0,multi_overlap_var=FALSE, samtoolsexc){
   print("Loading reference annotation from:")
   print(gtf)
   gtf_file <- plyranges::read_gff(gtf, col_names = c("type","gene_id"))
@@ -241,7 +241,7 @@ get_gr <- function(y){GenomicRanges::makeGRangesFromDataFrame(y,
   #Calculating total intergenic length for intron-probability
   totalGeneLength<-sum(width(gr.gene))
   #get length of chromosomes from BAM header
-  chrL<-system( paste("samtools view -H", abamfile ," | grep '^@SQ' | cut -f3 "), intern = T)
+  chrL<-system( paste(samtoolsexc,"view -H", abamfile ," | grep '^@SQ' | cut -f3 "), intern = T)
   chrL<-lapply(chrL, function(x){
     x<-as.integer(strsplit(x, ":")[[1]][[2]])
   })
@@ -249,7 +249,7 @@ get_gr <- function(y){GenomicRanges::makeGRangesFromDataFrame(y,
   intergenicBp<- chrL-totalGeneLength
 
   # getting names and length of chromosomes/scaffolds from bam header
-  chrom_kept <- .chromLengthFilter(abamfile = abamfile, keep_chr_minLength = scaff_length)
+  chrom_kept <- .chromLengthFilter(abamfile = abamfile, keep_chr_minLength = scaff_length, samtoolsexc = samtoolsexc)
 
   # reading out chromosomes/scaffold names from the GRange gtf object
   chrom_gtf_names <- tibble::as_tibble(x = list("chrom_names" = as.character(seqinfo(gtf_file)@seqnames)),

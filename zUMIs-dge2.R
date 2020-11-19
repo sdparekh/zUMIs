@@ -60,7 +60,8 @@ saf<-.makeSAF(gtf = paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"),
               exon_extension = opt$reference$extension_length,
               buffer_length = (opt$reference$extension_length / 2),
               scaff_length = opt$reference$scaffold_length_min,
-              multi_overlap_var = opt$counting_opts$multi_overlap)
+              multi_overlap_var = opt$counting_opts$multi_overlap,
+              samtoolsexc = samtoolsexc)
 try(gene_name_mapping <- .get_gene_names(gtf = paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"), threads = opt$num_threads), silent = TRUE)
 try(data.table::fwrite(gene_name_mapping, file = paste0(opt$out_dir,"/zUMIs_output/expression/",opt$project,".gene_names.txt"), sep ="\t", quote = FALSE), silent = TRUE)
 ##
