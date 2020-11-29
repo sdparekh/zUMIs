@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.9.4e
+vers=2.9.4f
 currentv=$(curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/main/zUMIs.sh | grep '^vers=' | cut -f2 -d "=")
 if [ "$currentv" != "$vers" ] ; then
     echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------";

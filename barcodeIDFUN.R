@@ -264,8 +264,12 @@ BCbin <- function(bccount_file, bc_detected) {
   nocell_BCs <- nocell_bccount[,XC]
 
   if(opt$barcodes$BarcodeBinning>0){
-    #break up in pieces of 2000 real BCs in case the hamming distance calculation gets too large!
-    true_chunks <- split(true_BCs, ceiling(seq_along(true_BCs)/2000))
+    #break up in pieces of real BCs in case the hamming distance calculation gets too large!
+    combinatorics = as.numeric(length(true_BCs))*as.numeric(length(nocell_BCs))
+    min_chunks = ceiling(combinatorics/(2*10^9))
+    cells_per_chunk = floor(length(true_BCs)/min_chunks)
+    
+    true_chunks <- split(true_BCs, ceiling(seq_along(true_BCs)/cells_per_chunk))
     for(i in 1:length(true_chunks)){
       dists <- stringdist::stringdistmatrix(true_chunks[[i]],nocell_BCs,method="hamming", nthread = opt$num_threads)
       dists <- setDT(data.frame(dists))
