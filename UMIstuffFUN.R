@@ -349,7 +349,7 @@ write_molecule_mapping <- function(mm){
 correct_UB_tags_new <- function(inbamfile,n){
   mm_path <- paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/",n,".")
   outbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
-  bcpath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes_binned.txt")
+  bcpath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
   use_threads <- opt$num_threads
   pypath <- paste0(opt$zUMIs_directory,"/correct_UBtag.py")
   UBcmd <- paste("python3", pypath,
