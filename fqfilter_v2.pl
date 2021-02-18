@@ -49,7 +49,7 @@ $UMIfilter = distilReads::argClean($argHash{"UMIfilter"});
 $pattern = distilReads::argClean($argHash{"find_pattern"});
 $frameshift = distilReads::argClean($argHash{"correct_frameshift"});
 
-
+#print($pattern);
 #demult_HEK_r1.fq.gz; demult_HEK_r2.fq.gz;ACTGCTGTA
 #if find_pattern exists, readYaml4fqfilter returns  "ATTGCGCAATG character(0) character(0)"
 
@@ -122,14 +122,21 @@ while(<$fh1>){
   $p3 = $fp1[3];
   $ss3 = "yespattern";
 
-#$flag = 0;
-#This block checks if the read should have certian pattern
+  #This block checks if the read should have certian pattern
   if($p2 =~ /^character/){
     $mcrseq = $rseq;
     $checkpattern = $rseq;
   }
   else{
     $mcrseq = $rseq;
+    if($p2 =~ /;/){
+      @tmpsplit = split(";",$p2);
+      $p2 = $tmpsplit[0];
+      $mm = int($tmpsplit[1]);
+    }
+    else{
+      $mm = 1;
+    }
     $checkpattern = $p2;
   }
 
@@ -137,7 +144,7 @@ while(<$fh1>){
   # If it is smart-seq3 pattern in the YAML file but not found in the read then the read is retained as full cDNA read where UMI is null.
   if($p2 eq "ATTGCGCAATG"){
     $a = substr($mcrseq,0,length($p2));
-    if(Approx::amatch($checkpattern, [ 1 ],$a)){
+    if(Approx::amatch($checkpattern, [ $mm ],$a)){
       $ss3 = "yespattern";
       $checkpattern = $p2;
     }else{
@@ -145,7 +152,6 @@ while(<$fh1>){
       $checkpattern = $mcrseq;
     }
   }
-
 
 
 #This block checks if the read should be read corrected for frameshift in BC pattern
@@ -195,6 +201,14 @@ while(<$fh1>){
       }
       else{
         $mcrseq = $rseq1;
+        if($pf =~ /;/){
+          @tmpsplit = split(";",$pf);
+          $pf = $tmpsplit[0];
+          $mm = $tmpsplit[1];
+        }
+        else{
+          $mm = '1';
+        }
         $checkpattern = $pf;
       }
 
@@ -202,7 +216,7 @@ while(<$fh1>){
       # If it is smart-seq3 pattern in the YAML file but not found in the read then the read is retained as full cDNA read where UMI is null.
       if($pf eq "ATTGCGCAATG"){
         $af = substr($mcrseq,0,length($pf));
-        if(Approx::amatch($checkpattern, [ 1 ],$af)){
+        if(Approx::amatch($checkpattern, [ $mm ],$af)){
           $ss3 = "yespattern";
           $checkpattern = $pf;
         }else{
@@ -270,7 +284,7 @@ while(<$fh1>){
 # IF the read should not have any pattern, the $checkpattern is equal to $mcrseq so $goahead variable will stay "yes"
     if($checkpattern eq "ATTGCGCAATG"){
       $ac = substr($mcrseq,0,length($checkpattern));
-      if(Approx::amatch($checkpattern, [ 1 ],$ac)){
+      if(Approx::amatch($checkpattern, [ $mm ],$ac)){
         $goahead = "yes";
       }else{
         $goahead = "no";
