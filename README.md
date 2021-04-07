@@ -31,6 +31,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+07 Apr 2021: zUMIs2.9.6: Fixed a potential crash when the input file to the barcode sharing feature does not contain an equal number of columns.
+
 18 Feb 2021: zUMIs2.9.5: Mismatches for detecting Smart-seq3 UMI-read pattern are now user-settable in the YAML file as follows: `find_pattern: ATTGCGCAATG;2` would allow 2 mismatches. Usage as prior to this version (ie `find_pattern: ATTGCGCAATG`) will default to the previous value of 1 mismatch allowed.
 
 18 Sept 2020 - 29 Nov Sept 2020: zUMIs.2.9.4b/c/d/e/f: Fix & speed up Smart-seq3 UMI read counting. Prevent crash when a chunk of cell BCs does not match any downsampling. Speed up barcode detection steps for some cases. Prevent too much CPU usage in UMI error correction. Take correct samtools executable in gene annotation parsing. Prevent crash in BC error correction for huge datasets.

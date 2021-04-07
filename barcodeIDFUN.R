@@ -298,11 +298,12 @@ BCbin <- function(bccount_file, bc_detected) {
   }
 
   if(!is.null(opt$barcodes$barcode_sharing)){
-    share_table <- data.table::fread( opt$barcodes$barcode_sharing, header = F, skip = 1)
+    share_table <- data.table::fread( opt$barcodes$barcode_sharing, header = F, skip = 1, fill = TRUE)
     if(ncol(share_table) > 2){ #flatten table more if necessary
       share_table <- data.table::melt(share_table, id.vars = "V1")[,variable := NULL]
     }
     setnames(share_table, c("main_bc","shared_bc"))
+    share_table <- share_table[shared_bc != '']
 
     share_mode <- data.table::fread( opt$barcodes$barcode_sharing, header = F, nrows = 1)$V1
     share_mode <- as.numeric(unlist(strsplit(gsub(pattern = "#",replacement = "", x = share_mode),"-")))
