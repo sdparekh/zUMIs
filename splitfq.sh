@@ -17,7 +17,7 @@ function splitfq() {
 	nl=`expr $n \* 4`
   pref=`basename $fqfile`
   d=`dirname $fqfile`
-  split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' $d/$fqfile $t$pref$project
+  split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' $fqfile $t$pref$project
 
 	ls $t$pref$project* | sed "s|$t$pref$project||" > $t/$project.listPrefix.txt
 

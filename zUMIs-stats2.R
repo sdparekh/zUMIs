@@ -38,6 +38,7 @@ featfile_vector <- c(paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneT
                      paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam"))
 
 featfile <- featfile_vector[which(file.exists(featfile_vector))[1]]
+#featfile <- paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.sorted.bam")
 
 #check if PE / SE flag is set correctly
 if(is.null(opt$read_layout)){
@@ -47,14 +48,14 @@ if(is.null(opt$read_layout)){
 ############### in case of smart3, check UMI fragment counts
 if(any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files)))){
   print("Counting UMI fragments...")
-  script_filepath <- paste0(opt$zUMIs_directory,"/fqfilter_countUMI.pl")
+  script_filepath <- paste0(opt$zUMIs_directory,"/misc/countUMIfrags.py")
   bam_filepath <- featfile
   if(opt$barcodes$BarcodeBinning > 0){
     bc_filepath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes_binned.txt")
   }else{
     bc_filepath <- paste0(opt$out_dir,"/zUMIs_output/",opt$project,"kept_barcodes.txt")
   }
-  system(paste(script_filepath,bam_filepath,bc_filepath,"&"))
+  system(paste(script_filepath,'--bam',bam_filepath,'--bcs',bc_filepath,'--p',opt$num_threads,"&"))
 }
 
 # GeneCounts --------------------------------------------------------------

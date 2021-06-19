@@ -31,7 +31,7 @@ def demultiplex_bam (bamfile, bcdict, outpath, pout, pin, chr):
           path = outpath + bc + "." + label + '.demx.bam'
         bcfilehandles[bc] = pysam.AlignmentFile(path, "wb", template=inbam, threads = pout)
 
-    for read in inbam.fetch(contig=chr):
+    for read in inbam.fetch(contig=chr, until_eof=True):
         thisBC = read.get_tag("BC")
         if thisBC in bcfilehandles:
             bcfilehandles[thisBC].write(read)

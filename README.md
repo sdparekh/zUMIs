@@ -23,19 +23,31 @@ You can read more about zUMIs in our [paper](https://doi.org/10.1093/gigascience
 
 [YAML config Rshiny application](http://shiny.bio.lmu.de:3838/zUMIs-config/)
 
+Note: zUMIs is compatible with R release 4.0!
+
 ## Loom output
 The loom format is increasing in popularity and compatible with downstream analysis using python out of the box.
 We provide a script to convert zUMIs output into loom file automatically based on the [loomR package from the Satija lab](https://satijalab.org/loomR/loomR_tutorial.html). Please make sure you have loomR installed.
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+07 Apr 2021: zUMIs2.9.6: Fixed a potential crash when the input file to the barcode sharing feature does not contain an equal number of columns.
+
+18 Feb 2021: zUMIs2.9.5: Mismatches for detecting Smart-seq3 UMI-read pattern are now user-settable in the YAML file as follows: `find_pattern: ATTGCGCAATG;2` would allow 2 mismatches. Usage as prior to this version (ie `find_pattern: ATTGCGCAATG`) will default to the previous value of 1 mismatch allowed.
+
+18 Sept 2020 - 29 Nov Sept 2020: zUMIs.2.9.4b/c/d/e/f: Fix & speed up Smart-seq3 UMI read counting. Prevent crash when a chunk of cell BCs does not match any downsampling. Speed up barcode detection steps for some cases. Prevent too much CPU usage in UMI error correction. Take correct samtools executable in gene annotation parsing. Prevent crash in BC error correction for huge datasets.
+
+12 Sept 2020: [zUMIs2.9.4](https://github.com/sdparekh/zUMIs/releases/tag/2.9.4): Speed writing of error-corrected UMI tags to bam file up significantly. Prevent potential crash when no cells meet any user-defined downsampling criteria.
+
+19 July 2020: [zUMIs2.9.3](https://github.com/sdparekh/zUMIs/releases/tag/2.9.3): Add zUMIs version number to header of unmapped bam files. Several bug fixes: prevent error during mapping with memory handling; incorrect Smart-seq3 UMI-fragment counting.
+
 14 July 2020: [zUMIs2.9.2](https://github.com/sdparekh/zUMIs/releases/tag/2.9.2): Several bug fixes: Prevent RAM from ballooning, issues with resuming from different stage. Speed up demultiplexing further by chrosome-wise operations. Remove need for second bam file sorting after hamming collapse by keeping sort order.
 
 10 July 2020: [zUMIs2.9.1](https://github.com/sdparekh/zUMIs/releases/tag/2.9.1): Revert changes from pull request #194 (commit  #ff7e879) that introduced a bug when using PE reads.
 
-05 July 2020: [zUMIs2.9.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.9.0): Speed up STAR read mapping by parallel instances if enough resources are available. Change the main zUMIs script to `zUMIs.sh`. Speed up and reduce clutter by loading reads from bam files using parallelised Rsamtools calls instead of printing temporary text files. Speed up counting by parallelising exon / intron / exon+intron counting as well as downsamplings. Speed up by parallelising creation of wide format count matrices. 
+05 July 2020: [zUMIs2.9.0 released](https://github.com/sdparekh/zUMIs/releases/tag/2.9.0): Speed up STAR read mapping by parallel instances if enough resources are available. Change the main zUMIs script to `zUMIs.sh`. Speed up and reduce clutter by loading reads from bam files using parallelised Rsamtools calls instead of printing temporary text files. Speed up counting by parallelising exon / intron / exon+intron counting as well as downsamplings. Speed up by parallelising creation of wide format count matrices.
 
-23 June 2020: zUMIs2.8.3: Merged code contribution from @gringer: prevent errors by emitting SAM headers in chunked unmapped .bam file output of fqfilter. Changed call to STAR to prevent stalling of samtools pipe. 
+23 June 2020: zUMIs2.8.3: Merged code contribution from @gringer: prevent errors by emitting SAM headers in chunked unmapped .bam file output of fqfilter. Changed call to STAR to prevent stalling of samtools pipe.
 
 18 May 2020: zUMIs2.8.2: Added `merge_demultiplexed_fastq.R` to concatenate previously demultiplexed fastq files. For usage details see here: https://github.com/sdparekh/zUMIs/wiki/Starting-from-demultiplexed-fastq-files
 

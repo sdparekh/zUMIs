@@ -60,7 +60,8 @@ saf<-.makeSAF(gtf = paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"),
               exon_extension = opt$reference$extension_length,
               buffer_length = (opt$reference$extension_length / 2),
               scaff_length = opt$reference$scaffold_length_min,
-              multi_overlap_var = opt$counting_opts$multi_overlap)
+              multi_overlap_var = opt$counting_opts$multi_overlap,
+              samtoolsexc = samtoolsexc)
 try(gene_name_mapping <- .get_gene_names(gtf = paste0(opt$out_dir,"/",opt$project,".final_annot.gtf"), threads = opt$num_threads), silent = TRUE)
 try(data.table::fwrite(gene_name_mapping, file = paste0(opt$out_dir,"/zUMIs_output/expression/",opt$project,".gene_names.txt"), sep ="\t", quote = FALSE), silent = TRUE)
 ##
@@ -128,6 +129,7 @@ if(opt$counting_opts$Ham_Dist == 0){
   print("Coordinate sorting final bam file...")
   sort_cmd <- paste0(samtoolsexc," sort -O 'BAM' -@ ",opt$num_threads," -m ",mempercpu,"G -o ",sortbamfile," ",outbamfile)
   system(sort_cmd)
+  system(paste0("rm ",outbamfile))
 }else{
   #run hamming distance collapsing here and write output into bam file
   if(!dir.exists( paste0(opt$out_dir,"/zUMIs_output/molecule_mapping/") )){
@@ -160,16 +162,17 @@ if(opt$counting_opts$Ham_Dist == 0){
     reads <- reads[!UB==""] #make sure only UMI-containing reads go further
     u <- umiCollapseHam(reads,bccount, HamDist=opt$counting_opts$Ham_Dist)
   }
-  print("Demultiplexing output bam file by cell barcode...")
-  demultiplex_bam(opt, outbamfile, nBCs = length(unique(bccount$XC)), bccount = bccount, samtoolsexc = samtoolsexc)
+  #print("Demultiplexing output bam file by cell barcode...")
+  #demultiplex_bam(opt, outbamfile, nBCs = length(unique(bccount$XC)), bccount = bccount, samtoolsexc = samtoolsexc)
   print("Correcting UMI barcode tags...")
-  sortbamfile <- correct_UB_tags(bccount, samtoolsexc)
+  sortbamfile <- correct_UB_tags_new(outbamfile, opt$project)
+  file.remove(outbamfile)
+  #sortbamfile <- correct_UB_tags(bccount, samtoolsexc)
   #sortbamfile <-paste0(opt$out_dir,"/",opt$project,".filtered.Aligned.GeneTagged.UBcorrected.sorted.bam")
   bccount<-splitRG(bccount=bccount, mem= opt$mem_limit, hamdist = 0) # allow more reads to be in RAM fur subsequent steps
 }
 index_cmd <- paste(samtoolsexc,"index -@",opt$num_threads,sortbamfile)
 system(index_cmd)
-system(paste0("rm ",outbamfile))
 print(Sys.time())
 
 #check if PE / SE flag is set correctly
@@ -274,7 +277,7 @@ if(opt$counting_opts$intronProb == TRUE){
 }
 
 #demultiplexing
-if(opt$counting_opts$Ham_Dist == 0 && opt$barcodes$demultiplex == TRUE ){ #otherwise its already demultiplexed!
+if(opt$barcodes$demultiplex){
   print("Demultiplexing output bam file by cell barcode...")
   demultiplex_bam(opt, sortbamfile, nBCs = length(unique(bccount$XC)), bccount = bccount, samtoolsexc = samtoolsexc)
 }
