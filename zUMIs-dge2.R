@@ -33,7 +33,7 @@ if(UMIcheck == "nonUMI"){
   opt$counting_opts$Ham_Dist <- 0
 }
 #is the data Smart-seq3?
-smart3_flag <- ifelse(any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files))), TRUE, FALSE)
+smart3_flag <- TRUE #ifelse(any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files))), TRUE, FALSE)
 
 #######################################################################
 ##### Barcode handling & chunking

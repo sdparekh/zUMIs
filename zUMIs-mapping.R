@@ -29,7 +29,7 @@ if(inp$which_Stage == "Filtering"){
 
 genome_size <- system(command = paste("du -sh",inp$reference$STAR_index,"| cut -f1"), intern = TRUE)
 genome_size <- as.numeric(gsub(pattern = "G",replacement = "", x = genome_size))
-num_star_instances <- floor(inp$mem_limit/genome_size)
+num_star_instances <- 16 #floor(inp$mem_limit/genome_size)
 
 # GTF file setup ----------------------------------------------------------
 #in case of additional sequences, we need to create a custom GTF
@@ -81,12 +81,12 @@ getmode <- function(v) {
   uniqv[which.max(tabulate(match(v, uniqv)))]
 }
 
-cDNA_read_length <- getmode(nchar(cDNA_peek$V1))
+cDNA_read_length <- 150 #getmode(nchar(cDNA_peek$V1))
 
 
 # Setup STAR mapping ------------------------------------------------------
 samtools_load_cores <- ifelse(inp$num_threads>8,2,1)
-avail_cores <- inp$num_threads - samtools_load_cores #reserve threads for samtools file opening
+avail_cores <- 16 # inp$num_threads - samtools_load_cores #reserve threads for samtools file opening
 if(inp$which_Stage == "Filtering"){
   avail_cores <- floor(avail_cores / num_star_instances)
 }
