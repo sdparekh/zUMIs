@@ -66,7 +66,8 @@ try(gene_name_mapping <- .get_gene_names(gtf = paste0(opt$out_dir,"/",opt$projec
 try(data.table::fwrite(gene_name_mapping, file = paste0(opt$out_dir,"/zUMIs_output/expression/",opt$project,".gene_names.txt"), sep ="\t", quote = FALSE), silent = TRUE)
 ##
 
-if(smart3_flag & opt$counting_opts$strand == 1){
+#if(smart3_flag & opt$counting_opts$strand == 1){
+if(TRUE){
   #split bam in UMU ends and internal
   print("Preparing Smart-seq3 data for stranded gene assignment...")
   print(Sys.time())

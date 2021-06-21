@@ -25,7 +25,7 @@ if(inp$which_Stage == "Filtering"){
 }else{
   filtered_bams <- paste0(inp$out_dir,"/",inp$project,".filtered.tagged.unmapped.bam") # for resuming from mapping state using the merged unmapped bam
 }
-
+print("1")
 
 # check if multiple STAR instances can be run -----------------------------
 
@@ -34,14 +34,16 @@ genome_size <- as.numeric(gsub(pattern = "G",replacement = "", x = genome_size))
 if(is.na(genome_size)){
   genome_size <- 25 #set average genome size if there was a problem detecting
 }
-num_star_instances <- 16 #floor(inp$mem_limit/genome_size)
+print(genome_size)
+num_star_instances <- floor(inp$mem_limit/genome_size)
 if(num_star_instances < 1){
   num_star_instances = 1 #set the number of STAR instances to 1 if it is 0
 }
 if(num_star_instances > inp$num_threads){
   num_star_instances = inp$num_threads
 } 
-
+print(num_star_instances)
+print("2")
 # GTF file setup ----------------------------------------------------------
 #in case of additional sequences, we need to create a custom GTF
 
@@ -77,13 +79,13 @@ if ( is.null(additional_fq[1]) | length(additional_fq)==0 ) {
   gtf_to_use <- paste(inp$out_dir,"/",inp$project,".final_annot.gtf",sep="")
   param_additional_fa <- paste("--genomeFastaFiles",paste(inp$reference$additional_files,collapse = " "))
 }
-
-#inp$reference$GTF_file_final <- gtf_to_use
-#yaml::write_yaml(inp,file = paste(inp$out_dir,"/",inp$project,".postmap.yaml",sep=""))
+print("3")
+inp$reference$GTF_file_final <- gtf_to_use
+yaml::write_yaml(inp,file = paste(inp$out_dir,"/",inp$project,".postmap.yaml",sep=""))
 
 # Detect read length ------------------------------------------------------
 #check the first 100 reads to detect the read length of the cDNA read
-#filtered_bam <- paste(inp$out_dir,"/",inp$project,".filtered.tagged.bam",sep="")
+filtered_bam <- paste(inp$out_dir,"/",inp$project,".filtered.tagged.bam",sep="")
 
 cDNA_peek <- data.table::fread(cmd = paste(samtools,"view",filtered_bams[1],"| cut -f10 | head -n 1000"),stringsAsFactors = F,data.table = T, header = F)
 
@@ -92,9 +94,9 @@ getmode <- function(v) {
   uniqv[which.max(tabulate(match(v, uniqv)))]
 }
 
-cDNA_read_length <- 150 #getmode(nchar(cDNA_peek$V1))
-
-
+cDNA_read_length <- getmode(nchar(cDNA_peek$V1))
+print(cDNA_read_length)
+print("4")
 # Setup STAR mapping ------------------------------------------------------
 samtools_load_cores <- ifelse(inp$num_threads>8,2,1)
 avail_cores <- 16 # inp$num_threads - samtools_load_cores #reserve threads for samtools file opening
@@ -112,13 +114,17 @@ param_misc <- paste("--genomeDir",inp$reference$STAR_index,
                     "--sjdbGTFfile",gtf_to_use,
                     "--runThreadN",avail_cores,
                     "--sjdbOverhang", cDNA_read_length-1,
-                    "--readFilesType SAM",inp$read_layout)
+#                    "--sjdbOverhang 149",
+                    "--readFilesType SAM PE",
+	            "--genomeSAindexNbases 11",
+		    "--limitOutSJcollapsed 5000000",
+                    inp$read_layout)
 
 STAR_command <- paste(STAR_exec,param_defaults,param_misc,inp$reference$additional_STAR_params,param_additional_fa)
 if(inp$counting_opts$twoPass==TRUE){
   STAR_command <- paste(STAR_command,"--twopassMode Basic")
 }
-
+print("5")
 #finally, run STAR
 if(num_star_instances>1 & inp$which_Stage == "Filtering"){
   map_tmp_dir <- paste0(inp$out_dir,"/zUMIs_output/.tmpMap/")
@@ -154,7 +160,7 @@ if(num_star_instances>1 & inp$which_Stage == "Filtering"){
     system(STAR_command)
   }
 }
-
+print("6")
 
 #clean up chunked bam files
 if(inp$which_Stage == "Filtering"){
