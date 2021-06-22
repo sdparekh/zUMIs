@@ -113,12 +113,11 @@ param_defaults <- paste("--readFilesCommand ",samtools," view -@",samtools_load_
 param_misc <- paste("--genomeDir",inp$reference$STAR_index,
                     "--sjdbGTFfile",gtf_to_use,
                     "--runThreadN",avail_cores,
-                    "--sjdbOverhang", cDNA_read_length-1,
+#                    "--sjdbOverhang", cDNA_read_length-1,
 #                    "--sjdbOverhang 149",
-                    "--readFilesType SAM PE",
+                    "--readFilesType SAM", inp$read_layout,
 	            "--genomeSAindexNbases 11",
-		    "--limitOutSJcollapsed 5000000",
-                    inp$read_layout)
+		    "--limitOutSJcollapsed 5000000")
 
 STAR_command <- paste(STAR_exec,param_defaults,param_misc,inp$reference$additional_STAR_params,param_additional_fa)
 if(inp$counting_opts$twoPass==TRUE){
@@ -143,7 +142,7 @@ if(num_star_instances>1 & inp$which_Stage == "Filtering"){
   #after parallel instance STAR, collect output data in the usual file places
   out_logs <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.Log.final.out"), full = TRUE)
   merge_logs <- paste("cat",paste(out_logs, collapse = " "),">",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Log.final.out"))
-  out_bams <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.Aligned.out.bam"), full = TRUE)
+  out_bams <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*Aligned.out.bam"), full = TRUE)
   merge_bams <- paste(inp$samtools_exec,"cat -o",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.out.bam"),paste(out_bams, collapse = " "))
   out_txbams <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.Aligned.toTranscriptome.out.bam"), full = TRUE)
   merge_txbams <- paste(inp$samtools_exec,"cat -o",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.toTranscriptome.out.bam"),paste(out_txbams, collapse = " "))
