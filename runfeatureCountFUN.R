@@ -348,8 +348,7 @@ get_gr <- function(y){GenomicRanges::makeGRangesFromDataFrame(y,
 
 .runFeatureCount<-function(abamfile,RG,saf,strand,type,primaryOnly,cpu,mem,fcounts_clib,multi_overlap_var){
   print(paste0("Assigning reads to features (",type,")"))
-  #  fc.stat<-Rsubread::featureCounts(files=abamfile,
-    fc.stat <- featureCounts(files=abamfile,
+     fc.stat <- featureCounts(files=abamfile,
                                    annot.ext=saf,
                                    isGTFAnnotationFile=F,
                                    primaryOnly=primaryOnly,

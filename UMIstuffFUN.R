@@ -68,17 +68,12 @@ reads2genes_new <- function(featfile, bccount, inex, chunk, cores, keepUnassigne
     taglist <- c(taglist, "GI")
   }
 
+  # remove special characters for unmapped reads from list of chromosomes
   idxstats <- idxstats[grep("\\*", idxstats[,1], invert = TRUE), ]
-print(idxstats)
-#print(str(idxstats))
-#print(levels(idxstats[,"seqnames"]))
+  idxstats[,1] <- droplevels(idxstats[,1])
+  idxstats[,1] <- factor(as.character(idxstats[,1]), levels = seqnames(seqinfo(BamFile(featfile))))
+  print(idxstats)
 
-idxstats[,1] <- droplevels(idxstats[,1])
-print(levels(idxstats[,"seqnames"]))
-
-idxstats[,1] <- factor(as.character(idxstats[,1]), levels = seqnames(seqinfo(BamFile(featfile))))
-
-#print(idxstats)
   rsamtools_reads <- mclapply(1:nrow(idxstats), function(x) {
     if(opt$read_layout == "PE"){
       parms <- ScanBamParam(tag=taglist,
@@ -94,9 +89,6 @@ idxstats[,1] <- factor(as.character(idxstats[,1]), levels = seqnames(seqinfo(Bam
     }
 
     dat <- scanBam(file = featfile, param = parms)
-#print(head(dat))
-#print(dim(dat))
-#print(str(dat))
     if(inex){
       dt <- data.table(RG = dat[[1]]$tag$BC, UB = dat[[1]]$tag$UB, GE = dat[[1]]$tag$GE, GEin = dat[[1]]$tag$GI)
     }else{

@@ -210,9 +210,7 @@ if( opt$counting_opts$introns ){
 for(i in unique(bccount$chunkID)){
      print( paste( "Working on barcode chunk", i, "out of",length(unique(bccount$chunkID)) ))
      print( paste( "Processing",length(bccount[chunkID==i]$XC), "barcodes in this chunk..." ))
-print(sortbamfile)
-print(bccount)
-print(opt$counting_opts$introns)
+     print(sortbamfile)
      reads <- reads2genes_new(featfile = sortbamfile,
                               bccount  = bccount,
                               inex     = opt$counting_opts$introns,
