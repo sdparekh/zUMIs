@@ -92,7 +92,7 @@ getmode <- function(v) {
 cDNA_read_length <- getmode(nchar(cDNA_peek$V1))
 # Setup STAR mapping ------------------------------------------------------
 samtools_load_cores <- ifelse(inp$num_threads>8,2,1)
-avail_cores <- 16 # inp$num_threads - samtools_load_cores #reserve threads for samtools file opening
+avail_cores <- inp$num_threads - samtools_load_cores #reserve threads for samtools file opening
 if(inp$which_Stage == "Filtering"){
   avail_cores <- floor(avail_cores / num_star_instances)
 }
