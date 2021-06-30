@@ -40,6 +40,7 @@ RUN apt-get update \
  curl \
  libcurl4-openssl-dev \
  libcairo2-dev cairo-dock cairo-dock-plug-ins \
+ libfreetype6-dev libpng-dev libtiff5-dev libjpeg-dev \
  libxt-dev \
  libharfbuzz-dev libfribidi-dev \
  libhdf5-dev \
@@ -71,11 +72,20 @@ RUN R -e 'install.packages(c("yaml", "BiocManager", "Cairo", "ggplot2", "cowplot
 
 RUN R -e 'BiocManager::install(c("GenomicFeatures", "plyranges", "Rhtslib", "Rsamtools"), ask = FALSE)'
 
+RUN echo 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"' > /root/.Renviron
+
 RUN R -e 'install.packages("devtools"); devtools::install_github(repo = "hhoeflin/hdf5r"); devtools::install_github(repo = "mojaveazure/loomR", ref = "develop")'
 
 RUN mkdir -p home && cd home && git clone https://github.com/TomKellyGenetics/zUMIs.git
 
-RUN cd /home  && wget https://github.com/alexdobin/STAR/archive/2.7.9a.tar.gz && tar -xzf 2.7.9a.tar.gz && cd STAR-2.7.9a/source && make
+RUN cd /home  && wget https://github.com/alexdobin/STAR/archive/2.7.9a.tar.gz \
+ && tar xf 2.7.9a.tar.gz \
+ && rm 2.7.9a.tar.gz \
+ && cd STAR-2.7.9a/source \
+ && make \
+ && mv ./STAR* /usr/bin \
+ && cd ../.. \
+ && rm -rf STAR-2.7.9a
 
 CMD ["/bin/bash"]
 
