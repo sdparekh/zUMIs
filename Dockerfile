@@ -53,7 +53,7 @@ RUN apt-get update \
 
 RUN conda install numpy scipy cython numba matplotlib scikit-learn h5py click
 
-RUN pip install pysam velocyto
+RUN pip install pysam velocyto; pip2 install pysam
 
 RUN apt update -qq \
   && apt install --no-install-recommends software-properties-common dirmngr \
