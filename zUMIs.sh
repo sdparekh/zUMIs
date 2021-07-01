@@ -261,10 +261,6 @@ if [[ "${whichStage}" == "Filtering" ]] ; then
   for x in ${l} ; do perl ${zumisdir}/fqfilter_v2.pl ${yaml} ${samtoolsexc} ${Rexc} ${pigzexc} ${zumisdir} ${x} & done
   wait
   bash ${zumisdir}/mergeBAM.sh ${zumisdir} ${tmpMerge} ${num_threads} ${project} ${outdir} ${yaml} ${samtoolsexc}
-  for i in ${fqfiles} ; do
-      pref=$(basename ${i} | sed 's/.fastq.gz//' | sed 's/.fq.gz//')
-      rm ${tmpMerge}${pref}*gz
-  done
   date
 
   #run barcode detection
@@ -291,6 +287,8 @@ if
     ${Rexc} ${zumisdir}/zUMIs-mapping.R ${yaml}
   date
 fi
+
+rm -rf ${tmpMerge}
 
 if
 [[ "${whichStage}" == "Filtering" ]] ||
