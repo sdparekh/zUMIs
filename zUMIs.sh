@@ -288,8 +288,6 @@ if
   date
 fi
 
-rm -rf ${tmpMerge}
-
 if
 [[ "${whichStage}" == "Filtering" ]] ||
 [[ "${whichStage}" == "Mapping" ]] ||
