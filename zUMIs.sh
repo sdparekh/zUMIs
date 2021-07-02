@@ -3,7 +3,7 @@
 # Pipeline to run UMI-seq analysis from fastq to read count tables.
 # Authors: Swati Parekh, Christoph Ziegenhain, Beate Vieth & Ines Hellmann
 # Contact: sparekh@age.mpg.de or christoph.ziegenhain@ki.se
-vers=2.9.6
+vers=2.9.7
 currentv=$(curl -s https://raw.githubusercontent.com/sdparekh/zUMIs/main/zUMIs.sh | grep '^vers=' | cut -f2 -d "=")
 if [ "$currentv" != "$vers" ] ; then
     echo -e "------------- \n\n Good news! A newer version of zUMIs is available at https://github.com/sdparekh/zUMIs \n\n-------------";
@@ -261,10 +261,6 @@ if [[ "${whichStage}" == "Filtering" ]] ; then
   for x in ${l} ; do perl ${zumisdir}/fqfilter_v2.pl ${yaml} ${samtoolsexc} ${Rexc} ${pigzexc} ${zumisdir} ${x} & done
   wait
   bash ${zumisdir}/mergeBAM.sh ${zumisdir} ${tmpMerge} ${num_threads} ${project} ${outdir} ${yaml} ${samtoolsexc}
-  for i in ${fqfiles} ; do
-      pref=$(basename ${i} | sed 's/.fastq.gz//' | sed 's/.fq.gz//')
-      rm ${tmpMerge}${pref}*gz
-  done
   date
 
   #run barcode detection
@@ -322,3 +318,5 @@ fi
 if [[ ${conda} = true ]] ; then
   source ${zumisenv}/bin/deactivate
 fi
+
+rm -rf ${tmpMerge}

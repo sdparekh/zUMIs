@@ -26,7 +26,6 @@ if(inp$which_Stage == "Filtering"){
   filtered_bams <- paste0(inp$out_dir,"/",inp$project,".filtered.tagged.unmapped.bam") # for resuming from mapping state using the merged unmapped bam
 }
 
-
 # check if multiple STAR instances can be run -----------------------------
 
 genome_size <- system(command = paste("du -sh",inp$reference$STAR_index,"| cut -f1"), intern = TRUE)
@@ -41,7 +40,6 @@ if(num_star_instances < 1){
 if(num_star_instances > inp$num_threads){
   num_star_instances = inp$num_threads
 } 
-
 # GTF file setup ----------------------------------------------------------
 #in case of additional sequences, we need to create a custom GTF
 
@@ -77,13 +75,12 @@ if ( is.null(additional_fq[1]) | length(additional_fq)==0 ) {
   gtf_to_use <- paste(inp$out_dir,"/",inp$project,".final_annot.gtf",sep="")
   param_additional_fa <- paste("--genomeFastaFiles",paste(inp$reference$additional_files,collapse = " "))
 }
-
-#inp$reference$GTF_file_final <- gtf_to_use
-#yaml::write_yaml(inp,file = paste(inp$out_dir,"/",inp$project,".postmap.yaml",sep=""))
+inp$reference$GTF_file_final <- gtf_to_use
+yaml::write_yaml(inp,file = paste(inp$out_dir,"/",inp$project,".postmap.yaml",sep=""))
 
 # Detect read length ------------------------------------------------------
 #check the first 100 reads to detect the read length of the cDNA read
-#filtered_bam <- paste(inp$out_dir,"/",inp$project,".filtered.tagged.bam",sep="")
+filtered_bam <- paste(inp$out_dir,"/",inp$project,".filtered.tagged.bam",sep="")
 
 cDNA_peek <- data.table::fread(cmd = paste(samtools,"view",filtered_bams[1],"| cut -f10 | head -n 1000"),stringsAsFactors = F,data.table = T, header = F)
 
@@ -93,8 +90,6 @@ getmode <- function(v) {
 }
 
 cDNA_read_length <- getmode(nchar(cDNA_peek$V1))
-
-
 # Setup STAR mapping ------------------------------------------------------
 samtools_load_cores <- ifelse(inp$num_threads>8,2,1)
 avail_cores <- inp$num_threads - samtools_load_cores #reserve threads for samtools file opening
@@ -111,14 +106,14 @@ param_defaults <- paste("--readFilesCommand ",samtools," view -@",samtools_load_
 param_misc <- paste("--genomeDir",inp$reference$STAR_index,
                     "--sjdbGTFfile",gtf_to_use,
                     "--runThreadN",avail_cores,
-                    "--sjdbOverhang", cDNA_read_length-1,
-                    "--readFilesType SAM",inp$read_layout)
+                    "--readFilesType SAM", inp$read_layout,
+	            "--genomeSAindexNbases 11",
+		    "--limitOutSJcollapsed 5000000")
 
 STAR_command <- paste(STAR_exec,param_defaults,param_misc,inp$reference$additional_STAR_params,param_additional_fa)
 if(inp$counting_opts$twoPass==TRUE){
   STAR_command <- paste(STAR_command,"--twopassMode Basic")
 }
-
 #finally, run STAR
 if(num_star_instances>1 & inp$which_Stage == "Filtering"){
   map_tmp_dir <- paste0(inp$out_dir,"/zUMIs_output/.tmpMap/")
@@ -137,7 +132,7 @@ if(num_star_instances>1 & inp$which_Stage == "Filtering"){
   #after parallel instance STAR, collect output data in the usual file places
   out_logs <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.Log.final.out"), full = TRUE)
   merge_logs <- paste("cat",paste(out_logs, collapse = " "),">",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Log.final.out"))
-  out_bams <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.Aligned.out.bam"), full = TRUE)
+  out_bams <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*Aligned.out.bam"), full = TRUE)
   merge_bams <- paste(inp$samtools_exec,"cat -o",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.out.bam"),paste(out_bams, collapse = " "))
   out_txbams <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.Aligned.toTranscriptome.out.bam"), full = TRUE)
   merge_txbams <- paste(inp$samtools_exec,"cat -o",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.toTranscriptome.out.bam"),paste(out_txbams, collapse = " "))
@@ -154,7 +149,6 @@ if(num_star_instances>1 & inp$which_Stage == "Filtering"){
     system(STAR_command)
   }
 }
-
 
 #clean up chunked bam files
 if(inp$which_Stage == "Filtering"){

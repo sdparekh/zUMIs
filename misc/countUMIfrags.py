@@ -24,7 +24,7 @@ def count_UMItags(inpath, bcs, chr):
         bc = read.get_tag('BC')
         if bc in bcs:
             ub = read.get_tag('UB')
-            if ub is '':
+            if ub == '':
                 bccounts[bc]['int'] += 1
             else:
                  bccounts[bc]['umi'] += 1
