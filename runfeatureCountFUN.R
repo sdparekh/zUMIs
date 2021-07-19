@@ -21,7 +21,7 @@ suppressWarnings(suppressMessages(require(AnnotationDbi)))
 .chromLengthFilter <- function(abamfile, keep_chr_minLength =0, samtoolsexc){
   bread<- paste(samtoolsexc,"view -H ", abamfile , "| grep '^@SQ' | cut -f2,3 ")
   chr<-data.table::fread(bread,col.names = c("chr","len"), header = F)[
-                              , chr2 :=gsub("SN:","",chr)][ 
+                              , chr2 :=gsub("SN:","",chr)][
                               , len2 :=gsub("LN:","",len)][
                               , len2 := as.numeric(len2)][len2>=keep_chr_minLength]
   out <- data.frame("name" = chr$chr2, "length" = chr$len2, stringsAsFactors = FALSE)
@@ -346,7 +346,7 @@ get_gr <- function(y){GenomicRanges::makeGRangesFromDataFrame(y,
   return(saf)
 }
 
-.runFeatureCount<-function(abamfile,RG,saf,strand,type,primaryOnly,cpu,mem,fcounts_clib,multi_overlap_var){
+.runFeatureCount<-function(abamfile,RG,saf,strand,type,primaryOnly,cpu,mem,fcounts_clib,multi_overlap_var,fraction_overlap){
   print(paste0("Assigning reads to features (",type,")"))
   #  fc.stat<-Rsubread::featureCounts(files=abamfile,
      fc.stat <- featureCounts(files=abamfile,
@@ -361,6 +361,8 @@ get_gr <- function(y){GenomicRanges::makeGRangesFromDataFrame(y,
                                    isPairedEnd=T,
                                    countChimericFragments=F,
                                    fcounts_clib = fcounts_clib,
+                                   largestOverlap = TRUE,
+                                   fracOverlap = fraction_overlap,
                                    isIntronInput = ifelse(type == "in", 1, 0))$stat
   fn<-paste0(abamfile,".featureCounts.bam")
   nfn<-paste0(abamfile,".",type,".featureCounts.bam")

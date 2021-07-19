@@ -73,14 +73,14 @@ if(smart3_flag & opt$counting_opts$strand == 1){
   tmp_bams <- split_bam(bam = abamfile, cpu = opt$num_threads, samtoolsexc=samtoolsexc)
 
   #assign features with appropriate strand
-  fnex_int<-.runFeatureCount(tmp_bams[1], saf=saf$exons, strand=0, type="ex", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap)
-  fnex_umi<-.runFeatureCount(tmp_bams[2], saf=saf$exons, strand=1, type="ex", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap)
+  fnex_int<-.runFeatureCount(tmp_bams[1], saf=saf$exons, strand=0, type="ex", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap, fraction_overlap = opt$counting_opts$fraction_overlap)
+  fnex_umi<-.runFeatureCount(tmp_bams[2], saf=saf$exons, strand=1, type="ex", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap, fraction_overlap = opt$counting_opts$fraction_overlap)
   ffiles_int <- paste0(fnex_int,".tmp")
   ffiles_umi <- paste0(fnex_umi,".tmp")
 
   if(opt$counting_opts$introns){
-    fnin_int<-.runFeatureCount(ffiles_int, saf=saf$introns, strand=0, type="in", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap)
-    fnin_umi<-.runFeatureCount(ffiles_umi, saf=saf$introns, strand=1, type="in", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap)
+    fnin_int<-.runFeatureCount(ffiles_int, saf=saf$introns, strand=0, type="in", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap, fraction_overlap = opt$counting_opts$fraction_overlap)
+    fnin_umi<-.runFeatureCount(ffiles_umi, saf=saf$introns, strand=1, type="in", primaryOnly = opt$counting_opts$primaryHit, cpu = opt$num_threads, mem = opt$mem_limit, fcounts_clib = fcounts_clib, multi_overlap_var = opt$counting_opts$multi_overlap, fraction_overlap = opt$counting_opts$fraction_overlap)
     ffiles_int <- paste0(fnin_int,".tmp")
     ffiles_umi <- paste0(fnin_umi,".tmp")
   }
@@ -96,7 +96,8 @@ if(smart3_flag & opt$counting_opts$strand == 1){
                          cpu = opt$num_threads,
                          mem = opt$mem_limit,
                          fcounts_clib = fcounts_clib,
-                         multi_overlap_var = opt$counting_opts$multi_overlap)
+                         multi_overlap_var = opt$counting_opts$multi_overlap,
+                         fraction_overlap = opt$counting_opts$fraction_overlap)
   ffiles<-paste0(fnex,".tmp")
 
   if(opt$counting_opts$introns){
@@ -108,7 +109,8 @@ if(smart3_flag & opt$counting_opts$strand == 1){
                              cpu = opt$num_threads,
                              mem = opt$mem_limit,
                              fcounts_clib = fcounts_clib,
-                             multi_overlap_var = opt$counting_opts$multi_overlap)
+                             multi_overlap_var = opt$counting_opts$multi_overlap,
+                             fraction_overlap = opt$counting_opts$fraction_overlap)
     system(paste0("rm ",fnex,".tmp"))
     ffiles<-paste0(fnin,".tmp")
   }
@@ -146,12 +148,12 @@ if(opt$counting_opts$Ham_Dist == 0){
   system(index_cmd)
   system(paste0("rm ",tmpbamfile))
   print(Sys.time())
-  
+
   #check if PE / SE flag is set correctly
   if(is.null(opt$read_layout)){
     opt$read_layout <- check_read_layout(outbamfile)
   }
-  
+
   for(i in unique(bccount$chunkID)){
     print( paste( "Hamming distance collapse in barcode chunk", i, "out of",length(unique(bccount$chunkID)) ))
     reads <- reads2genes_new(featfile = outbamfile,

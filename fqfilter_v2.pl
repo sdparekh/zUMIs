@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/usr/bin/env perl
 # LMU Munich. AG Enard
 # A script to filter reads based on Barcode base quality.
 
