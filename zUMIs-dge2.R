@@ -8,7 +8,7 @@ suppressPackageStartupMessages(library(Rsamtools))
 ##########################
 myYaml <- commandArgs(trailingOnly = T)
 
-opt   <-read_yaml(myYaml)
+opt   <- read_yaml(myYaml)
 setwd(opt$out_dir)
 #try(unixtools::set.tempdir(opt$out_dir))
 source(paste0(opt$zUMIs_directory,"/runfeatureCountFUN.R"))
@@ -26,6 +26,7 @@ data.table::setDTthreads(threads=1)
 fcounts_clib <- paste0(opt$zUMIs_directory,"/misc/fcountsLib2")
 
 opt <- fixMissingOptions(opt)
+print(opt)
 #######################################################################
 ########################## double check for non-UMI method
 UMIcheck <- check_nonUMIcollapse(opt$sequence_files)
@@ -33,7 +34,7 @@ if(UMIcheck == "nonUMI"){
   opt$counting_opts$Ham_Dist <- 0
 }
 #is the data Smart-seq3?
-smart3_flag <- ifelse(any(grepl(pattern = "ATTGCGCAATG",x = unlist(opt$sequence_files))), TRUE, FALSE)
+smart3_flag <- ifelse(any(grepl(pattern = "ATTGCGCAATG", x = unlist(opt$sequence_files))), TRUE, FALSE)
 
 #######################################################################
 ##### Barcode handling & chunking
@@ -211,6 +212,7 @@ if( opt$counting_opts$introns ){
 for(i in unique(bccount$chunkID)){
      print( paste( "Working on barcode chunk", i, "out of",length(unique(bccount$chunkID)) ))
      print( paste( "Processing",length(bccount[chunkID==i]$XC), "barcodes in this chunk..." ))
+     print(sortbamfile)
      reads <- reads2genes_new(featfile = sortbamfile,
                               bccount  = bccount,
                               inex     = opt$counting_opts$introns,

@@ -31,7 +31,10 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+DD MMM YYYY: zUMIs2.9.8: merged code from @TomKellyGenetics. Update for compatbility with STAR 2.7.9a and samtools 1.3.1-3. Prevent crash when unmapped reads are counted as a special character for chromosomes from samtools idxstats is not permitted as a factor levels. Excludes unmapped reads for counting.
+
 16 Jul 2021: zUMIs2.9.7: Change perl [shebang line](https://github.com/sdparekh/zUMIs/issues/261). Change featureCounts settings to assign reads to genes with the longest overlap in case of ambiguous/overlapping annotations. Allow to control the minimum required overlap of reads to genes with a setting `fraction_overlap:` in the counting section.
+
 
 07 Apr 2021: zUMIs2.9.6: Fixed a potential crash when the input file to the barcode sharing feature does not contain an equal number of columns.
 

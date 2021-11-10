@@ -38,7 +38,7 @@ function splitfqgz() {
   d=`dirname $fqfile`
   $pexc -dc -p $nthreads $d/$pref.gz | split --lines=$nl --filter=''$pexc' -p '$nthreads' > $FILE.gz' - $t$pref$project
 
-	ls $t$pref$project* | sed "s|$t$pref$project||" | sed 's/.gz//' > $t/$project.listPrefix.txt
+        ls $t| grep $pref$project | sed "s|$pref$project||" | sed 's/.gz//' > $t/$project.listPrefix.txt
 
 	exit 1
 }
