@@ -78,6 +78,7 @@ counting_opts:
   velocyto: no #Would you like velocyto to do counting of intron-exon spanning reads
   primaryHit: yes #Do you want to count the primary Hits of multimapping reads towards gene expression levels?
   multi_overlap: no #Do you want to assign reads overlapping to multiple features?
+  fraction_overlap: 0 #minimum required fraction of the read overlapping with the gene for read assignment to genes
   twoPass: yes #perform basic STAR twoPass mapping
 
 #produce stats files and plots?

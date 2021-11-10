@@ -590,6 +590,10 @@ fixMissingOptions <- function(config){
     config$counting_opts$multi_overlap <- FALSE
   }
 
+  if(is.null(config$counting_opts$fraction_overlap)){
+    config$counting_opts$fraction_overlap <- 0
+  }
+
   if(is.null(config$counting_opts$intronProb)){
     config$counting_opts$intronProb <- FALSE
   }
