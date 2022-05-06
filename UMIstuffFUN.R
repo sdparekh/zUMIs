@@ -63,6 +63,10 @@ ham_mat <- function(umistrings) {
 reads2genes_new <- function(featfile, bccount, inex, chunk, cores, keepUnassigned = FALSE){
   chunk_bcs <- bccount[chunkID==chunk]$XC
   idxstats <- Rsamtools::idxstatsBam(featfile)
+  if("*" %in% idxstats$seqnames){
+    idxstats <- idxstats[idxstats$seqnames != "*", ]
+    idxstats$seqnames <- as.character(idxstats$seqnames)
+  }
   taglist <- c("BC", "UB","GE")
   if(inex){
     taglist <- c(taglist, "GI")

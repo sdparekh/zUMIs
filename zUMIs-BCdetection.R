@@ -11,7 +11,13 @@ opt   <-read_yaml(myYaml)
 setwd(opt$out_dir)
 source(paste0(opt$zUMIs_directory,"/barcodeIDFUN.R"))
 options(datatable.fread.input.cmd.message=FALSE)
-data.table::setDTthreads(threads=opt$num_threads)
+
+if(opt$num_threads < 32){
+  data.table::setDTthreads(threads=opt$num_threads)
+}else{
+  data.table::setDTthreads(threads=32)
+}
+
 if(!is.null(opt$barcodes$barcode_sharing)){
   if(opt$barcodes$barcode_sharing == ""){
     opt$barcodes$barcode_sharing <- NULL
