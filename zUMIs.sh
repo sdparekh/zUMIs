@@ -247,7 +247,7 @@ if [[ "${whichStage}" == "Filtering" ]] ; then
       pref=$(basename ${f} .gz)
       l=$(ls ${tmpMerge}${pref}* | sed "s|${tmpMerge}${pref}||" | sed 's/.gz//')
   else
-      cat ${f} | head -n 4000000 > ${tmpMerge}/${project}.1mio.check.fq
+      head -n 4000000 ${f} > ${tmpMerge}/${project}.1mio.check.fq
       smallsize=$(stat --printf="%s" ${tmpMerge}/${project}.1mio.check.fq)
       rm ${tmpMerge}/${project}.1mio.check.fq
       nreads=$(expr ${fullsize} \* 1000000 / ${smallsize})
