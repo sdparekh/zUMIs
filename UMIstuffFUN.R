@@ -72,7 +72,7 @@ reads2genes_new <- function(featfile, bccount, inex, chunk, cores, keepUnassigne
     taglist <- c(taglist, "GI")
   }
 
-  rsamtools_reads <- mclapply(1:nrow(idxstats), function(x) {
+  rsamtools_reads <- parallel::mclapply(1:nrow(idxstats), function(x) {
     if(opt$read_layout == "PE"){
       parms <- ScanBamParam(tag=taglist,
                             what="pos",

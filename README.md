@@ -31,7 +31,7 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
-06 May 2022: zUMIs2.9.7b: Update loading reads with RSamtools to avoid version-dependent failure caused by "*" for unmapped reads.
+06 May 2022: zUMIs2.9.7b/c: Update loading reads with RSamtools to avoid version-dependent failure caused by "*" for unmapped reads.
 
 16 Jul 2021: zUMIs2.9.7: Change perl [shebang line](https://github.com/sdparekh/zUMIs/issues/261). Change featureCounts settings to assign reads to genes with the longest overlap in case of ambiguous/overlapping annotations. Allow to control the minimum required overlap of reads to genes with a setting `fraction_overlap:` in the counting section.
 
