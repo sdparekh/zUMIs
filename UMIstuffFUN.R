@@ -208,7 +208,7 @@ ham_helper_fun <- function(x){
                            ][         , targetN:=exn  # use binomial to break down to exon sampling
                                       ][ n> nmax, targetN:=rbinom(1,nmax,mean(exn)/mean(n) ), by=RG
                                       ][targetN>exn, targetN:=exn][is.na(targetN),targetN :=0
-                                                                 ][ ,list(list(sample(.I , targetN))),by = RG]$V1) ])
+                                                                 ][ ,list(list(sample(.I , unique(targetN)))),by = RG]$V1) ])
   }else{ return(NULL) }
 }
 
