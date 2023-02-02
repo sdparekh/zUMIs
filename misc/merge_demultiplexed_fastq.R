@@ -1,3 +1,5 @@
+#!/usr/bin/env Rscript
+
 library(stringi)
 library(optparse)
 library(data.table)
