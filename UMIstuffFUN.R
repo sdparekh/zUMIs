@@ -208,7 +208,7 @@ ham_helper_fun <- function(x){
                            ][         , targetN:=exn  # use binomial to break down to exon sampling
                                       ][ n> nmax, targetN:=rbinom(1,nmax,mean(exn)/mean(n) ), by=RG
                                       ][targetN>exn, targetN:=exn][is.na(targetN),targetN :=0
-                                                                 ][ ,list(list(sample(.I , unique(targetN)))),by = RG]$V1) ])
+                                                                 ][ ,list(list(sample(.I , targetN))),by = RG]$V1) ])
   }else{ return(NULL) }
 }
 
@@ -236,7 +236,7 @@ umiCollapseID<-function(reads,bccount,nmin=0,nmax=Inf,ftype=c("intron","exon"),.
 
     nreads <- nrow(retDF)
     n_nonUMI <- nrow(retDF[!is.na(UB)][!UB == ""])
-    if(n_nonUMI > 0 & n_nonUMI<nreads){ #detect mix of internal and UMI reads in Smartseq3
+    if(n_nonUMI > 0 & n_nonUMI <= nreads){ #detect mix of internal and UMI reads in Smartseq3
       internaldt <- retDF[UB=="", list(readcount_internal =.N),
                          by=c("RG","GE") ]
       nret <- merge(nret, internaldt, by = c("RG","GE"), all.x = TRUE)

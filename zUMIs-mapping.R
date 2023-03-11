@@ -135,12 +135,15 @@ if(num_star_instances>1 & inp$which_Stage == "Filtering"){
   system(paste(STAR_command,"&",sammerge_command,"& wait"))
   
   #after parallel instance STAR, collect output data in the usual file places
+  out_sjs <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.SJ.out.tab"), full = TRUE)
+  copy_sjs <- paste("cp",paste0(map_tmp_dir,"/tmp.",inp$project,".*.SJ.out.tab"),paste0(inp$out_dir,"/"))
   out_logs <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.Log.final.out"), full = TRUE)
   merge_logs <- paste("cat",paste(out_logs, collapse = " "),">",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Log.final.out"))
   out_bams <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.Aligned.out.bam"), full = TRUE)
   merge_bams <- paste(inp$samtools_exec,"cat -o",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.out.bam"),paste(out_bams, collapse = " "))
   out_txbams <- list.files(map_tmp_dir, pattern = paste0("tmp.",inp$project,".*.Aligned.toTranscriptome.out.bam"), full = TRUE)
   merge_txbams <- paste(inp$samtools_exec,"cat -o",paste0(inp$out_dir,"/",inp$project,".filtered.tagged.Aligned.toTranscriptome.out.bam"),paste(out_txbams, collapse = " "))
+  system(copy_sjs)
   system(paste(merge_logs,"&",merge_bams,"&",merge_txbams,"& wait"))
   system(paste0("rm -r ", map_tmp_dir, "tmp.", inp$project, ".*"))
 }else{

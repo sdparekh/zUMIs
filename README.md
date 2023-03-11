@@ -31,6 +31,8 @@ We provide a script to convert zUMIs output into loom file automatically based o
 zUMIs will try to automatically do this, otherwise convert zUMIs output to loom by simply running `Rscript rds2loom.R myRun.yaml`.
 
 ## Changelog
+11 Mar 2023: zUMIs2.9.7e: Keep SJ outfiles. Fix issue #351 (thanks, Romain-B!)
+
 11 Jan 2023: zUMIs2.9.7d: Small fix with a vector vs single value per BC passed in sample() during read sampling for gene expression counts.
 
 06 May 2022: zUMIs2.9.7b/c: Update loading reads with RSamtools to avoid version-dependent failure caused by "*" for unmapped reads.
