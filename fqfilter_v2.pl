@@ -305,11 +305,11 @@ while(<$fh1>){
       chomp($rid);
 
       if($rid =~ m/^\@.*\s/){
-        $rid =~ m/^\@(.*)\s/;
+        $rid =~ m/^\@(\S+)/;
         $ridtmp = $1;
       }
       else{
-        $rid =~ m/^\@(.*)/;
+        $rid =~ m/^\@(\S+)/;
         $ridtmp = $1;
       }
 
