@@ -211,7 +211,7 @@ if [[ -z "${sam_exc_check}" ]] ||
 fi
 
 # Check if the STAR version used for mapping and the one in the provided STAR index are the same
-starver=$(${starexc} --version | sed 's/STAR_//g' | sed 's/\s+//g')
+starver=$(${starexc} --help | grep 'versionGenome' | awk '{print $2}')
 staridxver=$(grep "versionGenome" ${staridxdir}/genomeParameters.txt | awk '{print $2}' | sed 's/\s+//g')
 
 if [[ "${starver}" != "${staridxver}" ]] ; then
